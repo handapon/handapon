@@ -9,36 +9,44 @@
   body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:15px;line-height:1.6}
   
   /* Nav */
-  .nav{background:#fff;border-bottom:1px solid #e0e0d8;display:flex;align-items:center;gap:0;padding:0 1.5rem;position:sticky;top:0;z-index:100}
-  .nav-title{font-size:13px;font-weight:600;padding:1rem 0;margin-right:1.5rem;white-space:nowrap}
+  .nav{background:#fff;border-bottom:1px solid #e0e0d8;display:flex;align-items:center;gap:0;padding:0 1rem;position:sticky;top:0;z-index:100}
+  .nav-title{font-size:13px;font-weight:600;padding:1rem 0;margin-right:1rem;white-space:nowrap;flex-shrink:0}
   .nav-tabs{display:flex;gap:0;flex:1;overflow-x:auto}
-  .nav-tab{padding:.75rem 1rem;font-size:13px;cursor:pointer;border:none;background:transparent;color:#666;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+  .nav-tab{padding:.75rem .85rem;font-size:13px;cursor:pointer;border:none;background:transparent;color:#666;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
   .nav-tab.active{color:#1a1a1a;border-bottom-color:#2563eb;font-weight:500}
   .nav-tab:hover:not(.active){color:#1a1a1a;background:#f5f5f0}
-  
+  .nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;padding:6px;cursor:pointer;border:none;background:transparent;margin-left:auto;flex-shrink:0}
+  .nav-hamburger span{display:block;height:2px;background:#555;border-radius:2px;transition:all .2s}
+  .nav-hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .nav-hamburger.open span:nth-child(2){opacity:0}
+  .nav-hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .nav-menu-mobile{display:none;position:fixed;top:49px;left:0;right:0;background:#fff;border-bottom:1px solid #e0e0d8;z-index:99;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .nav-menu-mobile.open{display:block}
+  .nav-menu-mobile .nav-tab{display:block;width:100%;text-align:left;padding:.85rem 1.25rem;border-bottom:1px solid #f0f0e8;border-left:3px solid transparent;border-bottom-width:1px}
+  .nav-menu-mobile .nav-tab.active{border-left-color:#2563eb;background:#f8fbff;color:#2563eb;border-bottom-color:#2563eb}
+
   /* Layout */
-  .page{display:none;padding:1.5rem;max-width:1200px;margin:0 auto}
+  .page{display:none;padding:1.25rem;max-width:1200px;margin:0 auto}
   .page.active{display:block}
-  
+
   /* Cards */
   .card{background:#fff;border:1px solid #e0e0d8;border-radius:10px;padding:1.25rem}
   .card-title{font-size:14px;font-weight:600;margin-bottom:1rem;color:#444}
-  
+
   /* Stat cards */
-  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem}
-  .stat{background:#f9f9f6;border:1px solid #e8e8e2;border-radius:8px;padding:1rem}
-  .stat-label{font-size:12px;color:#888;margin-bottom:4px}
-  .stat-value{font-size:24px;font-weight:600;color:#1a1a1a}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.5rem}
+  .stat{background:#f9f9f6;border:1px solid #e8e8e2;border-radius:8px;padding:.85rem}
+  .stat-label{font-size:11px;color:#888;margin-bottom:4px}
+  .stat-value{font-size:22px;font-weight:600;color:#1a1a1a}
   .stat-value.blue{color:#2563eb}
   .stat-value.green{color:#16a34a}
   .stat-value.orange{color:#ea580c}
   .stat-value.red{color:#dc2626}
-  
+
   /* Grid layouts */
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
   .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
-  @media(max-width:700px){.grid-2,.grid-3{grid-template-columns:1fr}}
-  
+
   /* Buttons */
   .btn{padding:.5rem 1rem;border-radius:6px;border:1px solid #d0d0c8;background:#fff;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;color:#1a1a1a}
   .btn:hover{background:#f0f0ea;border-color:#b0b0a8}
@@ -51,23 +59,23 @@
   .btn-success:hover{background:#15803d}
   .btn-sm{padding:.3rem .7rem;font-size:12px}
   .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem}
-  
+
   /* Forms */
-  input[type=text],input[type=number],select,textarea{width:100%;padding:.5rem .75rem;border:1px solid #d0d0c8;border-radius:6px;font-size:13px;background:#fff;color:#1a1a1a;font-family:inherit}
-  input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.15)}
+  input[type=text],input[type=number],input[type=password],select,textarea{width:100%;padding:.55rem .75rem;border:1px solid #d0d0c8;border-radius:6px;font-size:14px;background:#fff;color:#1a1a1a;font-family:inherit}
+  input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,select:focus,textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.15)}
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
   .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
   .form-row-full{margin-bottom:8px}
   label{font-size:12px;color:#666;margin-bottom:4px;display:block}
-  
+
   /* Tables */
-  .table-wrap{overflow-x:auto}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   table{width:100%;border-collapse:collapse;font-size:13px}
   th{text-align:left;padding:.5rem .75rem;background:#f5f5f0;border-bottom:1px solid #e0e0d8;font-weight:500;font-size:12px;color:#666;white-space:nowrap}
   td{padding:.5rem .75rem;border-bottom:1px solid #f0f0e8;vertical-align:middle}
   tr:last-child td{border-bottom:none}
   tr:hover td{background:#fafaf8}
-  
+
   /* Badges */
   .badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500}
   .badge-blue{background:#eff6ff;color:#1d4ed8}
@@ -231,6 +239,57 @@
   .log-tl-content{flex:1;margin-left:12px;padding-bottom:2px}
   .log-tl-msg{font-size:13px;color:#333;line-height:1.5}
   .log-tl-time{font-size:11px;color:#bbb;margin-top:2px}
+
+
+  /* ===== 手機 / 平板 RWD ===== */
+  @media(max-width:768px){
+    body{font-size:14px}
+    .page{padding:1rem .75rem}
+    .nav{padding:0 .75rem}
+    .nav-title{font-size:12px;margin-right:.5rem}
+    .nav-tabs{display:none}
+    .nav-hamburger{display:flex}
+    .grid-2,.grid-3{grid-template-columns:1fr}
+    .form-row,.form-row-3{grid-template-columns:1fr}
+    .stats-grid{grid-template-columns:1fr 1fr;gap:8px}
+    .stat-value{font-size:18px}
+    .stat{padding:.7rem}
+    .btn-row{gap:6px}
+    .btn{font-size:12px;padding:.4rem .7rem}
+    .btn-run-lottery{font-size:13px;padding:.55rem 1rem}
+    .card{padding:.875rem}
+    .modal{padding:1.25rem;width:95%}
+    .modal-title{font-size:15px}
+    .lottery-round-selector{padding:1rem}
+    .lrs-tabs{flex-direction:column;gap:.5rem}
+    .lrs-arrow{transform:rotate(90deg);text-align:center;line-height:1;padding:.1rem 0}
+    .lrs-tab{display:flex;align-items:center;gap:.75rem;text-align:left;padding:.65rem 1rem}
+    .lrs-num{margin:0;flex-shrink:0}
+    .lrs-status{margin-top:0}
+    .lrs-name{margin-bottom:0}
+    .lottery-modal{padding:1.25rem 1rem}
+    .lm-ball{width:42px;height:42px;font-size:13px}
+    .section-title{font-size:15px}
+    .flex-between{flex-direction:column;align-items:flex-start;gap:8px}
+    #user-bar{padding:.35rem .75rem;font-size:11px}
+    .seat{width:34px;height:28px;font-size:10px}
+    .seat-grid{grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:4px}
+    .round-tabs{flex-wrap:wrap;gap:6px}
+    .round-tab{padding:.35rem .75rem;font-size:12px}
+    table{font-size:12px}
+    th,td{padding:.35rem .4rem}
+    .log-tl-msg{font-size:12px}
+    .print-stats-row{gap:.75rem}
+    .print-stat{padding:.4rem .6rem;min-width:60px}
+    .print-stat-val{font-size:16px}
+  }
+  @media(max-width:400px){
+    .stats-grid{grid-template-columns:1fr 1fr}
+    .stat-value{font-size:16px}
+    .lm-balls{gap:5px}
+    .lm-ball{width:36px;height:36px;font-size:12px}
+    .page{padding:.75rem .5rem}
+  }
 </style>
 </head>
 <body>
@@ -352,7 +411,7 @@
 <!-- Navigation -->
 <div class="nav">
   <div class="nav-title">🏍 稙村秀社區機車位抽籤管理系統</div>
-  <div class="nav-tabs">
+  <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" onclick="showPage('residents')">住戶名單</button>
     <button class="nav-tab" onclick="showPage('lottery')">執行抽籤</button>
@@ -363,6 +422,22 @@
     <button class="nav-tab" onclick="showPage('floorplan')">車位平面圖</button>
     <button class="nav-tab" onclick="showPage('guide')">使用說明</button>
   </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileMenu()" aria-label="選單">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<!-- 手機下拉選單 -->
+<div class="nav-menu-mobile" id="nav-menu-mobile">
+  <button class="nav-tab active" onclick="showPage('dashboard');closeMobileMenu()">總覽</button>
+  <button class="nav-tab" onclick="showPage('residents');closeMobileMenu()">住戶名單</button>
+  <button class="nav-tab" onclick="showPage('lottery');closeMobileMenu()">執行抽籤</button>
+  <button class="nav-tab" onclick="showPage('results');closeMobileMenu()">抽籤結果</button>
+  <button class="nav-tab" onclick="showPage('summary');closeMobileMenu()">彙整總表</button>
+  <button class="nav-tab" onclick="showPage('logs');closeMobileMenu()">操作紀錄</button>
+  <button class="nav-tab" onclick="showPage('settings');closeMobileMenu()">系統設定</button>
+  <button class="nav-tab" onclick="showPage('floorplan');closeMobileMenu()">車位平面圖</button>
+  <button class="nav-tab" onclick="showPage('guide');closeMobileMenu()">使用說明</button>
 </div>
 
 <!-- ===== 總覽 ===== -->
@@ -1163,11 +1238,14 @@ let currentResultRound = '第一輪';
 
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
+  // 同步桌面與手機兩組 tab 的 active 狀態
   document.querySelectorAll('.nav-tab').forEach(t => {
-    if (t.getAttribute('onclick') && t.getAttribute('onclick').includes("'" + name + "'")) t.classList.add('active');
+    t.classList.remove('active');
+    if (t.getAttribute('onclick') && t.getAttribute('onclick').includes("'" + name + "'")) {
+      t.classList.add('active');
+    }
   });
+  document.getElementById('page-' + name).classList.add('active');
   currentPage = name;
   if (name === 'dashboard') renderDashboard();
   if (name === 'residents') renderResidents();
@@ -2322,8 +2400,29 @@ function updateFpVoidHint() {
 }
 
 // ==========================================
-// 忘記密碼 / 緊急重設
+// 漢堡選單（手機導覽）
 // ==========================================
+function toggleMobileMenu() {
+  const menu = document.getElementById('nav-menu-mobile');
+  const btn  = document.getElementById('nav-hamburger');
+  const isOpen = menu.classList.contains('open');
+  menu.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+
+function closeMobileMenu() {
+  document.getElementById('nav-menu-mobile').classList.remove('open');
+  document.getElementById('nav-hamburger').classList.remove('open');
+}
+
+// 點擊頁面其他地方關閉選單
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('nav-menu-mobile');
+  const btn  = document.getElementById('nav-hamburger');
+  if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+    closeMobileMenu();
+  }
+});
 
 // 緊急金鑰（管理員專用，可直接修改此值）
 const EMERGENCY_KEY = '0958';
@@ -2517,7 +2616,7 @@ function applyRoleUI() {
   const hint = document.getElementById('res-admin-only');
   if (hint) hint.style.display = isAdmin() ? 'none' : 'flex';
 
-  // 導覽列的「系統設定」只有管理員可見
+  // 導覽列的「系統設定」只有管理員可見（桌面 + 手機選單）
   document.querySelectorAll('.nav-tab').forEach(t => {
     if (t.getAttribute('onclick') && t.getAttribute('onclick').includes("'settings'")) {
       t.style.display = isAdmin() ? '' : 'none';
