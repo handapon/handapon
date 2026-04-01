@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>稙村秀社區機車位抽籤管理系統 v1.02</title>
+<title>稙村秀社區機車位抽籤管理系統 v1.03</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:15px;line-height:1.6}
@@ -225,6 +225,7 @@
     @page { margin: 1.5cm 1.8cm; size: A4; }
   }
   /* 密碼重設步驟指示器 */
+  .swap-dd-item:hover{background:#f0f7ff!important}
   .reset-step{width:28px;height:28px;border-radius:50%;background:#e0e0d8;color:#888;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
   .reset-step.active{background:#2563eb;color:#fff}
   .reset-step.done{background:#16a34a;color:#fff}
@@ -314,7 +315,7 @@
     <div style="background:#fff;padding:2.5rem 2rem;width:320px;flex-shrink:0;text-align:center;display:flex;flex-direction:column;justify-content:center">
       <div style="font-size:24px;margin-bottom:.4rem">🏍</div>
       <div style="font-size:15px;font-weight:600;margin-bottom:.2rem;color:#1a1a1a">管理員登入</div>
-      <div style="font-size:11px;color:#bbb;margin-bottom:1.75rem">v1.02</div>
+      <div style="font-size:11px;color:#bbb;margin-bottom:1.75rem">v1.03</div>
     <div style="text-align:left;margin-bottom:.75rem">
       <label style="font-size:12px;color:#666;margin-bottom:4px;display:block">帳號</label>
       <input type="text" id="login-user" placeholder="請輸入帳號"
@@ -426,7 +427,7 @@
 
 <!-- Navigation -->
 <div class="nav">
-  <div class="nav-title">🏍 稙村秀社區機車位抽籤管理系統 <span style="font-size:10px;font-weight:400;color:#aaa;margin-left:4px">v1.02</span></div>
+  <div class="nav-title">🏍 稙村秀社區機車位抽籤管理系統 <span style="font-size:10px;font-weight:400;color:#aaa;margin-left:4px">v1.03</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" onclick="showPage('residents')">住戶名單</button>
@@ -436,6 +437,8 @@
     <button class="nav-tab" onclick="showPage('logs')">操作紀錄</button>
     <button class="nav-tab" onclick="showPage('settings')">系統設定</button>
     <button class="nav-tab" onclick="showPage('floorplan')">車位平面圖</button>
+    <button class="nav-tab" onclick="showPage('swap')">車位互換</button>
+    <button class="nav-tab" onclick="showPage('inquiry')">中籤查詢</button>
     <button class="nav-tab" onclick="showPage('guide')">使用說明</button>
   </div>
   <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileMenu()" aria-label="選單">
@@ -453,6 +456,8 @@
   <button class="nav-tab" onclick="showPage('logs');closeMobileMenu()">操作紀錄</button>
   <button class="nav-tab" onclick="showPage('settings');closeMobileMenu()">系統設定</button>
   <button class="nav-tab" onclick="showPage('floorplan');closeMobileMenu()">車位平面圖</button>
+  <button class="nav-tab" onclick="showPage('swap');closeMobileMenu()">車位互換</button>
+  <button class="nav-tab" onclick="showPage('inquiry');closeMobileMenu()">中籤查詢</button>
   <button class="nav-tab" onclick="showPage('guide');closeMobileMenu()">使用說明</button>
 </div>
 
@@ -774,10 +779,159 @@
         <button class="btn btn-danger" onclick="confirmClearAll()">重置所有抽籤結果</button>
         <button class="btn btn-danger" onclick="confirmClearResidents()">清除全部住戶資料</button>
         <button class="btn" onclick="confirmResetResidents()">還原預設住戶名單</button>
+        <button class="btn btn-primary btn-sm" onclick="syncDefaultPlate2()" style="border-color:#7c3aed;background:#f5f3ff;color:#6d28d9">同步第二輪預設車牌</button>
       </div>
     </div>
   </div>
 
+</div>
+
+<!-- ===== 車位互換 ===== -->
+<div id="page-swap" class="page">
+  <div class="section-title">車位互換管理</div>
+
+  <!-- 管理員限定提示（非管理員顯示） -->
+  <div id="swap-no-admin" style="display:none">
+    <div class="alert alert-warning">此功能僅限系統管理員使用。</div>
+  </div>
+
+  <div id="swap-admin-content">
+
+    <!-- 開放期間設定 -->
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">🗓 換位開放期間設定</div>
+      <div class="grid-2" style="margin-bottom:.75rem">
+        <div>
+          <label>截止日期（含）</label>
+          <input type="date" id="swap-deadline">
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px">
+          <div style="flex:1">
+            <label>目前狀態</label>
+            <div id="swap-status-badge" style="padding:.5rem .75rem;border-radius:6px;font-size:13px;font-weight:500;background:#f5f5f0;color:#888">未設定</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="saveSwapConfig()">儲存設定</button>
+        <button class="btn btn-sm btn-success" onclick="setSwapEnabled(true)">開放換位</button>
+        <button class="btn btn-sm btn-danger" onclick="setSwapEnabled(false)">立即鎖定</button>
+      </div>
+    </div>
+
+    <!-- 互換操作區 -->
+    <div class="grid-2" style="margin-bottom:1rem">
+      <!-- 住戶 A -->
+      <div class="card" style="border-top:3px solid #2563eb">
+        <div class="card-title" style="color:#2563eb">住戶 A</div>
+        <div class="form-row-full">
+          <label>搜尋住戶（棟別/門牌/姓名）</label>
+          <input type="text" id="swap-a-search" placeholder="輸入關鍵字搜尋..."
+            oninput="searchSwapResident('A')">
+        </div>
+        <div id="swap-a-dropdown" style="display:none;border:1px solid #e0e0d8;border-radius:6px;max-height:160px;overflow-y:auto;margin-bottom:.5rem;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.08)"></div>
+        <div id="swap-a-info" style="display:none">
+          <div style="background:#eff6ff;border-radius:8px;padding:.75rem;font-size:13px">
+            <div id="swap-a-detail"></div>
+          </div>
+        </div>
+        <input type="hidden" id="swap-a-idx">
+      </div>
+
+      <!-- 住戶 B -->
+      <div class="card" style="border-top:3px solid #16a34a">
+        <div class="card-title" style="color:#16a34a">住戶 B</div>
+        <div class="form-row-full">
+          <label>搜尋住戶（棟別/門牌/姓名）</label>
+          <input type="text" id="swap-b-search" placeholder="輸入關鍵字搜尋..."
+            oninput="searchSwapResident('B')">
+        </div>
+        <div id="swap-b-dropdown" style="display:none;border:1px solid #e0e0d8;border-radius:6px;max-height:160px;overflow-y:auto;margin-bottom:.5rem;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.08)"></div>
+        <div id="swap-b-info" style="display:none">
+          <div style="background:#f0fdf4;border-radius:8px;padding:.75rem;font-size:13px">
+            <div id="swap-b-detail"></div>
+          </div>
+        </div>
+        <input type="hidden" id="swap-b-idx">
+      </div>
+    </div>
+
+    <!-- 互換輪次選擇與預覽 -->
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">互換設定</div>
+      <div class="form-row">
+        <div>
+          <label>互換輪次</label>
+          <select id="swap-round">
+            <option value="第一輪">第一輪</option>
+            <option value="第二輪">第二輪</option>
+            <option value="第三輪">第三輪</option>
+          </select>
+        </div>
+        <div>
+          <label>互換後預覽</label>
+          <div id="swap-preview" style="padding:.5rem .75rem;background:#f9f9f6;border:1px solid #e0e0d8;border-radius:6px;font-size:13px;min-height:36px;line-height:1.8">
+            請先選擇兩位住戶
+          </div>
+        </div>
+      </div>
+      <div id="swap-check-msg" style="font-size:12px;min-height:18px;margin-bottom:.5rem"></div>
+    </div>
+
+    <!-- 確認互換按鈕 -->
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <button class="btn btn-primary" id="btn-confirm-swap" onclick="confirmSwap()"
+        style="font-size:15px;padding:.75rem 2.5rem;min-width:200px">
+        ⇄ 確認互換
+      </button>
+      <div id="swap-locked-msg" style="font-size:12px;color:#dc2626;margin-top:.5rem;display:none"></div>
+    </div>
+
+    <!-- 互換紀錄 -->
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:.75rem">
+        <div class="card-title" style="margin:0">互換紀錄</div>
+        <button class="btn btn-sm btn-success" onclick="exportSwapLogs()">匯出紀錄</button>
+      </div>
+      <div id="swap-log-list">
+        <div class="empty">尚無互換紀錄</div>
+      </div>
+    </div>
+
+  </div><!-- end swap-admin-content -->
+</div>
+
+<!-- ===== 中籤查詢 ===== -->
+<div id="page-inquiry" class="page">
+  <div class="section-title">中籤查詢</div>
+
+  <div style="max-width:520px;margin:0 auto">
+    <!-- 查詢卡片 -->
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">輸入車牌號碼查詢中籤結果</div>
+      <div class="alert alert-info" style="margin-bottom:1rem;font-size:13px">
+        請輸入您的車牌號碼，系統將自動查詢各輪抽籤結果。
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <div style="flex:1">
+          <label>車牌號碼</label>
+          <input type="text" id="inq-plate" placeholder="例：ABC-1234 或 ABC1234"
+            style="font-size:16px;letter-spacing:.05em;font-weight:500;text-transform:uppercase"
+            oninput="formatPlateInput(this)"
+            onkeydown="if(event.key==='Enter')doInquiry()"
+            maxlength="12">
+          <div id="inq-plate-hint" style="font-size:11px;color:#aaa;margin-top:4px;min-height:16px"></div>
+        </div>
+        <button class="btn btn-primary" onclick="doInquiry()" style="padding:.55rem 1.5rem;font-size:14px;flex-shrink:0;margin-bottom:20px">
+          查詢
+        </button>
+      </div>
+    </div>
+
+    <!-- 查詢結果 -->
+    <div id="inq-result" style="display:none"></div>
+  </div>
 </div>
 
 <!-- ===== 車位平面圖 ===== -->
@@ -1122,23 +1276,23 @@ const DEFAULT_RESIDENTS = [
   {seq:'6',build:'A1',addr:'40號6F',name:'住戶6',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MYB368',plate2:'',plate3:''},
   {seq:'7',build:'A1',addr:'40號7F',name:'住戶7',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'PAZ3799',plate2:'',plate3:''},
   {seq:'8',build:'A1',addr:'40號8F',name:'住戶8',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MGJ1880',plate2:'',plate3:''},
-  {seq:'9',build:'A1',addr:'40號9F',name:'住戶9',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'257NLH',plate2:'',plate3:''},
+  {seq:'9',build:'A1',addr:'40號9F',name:'住戶9',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'257NLH',plate2:'PEJ6833',plate3:''},
   {seq:'10',build:'A1',addr:'40號10F',name:'住戶10',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'8FE56J',plate2:'',plate3:''},
   {seq:'11',build:'A1',addr:'40號11F',name:'住戶11',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'12',build:'A1',addr:'40號12F',name:'住戶12',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'13',build:'A2',addr:'42號1F',name:'住戶13',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'14',build:'A2',addr:'42號2F',name:'住戶14',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'15',build:'A2',addr:'42號3F',name:'住戶15',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MBD1030',plate2:'',plate3:''},
-  {seq:'16',build:'A2',addr:'42號4F',name:'住戶16',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'EMQ2563',plate2:'',plate3:''},
+  {seq:'16',build:'A2',addr:'42號4F',name:'住戶16',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'EMQ2563',plate2:'EPZ0781',plate3:''},
   {seq:'17',build:'A2',addr:'42號5F',name:'住戶17',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MPR5237',plate2:'',plate3:''},
   {seq:'18',build:'A2',addr:'42號6F',name:'住戶18',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'687JAK',plate2:'',plate3:''},
   {seq:'19',build:'A2',addr:'42號7F',name:'住戶19',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'559JAS',plate2:'',plate3:''},
   {seq:'20',build:'A2',addr:'42號8F',name:'住戶20',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'EWQ3718',plate2:'',plate3:''},
-  {seq:'21',build:'A2',addr:'42號9F',name:'住戶21',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'EMZ8338',plate2:'',plate3:''},
+  {seq:'21',build:'A2',addr:'42號9F',name:'住戶21',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'EMZ8338',plate2:'MXC2889',plate3:''},
   {seq:'22',build:'A2',addr:'42號10F',name:'住戶22',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NFJ7759',plate2:'',plate3:''},
   {seq:'23',build:'A2',addr:'42號11F',name:'住戶23',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'24',build:'A2',addr:'42號12F',name:'住戶24',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'ENP3722',plate2:'',plate3:''},
-  {seq:'25',build:'B1',addr:'46號1F',name:'住戶25',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'EPF0735',plate2:'',plate3:''},
+  {seq:'25',build:'B1',addr:'46號1F',name:'住戶25',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'EPF0735',plate2:'188CHA',plate3:''},
   {seq:'26',build:'B1',addr:'46號2F',name:'住戶26',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'27',build:'B1',addr:'46號3F',name:'住戶27',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MCS0697',plate2:'',plate3:''},
   {seq:'28',build:'B1',addr:'46號4F',name:'住戶28',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'QPP627',plate2:'',plate3:''},
@@ -1147,7 +1301,7 @@ const DEFAULT_RESIDENTS = [
   {seq:'31',build:'B1',addr:'46號7F',name:'住戶31',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'623MZB',plate2:'',plate3:''},
   {seq:'32',build:'B1',addr:'46號8F',name:'住戶32',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NLC5976',plate2:'',plate3:''},
   {seq:'33',build:'B1',addr:'46號9F',name:'住戶33',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'CW3822',plate2:'',plate3:''},
-  {seq:'34',build:'B1',addr:'46號10F',name:'住戶34',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'CVP383',plate2:'',plate3:''},
+  {seq:'34',build:'B1',addr:'46號10F',name:'住戶34',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'CVP383',plate2:'MBA1626',plate3:''},
   {seq:'35',build:'B1',addr:'46號11F',name:'住戶35',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'ERV3191',plate2:'',plate3:''},
   {seq:'36',build:'B1',addr:'46號12F',name:'住戶36',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'37',build:'B2',addr:'48號1F',name:'住戶37',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NCW8196',plate2:'',plate3:''},
@@ -1169,23 +1323,23 @@ const DEFAULT_RESIDENTS = [
   {seq:'53',build:'C1',addr:'26號12F',name:'住戶53',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NQK8817',plate2:'',plate3:''},
   {seq:'54',build:'C2',addr:'28號2F',name:'住戶54',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'ADE5506',plate2:'',plate3:''},
   {seq:'55',build:'C2',addr:'28號3F',name:'住戶55',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MMC3636',plate2:'',plate3:''},
-  {seq:'56',build:'C2',addr:'28號4F',name:'住戶56',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NFD7066',plate2:'',plate3:''},
+  {seq:'56',build:'C2',addr:'28號4F',name:'住戶56',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NFD7066',plate2:'MQA2727',plate3:''},
   {seq:'57',build:'C2',addr:'28號5F',name:'住戶57',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
-  {seq:'58',build:'C2',addr:'28號6F',name:'住戶58',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MKG3203',plate2:'',plate3:''},
-  {seq:'59',build:'C2',addr:'28號7F',name:'住戶59',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MPJ5620',plate2:'',plate3:''},
+  {seq:'58',build:'C2',addr:'28號6F',name:'住戶58',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MKG3203',plate2:'N93056',plate3:''},
+  {seq:'59',build:'C2',addr:'28號7F',name:'住戶59',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MPJ5620',plate2:'168JZU',plate3:''},
   {seq:'60',build:'C2',addr:'28號8F',name:'住戶60',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MKJ5619',plate2:'',plate3:''},
   {seq:'61',build:'C2',addr:'28號9F',name:'住戶61',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MZB0318',plate2:'',plate3:''},
   {seq:'62',build:'C2',addr:'28號10F',name:'住戶62',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MPS0392',plate2:'',plate3:''},
   {seq:'63',build:'C2',addr:'28號11F',name:'住戶63',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'64',build:'C2',addr:'28號12F',name:'住戶64',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'65',build:'C3',addr:'30號1F',name:'住戶65',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'ADQ1602',plate2:'',plate3:''},
-  {seq:'66',build:'C3',addr:'30號2F',name:'住戶66',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'AAZ8175',plate2:'',plate3:''},
+  {seq:'66',build:'C3',addr:'30號2F',name:'住戶66',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'AAZ8175',plate2:'MQD7962',plate3:''},
   {seq:'67',build:'C3',addr:'30號3F',name:'住戶67',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'68',build:'C3',addr:'30號4F',name:'住戶68',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'69',build:'C3',addr:'30號5F',name:'住戶69',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'70',build:'C3',addr:'30號6F',name:'住戶70',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NYF1012',plate2:'',plate3:''},
   {seq:'71',build:'C3',addr:'30號7F',name:'住戶71',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'5HU582',plate2:'',plate3:''},
-  {seq:'72',build:'C3',addr:'30號8F',name:'住戶72',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NTL5667',plate2:'',plate3:''},
+  {seq:'72',build:'C3',addr:'30號8F',name:'住戶72',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NTL5667',plate2:'NQM8729',plate3:''},
   {seq:'73',build:'C3',addr:'30號9F',name:'住戶73',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MAA9902',plate2:'',plate3:''},
   {seq:'74',build:'C3',addr:'30號10F',name:'住戶74',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'75',build:'C3',addr:'30號11F',name:'住戶75',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NXB7013',plate2:'',plate3:''},
@@ -1205,34 +1359,34 @@ const DEFAULT_RESIDENTS = [
   {seq:'89',build:'D2',addr:'34號2F',name:'住戶89',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NTM2681',plate2:'',plate3:''},
   {seq:'90',build:'D2',addr:'34號3F',name:'住戶90',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'91',build:'D2',addr:'34號4F',name:'住戶91',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'126CHZ',plate2:'',plate3:''},
-  {seq:'92',build:'D2',addr:'34號5F',name:'住戶92',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NWF9225',plate2:'',plate3:''},
-  {seq:'93',build:'D2',addr:'34號6F',name:'住戶93',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'P8U125',plate2:'',plate3:''},
+  {seq:'92',build:'D2',addr:'34號5F',name:'住戶92',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NWF9225',plate2:'NYE9553',plate3:''},
+  {seq:'93',build:'D2',addr:'34號6F',name:'住戶93',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'P8U125',plate2:'NJM7105',plate3:''},
   {seq:'94',build:'D2',addr:'34號7F',name:'住戶94',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
-  {seq:'95',build:'D2',addr:'34號8F',name:'住戶95',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'875HUK',plate2:'',plate3:''},
-  {seq:'96',build:'D2',addr:'34號9F',name:'住戶96',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MPG1683',plate2:'',plate3:''},
+  {seq:'95',build:'D2',addr:'34號8F',name:'住戶95',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'875HUK',plate2:'MKE7072',plate3:''},
+  {seq:'96',build:'D2',addr:'34號9F',name:'住戶96',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MPG1683',plate2:'MPG9560',plate3:''},
   {seq:'97',build:'D2',addr:'34號10F',name:'住戶97',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
-  {seq:'98',build:'D2',addr:'34號11F',name:'住戶98',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MLS0880',plate2:'',plate3:''},
+  {seq:'98',build:'D2',addr:'34號11F',name:'住戶98',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MLS0880',plate2:'NAX8661',plate3:''},
   {seq:'99',build:'D2',addr:'34號12F',name:'住戶99',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'777BWE',plate2:'',plate3:''},
   {seq:'100',build:'E1',addr:'36號2F',name:'住戶100',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'101',build:'E1',addr:'36號3F',name:'住戶101',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NZW9205',plate2:'',plate3:''},
   {seq:'102',build:'E1',addr:'36號4F',name:'住戶102',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'192KWS',plate2:'',plate3:''},
   {seq:'103',build:'E1',addr:'36號5F',name:'住戶103',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
-  {seq:'104',build:'E1',addr:'36號6F',name:'住戶104',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'060GNV',plate2:'',plate3:''},
+  {seq:'104',build:'E1',addr:'36號6F',name:'住戶104',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'060GNV',plate2:'NQL2521',plate3:''},
   {seq:'105',build:'E1',addr:'36號7F',name:'住戶105',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
-  {seq:'106',build:'E1',addr:'36號8F',name:'住戶106',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'EQD7967',plate2:'',plate3:''},
-  {seq:'107',build:'E1',addr:'36號9F',name:'住戶107',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'867FBB',plate2:'',plate3:''},
-  {seq:'108',build:'E1',addr:'36號10F',name:'住戶108',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MRS8107',plate2:'',plate3:''},
-  {seq:'109',build:'E1',addr:'36號11F',name:'住戶109',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MXH2185',plate2:'',plate3:''},
+  {seq:'106',build:'E1',addr:'36號8F',name:'住戶106',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'EQD7967',plate2:'ERH7729',plate3:''},
+  {seq:'107',build:'E1',addr:'36號9F',name:'住戶107',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'867FBB',plate2:'929CNU',plate3:''},
+  {seq:'108',build:'E1',addr:'36號10F',name:'住戶108',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MRS8107',plate2:'NQP7715',plate3:''},
+  {seq:'109',build:'E1',addr:'36號11F',name:'住戶109',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MXH2185',plate2:'301CMY',plate3:''},
   {seq:'110',build:'E1',addr:'36號12F',name:'住戶110',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'LGV0878',plate2:'',plate3:''},
-  {seq:'111',build:'E2',addr:'38號1F',name:'住戶111',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MXN9828',plate2:'',plate3:''},
+  {seq:'111',build:'E2',addr:'38號1F',name:'住戶111',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MXN9828',plate2:'MAF2229',plate3:''},
   {seq:'112',build:'E2',addr:'38號2F',name:'住戶112',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'MQA9382',plate2:'',plate3:''},
   {seq:'113',build:'E2',addr:'38號3F',name:'住戶113',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'GFW218',plate2:'',plate3:''},
   {seq:'114',build:'E2',addr:'38號4F',name:'住戶114',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
-  {seq:'115',build:'E2',addr:'38號5F',name:'住戶115',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'PAX0901',plate2:'',plate3:''},
+  {seq:'115',build:'E2',addr:'38號5F',name:'住戶115',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'PAX0901',plate2:'PCY2002',plate3:''},
   {seq:'116',build:'E2',addr:'38號6F',name:'住戶116',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NMF7888',plate2:'',plate3:''},
   {seq:'117',build:'E2',addr:'38號7F',name:'住戶117',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'118',build:'E2',addr:'38號8F',name:'住戶118',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'NDA3918',plate2:'',plate3:''},
-  {seq:'119',build:'E2',addr:'38號9F',name:'住戶119',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'125DFV',plate2:'',plate3:''},
+  {seq:'119',build:'E2',addr:'38號9F',name:'住戶119',join1:'Y',join2:'Y',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'125DFV',plate2:'ALI5755',plate3:''},
   {seq:'120',build:'E2',addr:'38號10F',name:'住戶120',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''},
   {seq:'121',build:'E2',addr:'38號11F',name:'住戶121',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'LGV3520',plate2:'',plate3:''},
   {seq:'122',build:'E2',addr:'38號12F',name:'住戶122',join1:'Y',join2:'N',join3:'N',isres:'N',res1:'',res2:'',res3:'',plate1:'',plate2:'',plate3:''}
@@ -1248,6 +1402,8 @@ const DEFAULT_STATE = {
   },
   residents: DEFAULT_RESIDENTS,
   results: { '第一輪': {}, '第二輪': {}, '第三輪': {} },
+  swapConfig: { enabled: false, deadline: '' },
+  swapLogs: [],
   logs: []
 };
 
@@ -1256,6 +1412,8 @@ let STATE = loadStore() || JSON.parse(JSON.stringify(DEFAULT_STATE));
 ['第一輪','第二輪','第三輪'].forEach(r => {
   if (!STATE.results[r]) STATE.results[r] = {};
 });
+if (!STATE.swapConfig) STATE.swapConfig = { enabled: false, deadline: '' };
+if (!STATE.swapLogs) STATE.swapLogs = [];
 // 資料遷移：確保所有住戶欄位結構正確
 let needSave = false;
 STATE.residents.forEach(res => {
@@ -1323,6 +1481,8 @@ function showPage(name) {
   if (name === 'logs') renderLogs();
   if (name === 'settings') loadSettings();
   if (name === 'floorplan') initFloorplan();
+  if (name === 'swap') initSwap();
+  if (name === 'inquiry') initInquiry();
   if (name === 'guide') {} // 靜態頁面，無需初始化
   if (name === 'lottery') { renderLotteryPreview(); updateLrsStatuses(); }
 }
@@ -2304,6 +2464,26 @@ function confirmClearResidents() {
   openModal('modal-confirm');
 }
 
+function syncDefaultPlate2() {
+  // 依 DEFAULT_RESIDENTS 的 plate2 更新 STATE.residents 的 plate2/join2
+  // 完全不動 plate1、join1、抽籤結果等其他欄位
+  let count = 0;
+  DEFAULT_RESIDENTS.forEach(def => {
+    if (!def.plate2) return; // 預設無第二輪車牌，跳過
+    const res = STATE.residents.find(r => r.addr === def.addr && r.name === def.name);
+    if (!res) return;
+    if (res.plate2 !== def.plate2 || res.join2 !== 'Y') {
+      res.plate2 = def.plate2;
+      res.join2  = 'Y';
+      count++;
+    }
+  });
+  saveStore();
+  writeLog('同步第二輪預設車牌：更新 ' + count + ' 筆');
+  if (currentPage === 'residents') renderResidents();
+  alert('✅ 同步完成！共更新 ' + count + ' 筆第二輪車牌。\n（第一輪資料與抽籤結果完全未變動）');
+}
+
 function confirmResetResidents() {
   document.getElementById('modal-confirm-title').textContent = '還原預設住戶名單';
   document.getElementById('modal-confirm-msg').textContent = '此操作將以預設的 122 筆住戶資料取代現有名單，並清除所有抽籤結果。確定執行？';
@@ -2325,7 +2505,7 @@ function buildPrintHeader(title, subtitle) {
   const cfg = STATE.config;
   return `
     <div class="print-header">
-      <h1>稙村秀社區機車位抽籤管理系統 <span style="font-size:12px;font-weight:400;color:#888">v1.02</span></h1>
+      <h1>稙村秀社區機車位抽籤管理系統 <span style="font-size:12px;font-weight:400;color:#888">v1.03</span></h1>
       <div style="font-size:15px;font-weight:600;margin:.25rem 0">${title}</div>
       <div class="print-meta">
         <span>列印時間：${now}</span>
@@ -2524,6 +2704,430 @@ function updateFpVoidHint() {
   const voids = STATE.config.voidSlots || [];
   const el = document.getElementById('fp-void-hint');
   if (el) el.textContent = voids.length > 0 ? '目前作廢：' + voids.join(', ') + ' 號' : '';
+}
+
+// ==========================================
+// 中籤查詢
+// ==========================================
+function initInquiry() {
+  document.getElementById('inq-plate').value = '';
+  document.getElementById('inq-plate-hint').textContent = '';
+  document.getElementById('inq-result').style.display = 'none';
+  setTimeout(() => document.getElementById('inq-plate').focus(), 100);
+}
+
+function formatPlateInput(el) {
+  el.value = el.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
+  validatePlate(el.value);
+}
+
+function validatePlate(val) {
+  const hint = document.getElementById('inq-plate-hint');
+  if (!val) { hint.textContent = ''; return false; }
+  const clean = val.replace(/-/g, '');
+  if (clean.length < 4) {
+    hint.textContent = '車牌至少 4 碼'; hint.style.color = '#ea580c'; return false;
+  }
+  if (clean.length > 8) {
+    hint.textContent = '車牌不超過 8 碼'; hint.style.color = '#ea580c'; return false;
+  }
+  if (!/[A-Z]/.test(clean) || !/[0-9]/.test(clean)) {
+    hint.textContent = '車牌需包含英文字母與數字'; hint.style.color = '#ea580c'; return false;
+  }
+  hint.textContent = '✓ 格式正確'; hint.style.color = '#16a34a'; return true;
+}
+
+function normalizePlate(val) {
+  return val.toUpperCase().replace(/-/g, '').trim();
+}
+
+function doInquiry() {
+  const raw = document.getElementById('inq-plate').value.trim();
+  if (!raw) { alert('請輸入車牌號碼'); return; }
+  if (!validatePlate(raw)) { alert('車牌格式不正確，請重新輸入'); return; }
+
+  const target   = normalizePlate(raw);
+  const resultEl = document.getElementById('inq-result');
+  const found    = [];
+
+  STATE.residents.forEach((res, idx) => {
+    ['plate1','plate2','plate3'].forEach((pf, pi) => {
+      if (res[pf] && normalizePlate(res[pf]) === target) {
+        found.push({ res, idx, round: pi + 1 });
+      }
+    });
+  });
+
+  if (found.length === 0) {
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `
+      <div class="card" style="text-align:center;padding:2rem">
+        <div style="font-size:36px;margin-bottom:.75rem">🔍</div>
+        <div style="font-size:15px;font-weight:600;color:#555;margin-bottom:.5rem">查無此車牌</div>
+        <div style="font-size:13px;color:#aaa">「${raw.toUpperCase()}」不在報名名單中，請確認車牌是否正確。</div>
+      </div>`;
+    return;
+  }
+
+  const roundNames = ['第一輪','第二輪','第三輪'];
+  let html = '';
+
+  found.forEach(({ res, idx, round }) => {
+    const roundName  = roundNames[round - 1];
+    const slot       = STATE.results[roundName]?.[idx] || '';
+    const hasResult  = Object.values(STATE.results[roundName]||{}).filter(v=>v).length > 0;
+    const joinField  = round === 1 ? 'join1' : round === 2 ? 'join2' : 'join3';
+    const isJoin     = res[joinField] === 'Y';
+
+    let icon, color, bg, body;
+    if (!hasResult) {
+      icon = '⏳'; color = '#92400e'; bg = '#fffbeb';
+      body = `<div style="font-size:14px;font-weight:600;color:${color}">尚未執行${roundName}抽籤</div>
+              <div style="font-size:12px;color:#aaa;margin-top:4px">請稍後再查詢</div>`;
+    } else if (!isJoin) {
+      icon = '➖'; color = '#888'; bg = '#f5f5f0';
+      body = `<div style="font-size:14px;font-weight:600;color:${color}">未報名${roundName}</div>`;
+    } else if (slot) {
+      icon = '🎉'; color = '#15803d'; bg = '#f0fdf4';
+      body = `<div style="font-size:12px;color:#888;margin-bottom:6px">${roundName}中籤車位</div>
+              <div style="font-size:48px;font-weight:700;color:#15803d;line-height:1">${slot}</div>
+              <div style="font-size:14px;color:#16a34a;margin-top:6px">號車位</div>`;
+    } else {
+      icon = '😔'; color = '#b91c1c'; bg = '#fef2f2';
+      body = `<div style="font-size:14px;font-weight:600;color:${color}">${roundName}未中籤</div>
+              <div style="font-size:12px;color:#aaa;margin-top:4px">很遺憾，本輪未抽中車位</div>`;
+    }
+
+    html += `
+      <div class="card" style="margin-bottom:1rem;border-left:4px solid ${color}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <div>
+            <div style="font-size:11px;color:#aaa;margin-bottom:2px">棟別 / 門牌</div>
+            <div style="font-size:15px;font-weight:600">${res.build} &nbsp; ${res.addr}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:#aaa;margin-bottom:2px">查詢車牌（${roundName}）</div>
+            <div style="font-size:15px;font-weight:600;letter-spacing:.08em">${raw.toUpperCase()}</div>
+          </div>
+        </div>
+        <div style="background:${bg};border-radius:8px;padding:1.5rem;text-align:center">
+          <div style="font-size:32px;margin-bottom:.5rem">${icon}</div>
+          ${body}
+        </div>
+        <div style="margin-top:.75rem;font-size:11px;color:#ccc;text-align:right">
+          查詢時間：${new Date().toLocaleString('zh-TW')}
+        </div>
+      </div>`;
+  });
+
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = html;
+  writeLog('車牌查詢：' + raw.toUpperCase());
+}
+
+// ==========================================
+// 車位互換管理
+// ==========================================
+function initSwap() {
+  if (!isAdmin()) {
+    document.getElementById('swap-no-admin').style.display = 'block';
+    document.getElementById('swap-admin-content').style.display = 'none';
+    return;
+  }
+  document.getElementById('swap-no-admin').style.display = 'none';
+  document.getElementById('swap-admin-content').style.display = 'block';
+
+  // 載入設定
+  const cfg = STATE.swapConfig;
+  document.getElementById('swap-deadline').value = cfg.deadline || '';
+  updateSwapStatusBadge();
+  renderSwapLogs();
+  updateSwapPreview();
+
+  // 清空選擇
+  ['a','b'].forEach(s => {
+    document.getElementById(`swap-${s}-search`).value = '';
+    document.getElementById(`swap-${s}-dropdown`).style.display = 'none';
+    document.getElementById(`swap-${s}-info`).style.display = 'none';
+    document.getElementById(`swap-${s}-idx`).value = '';
+  });
+}
+
+function isSwapOpen() {
+  const cfg = STATE.swapConfig;
+  if (!cfg.enabled) return false;
+  if (!cfg.deadline) return true;
+  const today = new Date().toISOString().slice(0,10);
+  return today <= cfg.deadline;
+}
+
+function updateSwapStatusBadge() {
+  const badge = document.getElementById('swap-status-badge');
+  const btn   = document.getElementById('btn-confirm-swap');
+  const msg   = document.getElementById('swap-locked-msg');
+  const cfg   = STATE.swapConfig;
+  if (!cfg.enabled) {
+    badge.textContent = '🔒 未開放'; badge.style.background = '#fef2f2'; badge.style.color = '#b91c1c';
+    btn.disabled = true; btn.style.opacity = '.45';
+    msg.style.display = 'block'; msg.textContent = '換位功能尚未開放，請先在上方設定並開放。';
+  } else if (!isSwapOpen()) {
+    badge.textContent = '⏰ 已過截止日'; badge.style.background = '#fef2f2'; badge.style.color = '#b91c1c';
+    btn.disabled = true; btn.style.opacity = '.45';
+    msg.style.display = 'block'; msg.textContent = `換位期間已於 ${cfg.deadline} 截止，功能已自動鎖定。`;
+  } else {
+    const daysLeft = cfg.deadline
+      ? Math.ceil((new Date(cfg.deadline) - new Date()) / 86400000) + 1
+      : null;
+    badge.textContent = daysLeft ? `✅ 開放中（剩 ${daysLeft} 天）` : '✅ 開放中';
+    badge.style.background = '#f0fdf4'; badge.style.color = '#15803d';
+    btn.disabled = false; btn.style.opacity = '1';
+    msg.style.display = 'none';
+  }
+}
+
+function saveSwapConfig() {
+  STATE.swapConfig.deadline = document.getElementById('swap-deadline').value;
+  saveStore();
+  updateSwapStatusBadge();
+  writeLog('更新換位截止日期：' + (STATE.swapConfig.deadline || '未設定'));
+  const el = document.getElementById('swap-status-badge');
+  el.textContent = '✓ 已儲存'; setTimeout(() => updateSwapStatusBadge(), 1500);
+}
+
+function setSwapEnabled(val) {
+  STATE.swapConfig.enabled = val;
+  saveStore();
+  updateSwapStatusBadge();
+  writeLog('換位功能' + (val ? '開放' : '鎖定'));
+}
+
+// ── 住戶搜尋下拉 ──────────────────────────────────────────────
+// 全域搜尋結果快取
+var _swapMatchCache = { a: [], b: [] };
+
+function searchSwapResident(side) {
+  side = side.toLowerCase();
+  var keyword = document.getElementById('swap-'+side+'-search').value.trim().toLowerCase();
+  var dd      = document.getElementById('swap-'+side+'-dropdown');
+  var round   = document.getElementById('swap-round').value;
+  if (!keyword) { dd.style.display = 'none'; return; }
+  var matches = [];
+  STATE.residents.forEach(function(res, i) {
+    var text = (res.build+' '+res.addr+' '+res.name).toLowerCase();
+    if (text.indexOf(keyword) !== -1) matches.push({ res: res, i: i });
+  });
+  matches = matches.slice(0, 15);
+  _swapMatchCache[side] = matches;
+  if (!matches.length) {
+    dd.style.display = 'block';
+    dd.innerHTML = '<div style="padding:.5rem .75rem;font-size:12px;color:#aaa">查無符合住戶</div>';
+    return;
+  }
+  var rows = [];
+  for (var mi = 0; mi < matches.length; mi++) {
+    var res  = matches[mi].res;
+    var i    = matches[mi].i;
+    var slot = STATE.results[round] && STATE.results[round][i] ? STATE.results[round][i] : '';
+    var badge = slot
+      ? '<span style="float:right;color:#2563eb;font-weight:700;font-size:13px">'+slot+' 號</span>'
+      : '<span style="float:right;color:#bbb;font-size:11px">未中籤</span>';
+    var div = document.createElement('div');
+    div.setAttribute('data-side', side);
+    div.setAttribute('data-mi', mi);
+    div.style.cssText = "padding:.6rem .85rem;font-size:13px;cursor:pointer;border-bottom:1px solid #f0f0e8;background:#fff";
+    div.innerHTML = '<strong>'+res.build+' '+res.addr+'</strong>&nbsp;'+maskName(res.name)+badge;
+    div.addEventListener('mouseover', function(){ this.style.background='#f0f7ff'; });
+    div.addEventListener('mouseout',  function(){ this.style.background='#fff'; });
+    div.addEventListener('click', function(){ pickSwapResident(this); });
+    rows.push(div);
+  }
+  dd.innerHTML = '';
+  rows.forEach(function(d){ dd.appendChild(d); });
+  dd.style.display = 'block';
+}
+
+function pickSwapResident(el) {
+  var side = el.getAttribute('data-side');
+  var mi   = parseInt(el.getAttribute('data-mi'));
+  var item = _swapMatchCache[side] && _swapMatchCache[side][mi];
+  if (!item) return;
+  selectSwapResident(side, item.i);
+}
+
+function selectSwapResident(side, idx) {
+  side = side.toLowerCase();
+  var round     = document.getElementById('swap-round').value;
+  var res       = STATE.residents[idx];
+  if (!res) return;
+  var ri        = ['第一輪','第二輪','第三輪'].indexOf(round);
+  var plate     = res['plate'+(ri+1)] || '--';
+  var slot      = STATE.results[round] && STATE.results[round][idx] ? STATE.results[round][idx] : '';
+  var otherSide = side === 'a' ? 'b' : 'a';
+  var otherId   = document.getElementById('swap-'+otherSide+'-idx').value;
+  if (otherId !== '' && String(otherId) === String(idx)) {
+    document.getElementById('swap-check-msg').textContent = '⚠️ 不能選擇同一位住戶互換';
+    document.getElementById('swap-check-msg').style.color = '#dc2626';
+    return;
+  }
+  document.getElementById('swap-'+side+'-idx').value    = String(idx);
+  document.getElementById('swap-'+side+'-search').value = res.build+' '+res.addr+' '+maskName(res.name);
+  document.getElementById('swap-'+side+'-dropdown').style.display = 'none';
+  document.getElementById('swap-'+side+'-info').style.display     = 'block';
+  var color = side === 'a' ? '#2563eb' : '#16a34a';
+  var slotHTML = slot
+    ? '<div style="text-align:right"><div style="font-size:11px;color:#888;margin-bottom:2px">中籤車位</div>'
+      +'<div style="font-size:26px;font-weight:700;color:'+color+'">'+ slot +' 號</div></div>'
+    : '<div style="text-align:right;font-size:12px;color:#dc2626;font-weight:600">⚠ 此輪未中籤</div>';
+  document.getElementById('swap-'+side+'-detail').innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:.5rem">'
+      +'<div>'
+      +'<div style="font-weight:700;color:'+color+';font-size:15px">'+res.build+'&emsp;'+res.addr+'</div>'
+      +'<div style="color:#555;font-size:13px;margin-top:3px">'+maskName(res.name)+'</div>'
+      +'</div>'
+      +slotHTML
+      +'</div>'
+    +'<div style="border-top:1px solid #e0e0d8;padding-top:.5rem;font-size:12px;color:#666;display:flex;gap:1.5rem;flex-wrap:wrap">'
+      +'<span>'+round+'車牌：<strong style="color:#333">'+plate+'</strong></span>'
+      +'<span>第一輪車牌：<strong style="color:#555">'+(res.plate1||'--')+'</strong></span>'
+      +'</div>';
+  document.getElementById('swap-check-msg').textContent = '';
+  updateSwapPreview();
+}
+
+function updateSwapPreview() {
+  const round = document.getElementById('swap-round').value;
+  const idxA  = document.getElementById('swap-a-idx').value;
+  const idxB  = document.getElementById('swap-b-idx').value;
+  const prev  = document.getElementById('swap-preview');
+  const check = document.getElementById('swap-check-msg');
+
+  if (!idxA || !idxB) {
+    prev.textContent = '請先選擇兩位住戶'; check.textContent = ''; return;
+  }
+
+  const slotA = STATE.results[round]?.[idxA] || '--';
+  const slotB = STATE.results[round]?.[idxB] || '--';
+  const resA  = STATE.residents[idxA];
+  const resB  = STATE.residents[idxB];
+
+  if (slotA === '--' || slotB === '--') {
+    prev.textContent = '其中一位住戶在此輪無中籤車位';
+    check.textContent = '⚠️ 請確認兩位住戶在選定輪次均有中籤車位';
+    check.style.color = '#dc2626'; return;
+  }
+
+  prev.innerHTML = `
+    <span style="color:#2563eb;font-weight:600">${slotA} 號</span>
+    <span style="color:#aaa"> → </span>
+    <span style="color:#16a34a;font-weight:600">${slotB} 號</span>
+    &nbsp;&nbsp;
+    <span style="color:#16a34a;font-weight:600">${slotB} 號</span>
+    <span style="color:#aaa"> → </span>
+    <span style="color:#2563eb;font-weight:600">${slotA} 號</span>`;
+  check.textContent = `✓ ${resA.addr} 的 ${slotA} 號 ⇄ ${resB.addr} 的 ${slotB} 號`;
+  check.style.color = '#16a34a';
+}
+
+// ── 確認互換 ─────────────────────────────────────────────────
+function confirmSwap() {
+  if (!isSwapOpen()) { alert('換位功能已鎖定，無法執行互換。'); return; }
+
+  const round = document.getElementById('swap-round').value;
+  const idxA  = document.getElementById('swap-a-idx').value;
+  const idxB  = document.getElementById('swap-b-idx').value;
+
+  if (!idxA || !idxB) { alert('請先選擇兩位住戶'); return; }
+  if (idxA === idxB)   { alert('不能選擇同一位住戶互換'); return; }
+
+  const slotA = STATE.results[round]?.[idxA];
+  const slotB = STATE.results[round]?.[idxB];
+
+  if (!slotA || !slotB) {
+    alert('其中一位住戶在此輪無中籤車位，無法互換。'); return;
+  }
+
+  const resA = STATE.residents[idxA];
+  const resB = STATE.residents[idxB];
+
+  if (!confirm(`確認互換？\n\n${resA.build} ${resA.addr}（${maskName(resA.name)}）：${slotA} 號\n⇄\n${resB.build} ${resB.addr}（${maskName(resB.name)}）：${slotB} 號\n\n輪次：${round}`)) return;
+
+  // 執行互換
+  STATE.results[round][idxA] = slotB;
+  STATE.results[round][idxB] = slotA;
+
+  // 寫入互換 Log
+  const activeUser = (STATE.config._adminUser) || ADMIN_USER;
+  const now = new Date();
+  const ts  = now.toLocaleDateString('zh-TW') + ' ' + now.toLocaleTimeString('zh-TW');
+  const logEntry = {
+    time:    ts,
+    round:   round,
+    adminUser: activeUser,
+    addrA:   resA.build + ' ' + resA.addr,
+    nameA:   resA.name,
+    slotA_before: slotA,
+    slotA_after:  slotB,
+    addrB:   resB.build + ' ' + resB.addr,
+    nameB:   resB.name,
+    slotB_before: slotB,
+    slotB_after:  slotA,
+  };
+  STATE.swapLogs.unshift(logEntry);
+  saveStore();
+  writeLog(`車位互換（${round}）：${resA.addr} ${slotA}號 ⇄ ${resB.addr} ${slotB}號，執行者：${activeUser}`);
+
+  renderSwapLogs();
+  updateSwapPreview();
+  alert(`✅ 互換成功！\n${resA.addr} → ${slotB} 號\n${resB.addr} → ${slotA} 號`);
+
+  // 清空選擇
+  ['a','b'].forEach(s => {
+    document.getElementById(`swap-${s}-search`).value = '';
+    document.getElementById(`swap-${s}-info`).style.display = 'none';
+    document.getElementById(`swap-${s}-idx`).value = '';
+  });
+  document.getElementById('swap-preview').textContent = '請先選擇兩位住戶';
+  document.getElementById('swap-check-msg').textContent = '';
+}
+
+// ── 互換紀錄 ─────────────────────────────────────────────────
+function renderSwapLogs() {
+  const list = document.getElementById('swap-log-list');
+  if (!list) return;
+  const logs = STATE.swapLogs || [];
+  if (!logs.length) { list.innerHTML = '<div class="empty">尚無互換紀錄</div>'; return; }
+  list.innerHTML = logs.map((l, i) => `
+    <div style="padding:.75rem 0;border-bottom:1px solid #f0f0e8;font-size:13px;display:grid;grid-template-columns:140px 1fr;gap:8px;align-items:start">
+      <div>
+        <div style="color:#888;font-size:11px">${l.time}</div>
+        <div><span class="badge badge-blue">${l.round}</span></div>
+        <div style="font-size:11px;color:#aaa;margin-top:3px">管理員：${l.adminUser}</div>
+      </div>
+      <div>
+        <div><span style="color:#2563eb;font-weight:600">${l.addrA}</span>
+          ${maskName(l.nameA)}：
+          <span style="text-decoration:line-through;color:#aaa">${l.slotA_before}號</span>
+          → <span style="color:#16a34a;font-weight:600">${l.slotA_after}號</span>
+        </div>
+        <div><span style="color:#16a34a;font-weight:600">${l.addrB}</span>
+          ${maskName(l.nameB)}：
+          <span style="text-decoration:line-through;color:#aaa">${l.slotB_before}號</span>
+          → <span style="color:#2563eb;font-weight:600">${l.slotB_after}號</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function exportSwapLogs() {
+  const logs = STATE.swapLogs || [];
+  if (!logs.length) { alert('尚無互換紀錄'); return; }
+  const header = '時間,輪次,管理員,住戶A門牌,住戶A姓名,互換前車位,互換後車位,住戶B門牌,住戶B姓名,互換前車位,互換後車位\n';
+  const rows = logs.map(l =>
+    [l.time, l.round, l.adminUser, l.addrA, l.nameA, l.slotA_before, l.slotA_after,
+     l.addrB, l.nameB, l.slotB_before, l.slotB_after].join(',')
+  ).join('\n');
+  downloadFile('車位互換紀錄.csv', '\uFEFF' + header + rows, 'text/csv');
+  writeLog('匯出車位互換紀錄');
 }
 
 // ==========================================
