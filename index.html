@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.20</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.21</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -131,8 +131,8 @@
   .lm-progress-wrap{background:#e2e8f0;border-radius:100px;height:8px;overflow:hidden;margin-bottom:1rem}
   .lm-progress-bar{height:100%;background:var(--primary);width:0;transition:width .3s}
 
-  .seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;margin-top:1rem}
-  .seat{width:46px;height:38px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:1px solid transparent}
+  .seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-top:1rem}
+  .seat{min-height:50px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:1px solid transparent;padding:4px;text-align:center}
   .seat-free{background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
   .seat-used{background:#eff6ff;color:var(--primary);border-color:#bfdbfe}
   .seat-void{background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;text-decoration:line-through}
@@ -166,7 +166,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.20</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.21</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -197,11 +197,10 @@
   <button class="nav-tab" onclick="showPage('guide');closeMobileMenu()">說明</button>
 </div>
 
-<!-- ===== 登入對話框 ===== -->
-<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
+<!-- ===== 登入對話框 (已移除版次顯示，背景比例適當) ===== -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(3px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
   <div style="background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-radius:20px;padding:2.5rem;width:90%;max-width:400px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3)">
-    <h3 id="login-modal-title" style="margin-bottom:0.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:700">稙村秀社區機車位電腦抽籤系統</h3>
-    <p id="login-version-hint" style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">v1.20</p>
+    <h3 id="login-modal-title" style="margin-bottom:1.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:700">稙村秀社區機車位電腦抽籤系統</h3>
     <div style="margin-bottom:1.25rem">
       <label>帳號</label>
       <input type="text" id="login-user" placeholder="請輸入帳號" value="admin">
@@ -512,7 +511,7 @@
   </div>
 </div>
 
-<!-- ===== 8. 中籤查詢 (車號反查住戶) ===== -->
+<!-- ===== 8. 中籤查詢 ===== -->
 <div id="page-inquiry" class="page">
   <div class="section-title">住戶中籤快速查詢</div>
   <div class="card" style="max-width:520px;margin:0 auto 1.5rem">
@@ -525,7 +524,7 @@
   <div id="inq-result" style="display:none"></div>
 </div>
 
-<!-- ===== 9. 車位平面圖 ===== -->
+<!-- ===== 9. 車位平面圖 (車位標籤同步顯示中籤住戶棟別與門牌) ===== -->
 <div id="page-floorplan" class="page">
   <div class="flex-between" style="margin-bottom:1.25rem">
     <div class="section-title" style="margin:0">機車位配置平面圖</div>
@@ -598,7 +597,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.20">
+        <input type="text" id="set-app-version" value="v1.21">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -799,7 +798,7 @@
     voidSeats: [13, 44, 88],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.20",
+    appVersion: "v1.21",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: ""
@@ -1083,7 +1082,7 @@
       <div style="font-size:13px;margin-bottom:8px">第三輪抽籤：${gotR3 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
     `;
 
-    document.getElementById("dash-void-tags").innerHTML = systemSettings.voidSeats.map(s => `<span class="badge badge-red" style="margin-right:4px">#${s} 作廢</span>`).join('');
+    document.getElementById("dash-void-tags").innerHTML = systemSettings.voidSeats.map(s => `<span class="badge badge-red" style="margin-right:4px">${s}號 作廢</span>`).join('');
     document.getElementById("dash-void-input").value = systemSettings.voidSeats.join(',');
 
     let seatHtml = '<div class="seat-grid">';
@@ -1091,15 +1090,15 @@
       let isVoid = systemSettings.voidSeats.includes(i);
       let occupant = getSeatOccupant(i);
       let cls = "seat seat-free";
-      let title = `車位 ${i}號：空位`;
+      let label = `${i}號`;
       if(isVoid) {
         cls = "seat seat-void";
-        title = `車位 ${i}號：已作廢`;
+        label = `${i}號<br><span style="font-size:9px">(作廢)</span>`;
       } else if(occupant) {
         cls = "seat seat-used";
-        title = `車位 ${i}號：${occupant.name} (${occupant.room})`;
+        label = `${i}號<br><b>${occupant.build} ${occupant.room}</b>`;
       }
-      seatHtml += `<div class="${cls}" title="${title}">${i}號</div>`;
+      seatHtml += `<div class="${cls}" title="車位 ${i}號">${label}</div>`;
     }
     seatHtml += '</div>';
     document.getElementById("dash-seatmap").innerHTML = seatHtml;
@@ -1441,6 +1440,7 @@
         localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
         updateLotteryCards();
         renderDashboard();
+        initFloorplanSeats();
         addLog("抽籤", `執行 ${currentRound} 抽籤完成`);
       }
     }, 200);
@@ -1511,6 +1511,7 @@
       localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
       updateLotteryCards();
       renderDashboard();
+      initFloorplanSeats();
       addLog("抽籤", `清除 ${currentRound} 結果`);
     }
   }
@@ -1521,6 +1522,7 @@
       localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
       updateLotteryCards();
       renderDashboard();
+      initFloorplanSeats();
       addLog("抽籤", "重置全部輪次結果");
     }
   }
@@ -1792,11 +1794,12 @@
     renderSwap();
     renderDashboard();
     renderResults();
+    initFloorplanSeats();
     alert("車位互換成功！");
     addLog("互換", `${resA.name} 與 ${resB.name} 互換車位 (${round})`);
   }
 
-  // ================= 7. 中籤快速查詢邏輯 (支援車號反查住戶) =================
+  // ================= 7. 中籤快速查詢邏輯 =================
   function formatPlateInput(elem) {
     elem.value = elem.value.toUpperCase();
   }
@@ -1847,7 +1850,7 @@
     resultBox.innerHTML = html;
   }
 
-  // ================= 8. 平面圖功能 =================
+  // ================= 8. 平面圖功能 (車位標籤同步顯示棟別與門牌) =================
   function switchFloorplan(floorNum) {
     currentFloorplan = floorNum;
     if(floorNum === 1) {
@@ -1898,10 +1901,32 @@
     let b1Html = "";
     let b2Html = "";
     for(let i=1; i<=61; i++) {
-      b1Html += `<div class="seat seat-free">${i}號</div>`;
+      let isVoid = systemSettings.voidSeats.includes(i);
+      let occupant = getSeatOccupant(i);
+      let cls = "seat seat-free";
+      let label = `${i}號`;
+      if(isVoid) {
+        cls = "seat seat-void";
+        label = `${i}號<br><span style="font-size:9px">(作廢)</span>`;
+      } else if(occupant) {
+        cls = "seat seat-used";
+        label = `${i}號<br><b>${occupant.build} ${occupant.room}</b>`;
+      }
+      b1Html += `<div class="${cls}">${label}</div>`;
     }
     for(let i=62; i<=122; i++) {
-      b2Html += `<div class="seat seat-free">${i}號</div>`;
+      let isVoid = systemSettings.voidSeats.includes(i);
+      let occupant = getSeatOccupant(i);
+      let cls = "seat seat-free";
+      let label = `${i}號`;
+      if(isVoid) {
+        cls = "seat seat-void";
+        label = `${i}號<br><span style="font-size:9px">(作廢)</span>`;
+      } else if(occupant) {
+        cls = "seat seat-used";
+        label = `${i}號<br><b>${occupant.build} ${occupant.room}</b>`;
+      }
+      b2Html += `<div class="${cls}">${label}</div>`;
     }
     const b1Grid = document.getElementById("fp-b1-grid");
     const b2Grid = document.getElementById("fp-b2-grid");
