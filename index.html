@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位抽籤管理系統 v1.14</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.16</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -166,7 +166,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title">🛵 稙村秀機車位系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.14</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.16</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -192,16 +192,16 @@
   <button class="nav-tab" id="nav-tab-logs-mob" onclick="showPage('logs');closeMobileMenu()">操作紀錄</button>
   <button class="nav-tab" onclick="showPage('swap');closeMobileMenu()">車位互換</button>
   <button class="nav-tab" id="nav-tab-inquiry-mob" onclick="showPage('inquiry');closeMobileMenu()">中籤查詢</button>
-  <button class="nav-tab" onclick="showPage('floorplan');closeMobileMenu()">平面圖</button>
+  <button class="nav-tab" id="nav-tab-floorplan" onclick="showPage('floorplan');closeMobileMenu()">平面圖</button>
   <button class="nav-tab" id="nav-tab-settings-mob" onclick="showPage('settings');closeMobileMenu()">系統設定</button>
   <button class="nav-tab" onclick="showPage('guide');closeMobileMenu()">說明</button>
 </div>
 
 <!-- ===== 登入對話框 ===== -->
-<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:20px;padding:2.5rem;width:90%;max-width:400px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)">
-    <h3 style="margin-bottom:0.5rem;text-align:center;font-size:20px;color:var(--text-main)">系統登入</h3>
-    <p id="login-version-hint" style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">v1.14</p>
+<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;">
+  <div style="background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border-radius:20px;padding:2.5rem;width:90%;max-width:400px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3)">
+    <h3 id="login-modal-title" style="margin-bottom:0.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:700">稙村秀社區機車位電腦抽籤系統</h3>
+    <p id="login-version-hint" style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">v1.16</p>
     <div style="margin-bottom:1.25rem">
       <label>帳號</label>
       <input type="text" id="login-user" placeholder="請輸入帳號" value="admin">
@@ -227,7 +227,7 @@
     </div>
     <div class="card">
       <div class="card-title">系統快速導覽</div>
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位抽籤系統。管理員與主任可於住戶名單進行登記與車號連動設定，並至執行抽籤頁面管理作廢車位與執行各輪抽籤。</p>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。管理員與主任可於住戶名單進行登記與車號連動設定，並至執行抽籤頁面管理作廢車位與執行各輪抽籤。</p>
     </div>
   </div>
   <div class="card">
@@ -581,7 +581,7 @@
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">支援跨輪次或單一輪次的車位自由互換。搜尋住戶時可直接輸入「棟別、姓名或門牌」（例如：A1 張大明），並可點擊清除按鈕重新選取。互換後會同步記錄詳細車位號碼異動。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 5. 權限與帳號管理</h3>
-    <p style="font-size:13px;color:var(--text-muted)"><b>系統管理員</b>擁有全部管理與系統設定權限，且可自行編輯自己的帳號與密碼，並能編輯與重設所有社區主任的密碼；<b>社區主任</b>可編輯住戶與執行抽籤；<b>一般住戶</b>僅供檢視總表、中籤查詢與平面圖。</p>
+    <p style="font-size:13px;color:var(--text-muted)"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤；<b>一般住戶</b>僅供檢視總表、中籤查詢與平面圖。</p>
   </div>
 </div>
 
@@ -589,6 +589,23 @@
 <div id="page-settings" class="page">
   <div class="section-title">系統設定與權限維護</div>
   
+  <div class="card">
+    <div class="card-title">系統標題與版次自訂設定</div>
+    <div class="form-row">
+      <div>
+        <label>系統標題名稱</label>
+        <input type="text" id="set-app-title" value="稙村秀社區機車位電腦抽籤系統">
+      </div>
+      <div>
+        <label>系統版次標題</label>
+        <input type="text" id="set-app-version" value="v1.16">
+      </div>
+    </div>
+    <div class="btn-row mt-2" style="margin-top:1rem">
+      <button class="btn btn-primary" onclick="saveTitleVersionSettings()">儲存標題與版次</button>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-title">車位與 A/B 棟優先區間設定</div>
     <div class="form-row">
@@ -616,15 +633,18 @@
     </div>
   </div>
 
+  <!-- 管理員自訂上傳登入頁面背景圖 -->
   <div class="card">
-    <div class="card-title">系統通用與版次設定</div>
+    <div class="card-title">登入頁面背景圖設定</div>
     <div class="form-row">
       <div>
-        <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.14">
+        <label>上傳自訂登入背景圖</label>
+        <label class="btn btn-primary btn-sm" style="display:inline-block;cursor:pointer;margin-top:4px">
+          📤 選擇圖片檔案 <input type="file" accept="image/*" style="display:none" onchange="uploadLoginBackground(this)">
+        </label>
       </div>
       <div style="display:flex;align-items:flex-end">
-        <button class="btn btn-primary" onclick="saveVersionSettings()">更新版次</button>
+        <button class="btn btn-danger btn-sm" onclick="resetLoginBackground()">恢復預設背景</button>
       </div>
     </div>
   </div>
@@ -721,7 +741,7 @@
   </div>
 </div>
 
-<!-- 新增/編輯 帳號 Modal (支援管理員與主任) -->
+<!-- 新增/編輯 帳號 Modal -->
 <div class="modal-overlay" id="director-modal">
   <div class="modal" style="max-width:440px">
     <div class="modal-title" id="director-modal-title">新增帳號</div>
@@ -750,7 +770,7 @@
   <div class="lottery-modal">
     <h3 id="lam-title" class="modal-title" style="margin-bottom:1rem">正在進行抽籤...</h3>
     <div class="lm-progress-wrap"><div class="lm-progress-bar" id="lam-bar"></div></div>
-    <div class="lm-balls" id="lam-balls">
+    <div class="lm-balls" id="lm-balls">
       <div class="lm-ball">?</div>
     </div>
     <p id="lam-msg" style="font-size:13px;color:var(--text-muted)">正在隨機搖號中...</p>
@@ -774,13 +794,15 @@
   let fpZoomLevel = 1.0;
 
   let systemSettings = {
+    appTitle: "稙村秀社區機車位電腦抽籤系統",
     totalSeats: 122,
     voidSeats: [13, 44, 88],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.14",
+    appVersion: "v1.16",
     swapEnabled: true,
-    swapDeadline: "2026-06-30"
+    swapDeadline: "2026-06-30",
+    loginBg: ""
   };
 
   let residents = [
@@ -821,6 +843,10 @@
     if (savedSettings) {
       systemSettings = JSON.parse(savedSettings);
     }
+
+    applySystemBranding();
+    applyLoginBackground();
+
     const savedFloorplan1 = localStorage.getItem("custom_fp_1");
     if (savedFloorplan1) {
       const imgElem = document.getElementById("custom-fp-img-1");
@@ -836,11 +862,53 @@
       document.getElementById("login-overlay").style.display = "flex";
     } else {
       currentUser = JSON.parse(logged);
-      // 同步最新帳號資訊
       let liveAcc = accountsList.find(a => a.username === currentUser.username);
       if (liveAcc) currentUser = { ...liveAcc };
       initUserBar();
     }
+  }
+
+  function applySystemBranding() {
+    const titleText = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
+    document.getElementById("app-title-tag").innerText = `${titleText} ${systemSettings.appVersion}`;
+    document.getElementById("login-modal-title").innerText = titleText;
+    
+    // 更新導覽列標題
+    const brandEl = document.getElementById("nav-brand-title");
+    if (brandEl) {
+      brandEl.innerHTML = `🛵 ${titleText} <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">${systemSettings.appVersion}</span>`;
+    }
+  }
+
+  function applyLoginBackground() {
+    const overlay = document.getElementById("login-overlay");
+    if (systemSettings.loginBg) {
+      overlay.style.backgroundImage = `url('${systemSettings.loginBg}')`;
+    } else {
+      overlay.style.background = "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #065f46 100%)";
+    }
+  }
+
+  function uploadLoginBackground(inputElem) {
+    const file = inputElem.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      systemSettings.loginBg = e.target.result;
+      localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+      applyLoginBackground();
+      alert("登入頁面背景圖已成功更新並同步！");
+      addLog("設定", "管理員更新登入頁面背景圖");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetLoginBackground() {
+    systemSettings.loginBg = "";
+    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+    applyLoginBackground();
+    alert("已恢復預設登入背景！");
+    addLog("設定", "管理員重置登入頁面背景圖");
   }
 
   function doLogin() {
@@ -880,8 +948,8 @@
     if (currentUser.role === 'guest') roleTitle = "住戶";
 
     document.getElementById("user-bar-name").innerText = `👤 ${currentUser.name} (${roleTitle})`;
-    document.querySelectorAll(".app-version-label").forEach(el => el.innerText = systemSettings.appVersion);
     document.getElementById("login-version-hint").innerText = systemSettings.appVersion;
+    applySystemBranding();
     
     const resTabs = ['nav-tab-residents', 'nav-tab-residents-mob'];
     resTabs.forEach(id => {
@@ -969,6 +1037,7 @@
     if(pageId === 'swap') renderSwap();
     if(pageId === 'lottery') updateLotteryCards();
     if(pageId === 'settings' && currentUser.role === 'admin') {
+      document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
       document.getElementById("set-total-seats").value = systemSettings.totalSeats;
       document.getElementById("set-void-seats").value = systemSettings.voidSeats.join(',');
       document.getElementById("set-ab-start").value = systemSettings.abStart;
@@ -1836,7 +1905,23 @@
     if(b2Grid) b2Grid.innerHTML = b2Html;
   }
 
-  // ================= 9. 系統設定與帳號管理邏輯 (含管理員編輯自己與重設密碼) =================
+  // ================= 9. 系統設定與帳號管理邏輯 =================
+  function saveTitleVersionSettings() {
+    const titleVal = document.getElementById("set-app-title").value.trim();
+    const ver = document.getElementById("set-app-version").value.trim();
+    if(!titleVal || !ver) {
+      alert("系統標題與版次皆不可為空！");
+      return;
+    }
+    systemSettings.appTitle = titleVal;
+    systemSettings.appVersion = ver;
+    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+    applySystemBranding();
+    initUserBar();
+    alert("系統標題與版次更新成功並已同步！");
+    addLog("設定", `更新系統標題為「${titleVal}」，版次為 ${ver}`);
+  }
+
   function saveSeatSettings() {
     const tSeats = parseInt(document.getElementById("set-total-seats").value);
     const voidVal = document.getElementById("set-void-seats").value;
@@ -1863,16 +1948,7 @@
   }
 
   function saveVersionSettings() {
-    const ver = document.getElementById("set-app-version").value.trim();
-    if(!ver) {
-      alert("版本號不能為空！");
-      return;
-    }
-    systemSettings.appVersion = ver;
-    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
-    initUserBar();
-    alert("系統版次更新成功！");
-    addLog("設定", `更新系統版次為 ${ver}`);
+    saveTitleVersionSettings();
   }
 
   function renderDirectorsList() {
@@ -1901,7 +1977,7 @@
     }
     document.getElementById("director-modal").classList.add("show");
     if (mode === 'add') {
-      document.getElementById("director-modal-title").innerText = "新增社區主任帳號";
+      document.getElementById("director-modal-title").innerText = "新增帳號";
       document.getElementById("dir-edit-idx").value = -1;
       document.getElementById("dir-name").value = "";
       document.getElementById("dir-user").value = "";
