@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.19</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.20</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -166,7 +166,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.19</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.20</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -197,10 +197,11 @@
   <button class="nav-tab" onclick="showPage('guide');closeMobileMenu()">說明</button>
 </div>
 
-<!-- ===== 登入對話框 (已刪除版次顯示，背景比例適當) ===== -->
-<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
+<!-- ===== 登入對話框 ===== -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
   <div style="background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-radius:20px;padding:2.5rem;width:90%;max-width:400px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3)">
-    <h3 id="login-modal-title" style="margin-bottom:1.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:700">稙村秀社區機車位電腦抽籤系統</h3>
+    <h3 id="login-modal-title" style="margin-bottom:0.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:700">稙村秀社區機車位電腦抽籤系統</h3>
+    <p id="login-version-hint" style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">v1.20</p>
     <div style="margin-bottom:1.25rem">
       <label>帳號</label>
       <input type="text" id="login-user" placeholder="請輸入帳號" value="admin">
@@ -511,7 +512,7 @@
   </div>
 </div>
 
-<!-- ===== 8. 中籤查詢 ===== -->
+<!-- ===== 8. 中籤查詢 (車號反查住戶) ===== -->
 <div id="page-inquiry" class="page">
   <div class="section-title">住戶中籤快速查詢</div>
   <div class="card" style="max-width:520px;margin:0 auto 1.5rem">
@@ -597,7 +598,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.19">
+        <input type="text" id="set-app-version" value="v1.20">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -798,7 +799,7 @@
     voidSeats: [13, 44, 88],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.19",
+    appVersion: "v1.20",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: ""
@@ -1090,15 +1091,15 @@
       let isVoid = systemSettings.voidSeats.includes(i);
       let occupant = getSeatOccupant(i);
       let cls = "seat seat-free";
-      let title = `車位 #${i}：空位`;
+      let title = `車位 ${i}號：空位`;
       if(isVoid) {
         cls = "seat seat-void";
-        title = `車位 #${i}：已作廢`;
+        title = `車位 ${i}號：已作廢`;
       } else if(occupant) {
         cls = "seat seat-used";
-        title = `車位 #${i}：${occupant.name} (${occupant.room})`;
+        title = `車位 ${i}號：${occupant.name} (${occupant.room})`;
       }
-      seatHtml += `<div class="${cls}" title="${title}">${i}</div>`;
+      seatHtml += `<div class="${cls}" title="${title}">${i}號</div>`;
     }
     seatHtml += '</div>';
     document.getElementById("dash-seatmap").innerHTML = seatHtml;
@@ -1153,9 +1154,9 @@
         <td><button class="yn-btn ${r.r2==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r2')">${r.r2}</button></td>
         <td><button class="yn-btn ${r.r3==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r3')">${r.r3}</button></td>
         <td>${r.reserve==='Y'?'<span class="badge badge-purple">保留戶</span>':'一般戶'}</td>
-        <td>${r.pref1 || '-'}</td>
-        <td>${r.pref2 || '-'}</td>
-        <td>${r.pref3 || '-'}</td>
+        <td>${r.pref1 ? r.pref1 + '號' : '-'}</td>
+        <td>${r.pref2 ? r.pref2 + '號' : '-'}</td>
+        <td>${r.pref3 ? r.pref3 + '號' : '-'}</td>
         <td><code>${r.plate1 || '-'}</code></td>
         <td><code>${r.plate2 || '-'}</code></td>
         <td><code>${r.plate3 || '-'}</code></td>
@@ -1535,7 +1536,7 @@
       for(let id in got) {
         let res = residents.find(x => x.id == id);
         if(res) {
-          html += `${res.build}-${res.room} ${res.name} ➔ 車位 #${got[id]}<br>`;
+          html += `${res.build}-${res.room} ${res.name} ➔ 車位 ${got[id]}號<br>`;
           count++;
         }
       }
@@ -1569,9 +1570,9 @@
         const matchSearch = r.name.toLowerCase().includes(search) || r.room.toLowerCase().includes(search) || r.build.toLowerCase().includes(search);
         if(!matchSearch && search !== "") return;
 
-        let s1 = lotteryResults["第一輪"][r.id] ? `#` + lotteryResults["第一輪"][r.id] : "-";
-        let s2 = lotteryResults["第二輪"][r.id] ? `#` + lotteryResults["第二輪"][r.id] : "-";
-        let s3 = lotteryResults["第三輪"][r.id] ? `#` + lotteryResults["第三輪"][r.id] : "-";
+        let s1 = lotteryResults["第一輪"][r.id] ? lotteryResults["第一輪"][r.id] + '號' : "-";
+        let s2 = lotteryResults["第二輪"][r.id] ? lotteryResults["第二輪"][r.id] + '號' : "-";
+        let s3 = lotteryResults["第三輪"][r.id] ? lotteryResults["第三輪"][r.id] + '號' : "-";
         html += `<tr>
           <td>${r.build}</td>
           <td>${r.room}</td>
@@ -1611,7 +1612,7 @@
         <td>${r.room}</td>
         <td><b>${r.name}</b></td>
         <td>${r.reserve==='Y'?'保留戶':'一般戶'}</td>
-        <td>${seat ? '<b>#'+seat+'</b>' : '-'}</td>
+        <td>${seat ? '<b>'+seat+'號</b>' : '-'}</td>
         <td>${statusStr}</td>
       </tr>`;
     });
@@ -1684,7 +1685,7 @@
     matches.forEach(m => {
       let seat = round === "所有輪次" ? (lotteryResults["第一輪"][m.id] || lotteryResults["第二輪"][m.id] || lotteryResults["第三輪"][m.id]) : lotteryResults[round][m.id];
       html += `<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border-color)" onclick="selectSwapResident('${type}', ${m.id}, '${m.name} (${m.build}-${m.room})', ${seat || 0})">
-        <b>${m.build}-${m.room}</b> ${m.name} ${seat ? '(車位 #'+seat+')' : '(無車位)'}
+        <b>${m.build}-${m.room}</b> ${m.name} ${seat ? '('+seat+'號)' : '(無車位)'}
       </div>`;
     });
     dropdown.innerHTML = html;
@@ -1707,7 +1708,7 @@
     const info = document.getElementById(`swap-${type.toLowerCase()}-info`);
     const detail = document.getElementById(`swap-${type.toLowerCase()}-detail`);
     info.style.display = 'block';
-    detail.innerText = seat > 0 ? `持有車位：#${seat}` : `目前無車位`;
+    detail.innerText = seat > 0 ? `持有車位：${seat}號` : `目前無車位`;
     updateSwapPreview();
   }
 
@@ -1739,7 +1740,7 @@
     let seatA = round === "所有輪次" ? (lotteryResults["第一輪"][aId] || lotteryResults["第二輪"][aId] || lotteryResults["第三輪"][aId]) : lotteryResults[round][aId];
     let seatB = round === "所有輪次" ? (lotteryResults["第一輪"][bId] || lotteryResults["第二輪"][bId] || lotteryResults["第三輪"][bId]) : lotteryResults[round][bId];
     
-    prev.innerHTML = `<b>互換預覽 (${round})：</b><br>住戶 A 原車位：${seatA ? '#'+seatA : '無'} ➔ 換至：${seatB ? '#'+seatB : '無'}<br>住戶 B 原車位：${seatB ? '#'+seatB : '無'} ➔ 換至：${seatA ? '#'+seatA : '無'}`;
+    prev.innerHTML = `<b>互換預覽 (${round})：</b><br>住戶 A 原車位：${seatA ? seatA+'號' : '無'} ➔ 換至：${seatB ? seatB+'號' : '無'}<br>住戶 B 原車位：${seatB ? seatB+'號' : '無'} ➔ 換至：${seatA ? seatA+'號' : '無'}`;
   }
 
   function confirmSwap() {
@@ -1769,15 +1770,15 @@
         if(seatA) lotteryResults[r][bId] = seatA; else delete lotteryResults[r][bId];
         if(seatB) lotteryResults[r][aId] = seatB; else delete lotteryResults[r][aId];
       });
-      seatA_desc = `車位(#${lotteryResults["第一輪"][bId] || '無'})`;
-      seatB_desc = `車位(#${lotteryResults["第一輪"][aId] || '無'})`;
+      seatA_desc = `車位(${lotteryResults["第一輪"][bId] ? lotteryResults["第一輪"][bId]+'號' : '無'})`;
+      seatB_desc = `車位(${lotteryResults["第一輪"][aId] ? lotteryResults["第一輪"][aId]+'號' : '無'})`;
     } else {
       let seatA = lotteryResults[round][aId];
       let seatB = lotteryResults[round][bId];
       if(seatA) lotteryResults[round][bId] = seatA; else delete lotteryResults[round][bId];
       if(seatB) lotteryResults[round][aId] = seatB; else delete lotteryResults[round][aId];
-      seatA_desc = `車位(#${seatA || '無'} ➔ #${seatB || '無'})`;
-      seatB_desc = `車位(#${seatB || '無'} ➔ #${seatA || '無'})`;
+      seatA_desc = `車位(${seatA ? seatA+'號' : '無'} ➔ ${seatB ? seatB+'號' : '無'})`;
+      seatB_desc = `車位(${seatB ? seatB+'號' : '無'} ➔ ${seatA ? seatA+'號' : '無'})`;
     }
 
     swapLogs.unshift({
@@ -1795,7 +1796,7 @@
     addLog("互換", `${resA.name} 與 ${resB.name} 互換車位 (${round})`);
   }
 
-  // ================= 7. 中籤快速查詢邏輯 =================
+  // ================= 7. 中籤快速查詢邏輯 (支援車號反查住戶) =================
   function formatPlateInput(elem) {
     elem.value = elem.value.toUpperCase();
   }
@@ -1825,14 +1826,17 @@
 
     let html = "";
     matchRes.forEach(r => {
-      let s1 = lotteryResults["第一輪"][r.id] ? `#` + lotteryResults["第一輪"][r.id] : "未中籤";
-      let s2 = lotteryResults["第二輪"][r.id] ? `#` + lotteryResults["第二輪"][r.id] : "未中籤";
-      let s3 = lotteryResults["第三輪"][r.id] ? `#` + lotteryResults["第三輪"][r.id] : "未中籤";
+      let s1 = lotteryResults["第一輪"][r.id] ? lotteryResults["第一輪"][r.id] + '號' : "未中籤";
+      let s2 = lotteryResults["第二輪"][r.id] ? lotteryResults["第二輪"][r.id] + '號' : "未中籤";
+      let s3 = lotteryResults["第三輪"][r.id] ? lotteryResults["第三輪"][r.id] + '號' : "未中籤";
       
       html += `<div class="card" style="max-width:500px;margin:0 auto 1rem">
         <h4 style="color:var(--primary);margin-bottom:.5rem">查詢結果：${r.name} (${r.build} ${r.room})</h4>
-        <p style="font-size:13px;color:var(--text-muted)">登記車牌：<code>${r.plate1 || r.plate2 || r.plate3}</code></p>
-        <div style="margin-top:1rem;font-size:14px">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">登記車牌：<code>${r.plate1 || r.plate2 || r.plate3}</code></p>
+        <div style="font-size:13px;color:#0f172a;background:#f8fafc;padding:8px;border-radius:6px;border:1px solid var(--border-color);margin-bottom:8px">
+          👤 <b>車主身分反查</b>：${r.build}棟 ${r.room} - ${r.name} (${r.reserve === 'Y' ? '保留戶' : '一般戶'})
+        </div>
+        <div style="font-size:14px">
           <div>第一輪分配：<b>${s1}</b></div>
           <div>第二輪分配：<b>${s2}</b></div>
           <div>第三輪分配：<b>${s3}</b></div>
@@ -1894,10 +1898,10 @@
     let b1Html = "";
     let b2Html = "";
     for(let i=1; i<=61; i++) {
-      b1Html += `<div class="seat seat-free">${i}</div>`;
+      b1Html += `<div class="seat seat-free">${i}號</div>`;
     }
     for(let i=62; i<=122; i++) {
-      b2Html += `<div class="seat seat-free">${i}</div>`;
+      b2Html += `<div class="seat seat-free">${i}號</div>`;
     }
     const b1Grid = document.getElementById("fp-b1-grid");
     const b2Grid = document.getElementById("fp-b2-grid");
