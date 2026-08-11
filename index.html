@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.18</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.19</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -166,7 +166,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.18</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.19</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -197,11 +197,10 @@
   <button class="nav-tab" onclick="showPage('guide');closeMobileMenu()">說明</button>
 </div>
 
-<!-- ===== 登入對話框 (支援等比例縮放背景) ===== -->
-<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
+<!-- ===== 登入對話框 (已刪除版次顯示，背景比例適當) ===== -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
   <div style="background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-radius:20px;padding:2.5rem;width:90%;max-width:400px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3)">
-    <h3 id="login-modal-title" style="margin-bottom:0.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:700">稙村秀社區機車位電腦抽籤系統</h3>
-    <p id="login-version-hint" style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">v1.18</p>
+    <h3 id="login-modal-title" style="margin-bottom:1.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:700">稙村秀社區機車位電腦抽籤系統</h3>
     <div style="margin-bottom:1.25rem">
       <label>帳號</label>
       <input type="text" id="login-user" placeholder="請輸入帳號" value="admin">
@@ -598,7 +597,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.18">
+        <input type="text" id="set-app-version" value="v1.19">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -799,7 +798,7 @@
     voidSeats: [13, 44, 88],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.18",
+    appVersion: "v1.19",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: ""
@@ -872,7 +871,6 @@
     const titleText = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
     document.getElementById("app-title-tag").innerText = `${titleText} ${systemSettings.appVersion}`;
     document.getElementById("login-modal-title").innerText = titleText;
-    document.getElementById("login-version-hint").innerText = systemSettings.appVersion;
     
     const brandEl = document.getElementById("nav-brand-title");
     if (brandEl) {
@@ -888,7 +886,6 @@
       overlay.style.backgroundPosition = "center";
       overlay.style.backgroundRepeat = "no-repeat";
     } else {
-      // 使用高品質社群情境色系（深色大氣現代感，亦可貼上您提供的圖片 Base64）
       overlay.style.background = "linear-gradient(135deg, rgba(15,23,42,0.7), rgba(30,58,138,0.6)), #0f172a";
     }
   }
