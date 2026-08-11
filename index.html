@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="app-title-tag">稙村秀社區機車位抽籤管理系統 v1.14</title>
+<!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg-main: #f8fafc;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg-main);color:var(--text-main);font-size:14px;line-height:1.6}
+  
+  /* 導覽列 */
+  .nav{background:var(--card-bg);border-bottom:1px solid var(--border-color);display:flex;align-items:center;padding:0 1.25rem;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
+  .nav-title{font-size:14px;font-weight:700;color:var(--primary);padding:1rem 0;margin-right:1.5rem;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .nav-tabs{display:flex;gap:4px;flex:1;overflow-x:auto}
+  .nav-tab{padding:.75rem 1rem;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500;transition:all .2s}
+  .nav-tab.active{color:var(--primary);border-bottom-color:var(--primary);background:#f1f5f9}
+  .nav-tab:hover:not(.active){color:var(--text-main);background:#f8fafc}
+  .nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;padding:6px;cursor:pointer;border:none;background:transparent;margin-left:auto}
+  .nav-hamburger span{display:block;height:2px;background:var(--text-muted);border-radius:2px;transition:all .2s}
+  .nav-menu-mobile{display:none;position:fixed;top:53px;left:0;right:0;background:var(--card-bg);border-bottom:1px solid var(--border-color);z-index:99;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)}
+  .nav-menu-mobile.open{display:block}
+  .nav-menu-mobile .nav-tab{display:block;width:100%;text-align:left;padding:.85rem 1.25rem;border-bottom:1px solid var(--border-color);border-left:3px solid transparent}
+  .nav-menu-mobile .nav-tab.active{border-left-color:var(--primary);background:#f8fafc;color:var(--primary)}
+
+  /* 使用者資訊列 */
+  .user-bar{background:#0f172a;color:#f8fafc;padding:.4rem 1.25rem;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+  .user-bar-btn{background:transparent;border:1px solid #475569;color:#cbd5e1;padding:2px 10px;border-radius:4px;cursor:pointer;font-size:11px;transition:all .15s}
+  .user-bar-btn:hover{background:#334155;color:#fff}
+
+  /* 版面配置 */
+  .page{display:none;padding:1.5rem;max-width:1280px;margin:0 auto}
+  .page.active{display:block}
+
+  /* 卡片元件 */
+  .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 4px 6px -1px rgba(0,0,0,0.02),0 2px 4px -1px rgba(0,0,0,0.02)}
+  .card-title{font-size:15px;font-weight:600;margin-bottom:1.25rem;color:var(--text-main);border-left:4px solid var(--primary);padding-left:10px;display:flex;align-items:center;justify-content:space-between}
+
+  /* 統計卡片 */
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem}
+  .stat{background:linear-gradient(135deg,#fff 0%,#f8fafc 100%);border:1px solid var(--border-color);border-radius:10px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
+  .stat-label{font-size:12px;color:var(--text-muted);margin-bottom:6px;font-weight:500}
+  .stat-value{font-size:26px;font-weight:700;color:var(--text-main)}
+  .stat-value.blue{color:var(--primary)}
+  .stat-value.green{color:#16a34a}
+  .stat-value.orange{color:#ea580c}
+
+  /* 網格佈局 */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem}
+
+  /* 按鈕樣式 */
+  .btn{padding:.5rem 1.1rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;color:var(--text-main);box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+  .btn:hover{background:#f1f5f9;border-color:#cbd5e1}
+  .btn:active{transform:scale(.98)}
+  .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 4px rgba(37,99,235,0.2)}
+  .btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover)}
+  .btn-danger{background:#dc2626;color:#fff;border-color:#dc2626}
+  .btn-danger:hover{background:#b91c1c}
+  .btn-success{background:#16a34a;color:#fff;border-color:#16a34a}
+  .btn-success:hover{background:#15803d}
+  .btn-sm{padding:.3rem .75rem;font-size:12px;border-radius:6px}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem}
+
+  .yn-btn { padding:3px 10px; font-size:12px; border-radius:6px; border:1px solid transparent; cursor:pointer; font-weight:600; transition:all .15s; }
+  .yn-btn.yes { background:#dcfce7; color:#15803d; border-color:#bbf7d0; }
+  .yn-btn.no { background:#f1f5f9; color:#64748b; border-color:#e2e8f0; }
+
+  /* 表單樣式 */
+  input[type=text],input[type=number],input[type=password],select,textarea{width:100%;padding:.6rem .8rem;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:#fff;color:var(--text-main);font-family:inherit;transition:all .15s}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.15)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+  label{font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:6px;display:block}
+
+  /* 表格樣式 */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border-color)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;padding:.75rem 1rem;background:#f8fafc;border-bottom:1px solid var(--border-color);font-weight:600;color:var(--text-muted);white-space:nowrap}
+  td{padding:.75rem 1rem;border-bottom:1px solid var(--border-color);vertical-align:middle;color:var(--text-main)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#f8fafc}
+
+  /* 標籤 Badge */
+  .badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600}
+  .badge-blue{background:#eff6ff;color:var(--primary)}
+  .badge-green{background:#f0fdf4;color:#16a34a}
+  .badge-orange{background:#fff7ed;color:#c2410c}
+  .badge-red{background:#fef2f2;color:#dc2626}
+  .badge-gray{background:#f1f5f9;color:#64748b}
+  .badge-purple{background:#f5f3ff;color:#7c3aed}
+  
+  .round-tabs{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+  .round-tab{padding:.5rem 1.2rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:13px;color:var(--text-muted);font-weight:500;transition:all .15s}
+  .round-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 4px rgba(37,99,235,0.2)}
+  
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center}
+  .modal-overlay.show{display:flex}
+  .modal{background:var(--card-bg);border-radius:16px;padding:2rem;max-width:640px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04)}
+  .modal-title{font-size:18px;font-weight:700;margin-bottom:1.5rem;color:var(--text-main)}
+  .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:1.5rem}
+  
+  /* 抽籤介面優化 */
+  .lottery-hero{background:linear-gradient(135deg,#f0fdf4 0%,#f8fafc 100%);border:1px solid #bbf7d0;border-radius:16px;padding:2rem;margin-bottom:1.5rem;box-shadow:0 4px 6px -1px rgba(0,0,0,0.02)}
+  .lrs-grid{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:1rem;align-items:stretch;margin-bottom:1.5rem}
+  .lrs-card{border:2px solid var(--border-color);border-radius:14px;padding:1.25rem;cursor:pointer;transition:all .2s;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
+  .lrs-card.active{border-color:var(--primary);box-shadow:0 8px 16px -4px rgba(37,99,235,0.15);background:#eff6ff}
+  .lrs-card.done{border-color:#16a34a;background:#f0fdf4}
+  .lrs-arrow-col{display:flex;align-items:center;justify-content:center;font-size:24px;color:#cbd5e1}
+  .lrs-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:1rem;text-align:center;background:#fff;padding:8px;border-radius:8px;border:1px solid var(--border-color)}
+  .lrs-stat-val{font-size:18px;font-weight:700;color:var(--text-main);display:block}
+  .lrs-stat-lbl{font-size:11px;color:var(--text-muted);font-weight:500}
+
+  .btn-run-lottery{background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#fff;border:none;font-size:16px;padding:.85rem 2.5rem;border-radius:10px;cursor:pointer;font-weight:600;box-shadow:0 4px 12px rgba(37,99,235,0.3);transition:all .2s}
+  .btn-run-lottery:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(37,99,235,0.4)}
+
+  .lottery-modal{background:#fff;border-radius:20px;padding:2.5rem;width:90%;max-width:480px;text-align:center;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)}
+  .lm-balls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:1.5rem 0}
+  .lm-ball{width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(37,99,235,0.3);animation:ballSpin .4s ease-in-out infinite alternate}
+  @keyframes ballSpin{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+  .lm-progress-wrap{background:#e2e8f0;border-radius:100px;height:8px;overflow:hidden;margin-bottom:1rem}
+  .lm-progress-bar{height:100%;background:var(--primary);width:0;transition:width .3s}
+
+  .seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;margin-top:1rem}
+  .seat{width:46px;height:38px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:1px solid transparent}
+  .seat-free{background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
+  .seat-used{background:#eff6ff;color:var(--primary);border-color:#bfdbfe}
+  .seat-void{background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;text-decoration:line-through}
+  
+  .section-title{font-size:18px;font-weight:700;margin-bottom:1.25rem;color:var(--text-main);letter-spacing:-0.025em}
+  .empty{text-align:center;color:var(--text-muted);padding:3rem;font-size:14px}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+
+  .log-tl-item{display:flex;gap:0;position:relative;padding-bottom:1.25rem}
+  .log-tl-line{position:absolute;left:7px;top:20px;bottom:0;width:2px;background:var(--border-color)}
+  .log-tl-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-top:3px;border:3px solid #fff;box-shadow:0 0 0 2px var(--primary);z-index:1;background:var(--primary)}
+  .log-tl-content{flex:1;margin-left:14px;background:#f8fafc;padding:.75rem 1rem;border-radius:8px;border:1px solid var(--border-color)}
+
+  @media(max-width:768px){
+    .nav-tabs{display:none}
+    .nav-hamburger{display:flex}
+    .grid-2,.grid-3{grid-template-columns:1fr}
+    .form-row,.form-row-3{grid-template-columns:1fr}
+    .lrs-grid{grid-template-columns:1fr}
+    .lrs-arrow-col{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 使用者頂部列 ===== -->
+<div class="user-bar" id="user-bar" style="display:none">
+  <span id="user-bar-name">👤 未登入</span>
+  <button class="user-bar-btn" onclick="doLogout()">登出系統</button>
+</div>
+
+<!-- ===== 主導覽列 ===== -->
+<nav class="nav">
+  <div class="nav-title">🛵 稙村秀機車位系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.14</span></div>
+  <div class="nav-tabs" id="nav-tabs-desktop">
+    <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
+    <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
+    <button class="nav-tab" id="nav-tab-lottery" onclick="showPage('lottery')">執行抽籤</button>
+    <button class="nav-tab" onclick="showPage('results')">抽籤結果與總表</button>
+    <button class="nav-tab" id="nav-tab-logs" onclick="showPage('logs')">操作紀錄</button>
+    <button class="nav-tab" onclick="showPage('swap')">車位互換</button>
+    <button class="nav-tab" onclick="showPage('inquiry')">中籤查詢</button>
+    <button class="nav-tab" onclick="showPage('floorplan')">平面圖</button>
+    <button class="nav-tab" id="nav-tab-settings" onclick="showPage('settings')">系統設定</button>
+    <button class="nav-tab" onclick="showPage('guide')">說明</button>
+  </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="nav-menu-mobile" id="nav-menu-mobile">
+  <button class="nav-tab active" onclick="showPage('dashboard');closeMobileMenu()">總覽</button>
+  <button class="nav-tab" id="nav-tab-residents-mob" onclick="showPage('residents');closeMobileMenu()">住戶名單</button>
+  <button class="nav-tab" id="nav-tab-lottery-mob" onclick="showPage('lottery');closeMobileMenu()">執行抽籤</button>
+  <button class="nav-tab" onclick="showPage('results');closeMobileMenu()">抽籤結果與總表</button>
+  <button class="nav-tab" id="nav-tab-logs-mob" onclick="showPage('logs');closeMobileMenu()">操作紀錄</button>
+  <button class="nav-tab" onclick="showPage('swap');closeMobileMenu()">車位互換</button>
+  <button class="nav-tab" id="nav-tab-inquiry-mob" onclick="showPage('inquiry');closeMobileMenu()">中籤查詢</button>
+  <button class="nav-tab" onclick="showPage('floorplan');closeMobileMenu()">平面圖</button>
+  <button class="nav-tab" id="nav-tab-settings-mob" onclick="showPage('settings');closeMobileMenu()">系統設定</button>
+  <button class="nav-tab" onclick="showPage('guide');closeMobileMenu()">說明</button>
+</div>
+
+<!-- ===== 登入對話框 ===== -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:20px;padding:2.5rem;width:90%;max-width:400px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)">
+    <h3 style="margin-bottom:0.5rem;text-align:center;font-size:20px;color:var(--text-main)">系統登入</h3>
+    <p id="login-version-hint" style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">v1.14</p>
+    <div style="margin-bottom:1.25rem">
+      <label>帳號</label>
+      <input type="text" id="login-user" placeholder="請輸入帳號" value="admin">
+    </div>
+    <div style="margin-bottom:1.25rem">
+      <label>密碼</label>
+      <input type="password" id="login-pw" placeholder="請輸入密碼" value="1234">
+    </div>
+    <div id="login-error" style="color:#dc2626;font-size:12px;margin-bottom:1.25rem;display:none;text-align:center">帳號或密碼錯誤！</div>
+    <button class="btn btn-primary" style="width:100%;padding:.75rem;margin-bottom:.75rem;font-size:15px" onclick="doLogin()">登入系統</button>
+    <button class="btn" style="width:100%;padding:.75rem;color:var(--primary);border-color:#bfdbfe;background:#eff6ff" onclick="guestLogin()">社區住戶快速查詢入口</button>
+  </div>
+</div>
+
+<!-- ===== 1. 總覽 ===== -->
+<div id="page-dashboard" class="page active">
+  <div class="section-title">機車位抽籤總覽</div>
+  <div class="stats-grid" id="dash-stats"></div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">各輪抽籤狀態</div>
+      <div id="dash-rounds"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">系統快速導覽</div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位抽籤系統。管理員與主任可於住戶名單進行登記與車號連動設定，並至執行抽籤頁面管理作廢車位與執行各輪抽籤。</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">車位即時分配圖</div>
+    <div id="dash-seatmap"></div>
+  </div>
+</div>
+
+<!-- ===== 2. 住戶名單 ===== -->
+<div id="page-residents" class="page">
+  <div class="flex-between" style="margin-bottom:1.25rem">
+    <div class="section-title" style="margin:0">住戶名單管理</div>
+    <div class="btn-row" style="margin:0">
+      <button class="btn btn-primary" id="btn-add-resident" onclick="openAddModal()">新增住戶</button>
+      <button class="btn" onclick="exportCSV()">匯出 CSV</button>
+      <button class="btn btn-success" onclick="exportExcel('residents-table', '住戶名單')">匯出 Excel (.xlsx)</button>
+      <label class="btn" style="display:inline-block;margin:0;cursor:pointer">
+        匯入 CSV <input type="file" accept=".csv" style="display:none" onchange="importCSV(this)">
+      </label>
+    </div>
+  </div>
+  
+  <div class="card">
+    <div class="form-row-3" style="margin-bottom:1.25rem">
+      <input type="text" id="search-resident" placeholder="搜尋姓名/門牌/棟別" oninput="renderResidents()">
+      <select id="filter-build" onchange="renderResidents()">
+        <option value="">全部分棟</option>
+        <option value="A1">A1</option><option value="A2">A2</option>
+        <option value="B1">B1</option><option value="B2">B2</option>
+        <option value="C1">C1</option><option value="C2">C2</option><option value="C3">C3</option>
+        <option value="D1">D1</option><option value="D2">D2</option>
+        <option value="E1">E1</option><option value="E2">E2</option>
+      </select>
+      <select id="filter-reserve" onchange="renderResidents()">
+        <option value="">全部身分</option>
+        <option value="N">一般戶</option>
+        <option value="Y">保留戶</option>
+      </select>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:.75rem" id="resident-count"></div>
+    
+    <div class="table-wrap">
+      <table id="residents-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>棟別</th><th>門牌</th><th>姓名</th>
+            <th>1輪</th><th>2輪</th><th>3輪</th><th>身分</th>
+            <th>指定1</th><th>指定2</th><th>指定3</th>
+            <th>車牌1</th><th>車牌2</th><th>車牌3</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="resident-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 3. 執行抽籤 (含作廢車位設定) ===== -->
+<div id="page-lottery" class="page">
+  <div class="flex-between" style="margin-bottom:1.25rem">
+    <div class="section-title" style="margin:0">執行機車位抽籤</div>
+    <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
+  </div>
+  
+  <div class="card" style="background:#f8fafc;border-color:#cbd5e1">
+    <div class="card-title" style="border-left-color:#ea580c">作廢車位設定</div>
+    <div id="dash-void-tags" style="margin-bottom:1rem"></div>
+    <div class="form-row">
+      <input type="text" id="dash-void-input" placeholder="例: 5,10,15" oninput="previewVoidCount()">
+      <button class="btn btn-primary" onclick="saveVoidFromDash()">儲存作廢車位</button>
+    </div>
+    <div id="dash-void-preview" style="font-size:12px;color:var(--text-muted);margin-top:6px"></div>
+  </div>
+
+  <div class="lrs-grid">
+    <div class="lrs-card active" data-round="第一輪" onclick="selectLotteryRound('第一輪')">
+      <div class="flex-between">
+        <div style="font-weight:600">第一輪抽籤</div>
+        <span class="lrs-badge" id="lrs-badge-1">待執行</span>
+      </div>
+      <div class="lrs-stats">
+        <div><span class="lrs-stat-val" id="lrs-p1">0</span><span class="lrs-stat-lbl">參加</span></div>
+        <div><span class="lrs-stat-val" id="lrs-s1">0</span><span class="lrs-stat-lbl">可用</span></div>
+        <div><span class="lrs-stat-val" id="lrs-a1">0</span><span class="lrs-stat-lbl">中籤</span></div>
+      </div>
+    </div>
+    <div class="lrs-arrow-col">➔</div>
+    <div class="lrs-card" data-round="第二輪" onclick="selectLotteryRound('第二輪')">
+      <div class="flex-between">
+        <div style="font-weight:600">第二輪抽籤</div>
+        <span class="lrs-badge" id="lrs-badge-2">待執行</span>
+      </div>
+      <div class="lrs-stats">
+        <div><span class="lrs-stat-val" id="lrs-p2">0</span><span class="lrs-stat-lbl">參加</span></div>
+        <div><span class="lrs-stat-val" id="lrs-s2">0</span><span class="lrs-stat-lbl">可用</span></div>
+        <div><span class="lrs-stat-val" id="lrs-a2">0</span><span class="lrs-stat-lbl">中籤</span></div>
+      </div>
+    </div>
+    <div class="lrs-arrow-col">➔</div>
+    <div class="lrs-card" data-round="第三輪" onclick="selectLotteryRound('第三輪')">
+      <div class="flex-between">
+        <div style="font-weight:600">第三輪抽籤</div>
+        <span class="lrs-badge" id="lrs-badge-3">待執行</span>
+      </div>
+      <div class="lrs-stats">
+        <div><span class="lrs-stat-val" id="lrs-p3">0</span><span class="lrs-stat-lbl">參加</span></div>
+        <div><span class="lrs-stat-val" id="lrs-s3">0</span><span class="lrs-stat-lbl">可用</span></div>
+        <div><span class="lrs-stat-val" id="lrs-a3">0</span><span class="lrs-stat-lbl">中籤</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lottery-hero">
+    <div class="flex-between">
+      <div>
+        <h3 id="lottery-round-label" style="font-size:20px;color:var(--primary);margin-bottom:6px">第一輪</h3>
+        <p id="lottery-round-status" style="font-size:13px;color:var(--text-muted)">系統將依據住戶勾選參加狀況與 A/B 棟優先區間設定進行亂數與指定車位配置。</p>
+      </div>
+      <button class="btn-run-lottery" onclick="runLottery()">🎲 開始執行抽籤</button>
+    </div>
+    <div class="btn-row mt-2" style="border-top:1px solid #bbf7d0;padding-top:1rem;margin-top:1.25rem">
+      <button class="btn btn-danger btn-sm" onclick="clearCurrentRound()">清除本輪結果</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">重置全部輪次結果</button>
+      <button class="btn btn-sm" onclick="toggleLotteryPreview()">展開預覽資訊 <span id="preview-toggle-icon">▼</span></button>
+    </div>
+    <div id="lottery-preview" style="display:none;margin-top:1rem;padding:1rem;background:#fff;border-radius:8px;border:1px solid #bbf7d0"></div>
+  </div>
+</div>
+
+<!-- ===== 4. 抽籤結果與彙整總表 ===== -->
+<div id="page-results" class="page">
+  <div class="flex-between" style="margin-bottom:1.25rem">
+    <div class="section-title" style="margin:0">抽籤結果與彙整總表</div>
+    <div class="btn-row" style="margin:0">
+      <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
+      <button class="btn" onclick="exportRoundResult()">匯出 CSV</button>
+      <button class="btn btn-success" onclick="exportExcel('results-table', '抽籤結果與總表')">匯出 Excel (.xlsx)</button>
+      <button class="btn btn-primary" onclick="exportResultsPDF()">📄 匯出 PDF</button>
+      <button class="btn" onclick="printRoundResult()">列印報表</button>
+    </div>
+  </div>
+
+  <div class="round-tabs" id="result-round-tabs">
+    <div class="round-tab active" data-round="第一輪" onclick="selectResultRound('第一輪')">第一輪</div>
+    <div class="round-tab" data-round="第二輪" onclick="selectResultRound('第二輪')">第二輪</div>
+    <div class="round-tab" data-round="第三輪" onclick="selectResultRound('第三輪')">第三輪</div>
+    <div class="round-tab" data-round="全部輪次" onclick="selectResultRound('全部輪次')">全部輪次總表</div>
+  </div>
+
+  <div class="card">
+    <div class="form-row" style="margin-bottom:1.25rem">
+      <input type="text" id="search-result" placeholder="搜尋姓名/門牌/車位" oninput="renderResults()">
+      <select id="filter-result-type" onchange="renderResults()">
+        <option value="all">全部結果</option>
+        <option value="got">僅顯示中籤者</option>
+        <option value="no">未中籤</option>
+        <option value="skip">未參加</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table id="results-table">
+        <thead>
+          <tr id="results-th"><th>序號</th><th>棟別</th><th>門牌</th><th>姓名</th><th>身分</th><th>分配車位</th><th>狀態</th></tr>
+        </thead>
+        <tbody id="result-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 5. 彙整總表 (隱藏相容) ===== -->
+<div id="page-summary" class="page" style="display:none"></div>
+
+<!-- ===== 6. 操作紀錄 ===== -->
+<div id="page-logs" class="page">
+  <div class="flex-between" style="margin-bottom:1.25rem">
+    <div class="section-title" style="margin:0">系統操作紀錄</div>
+    <div class="btn-row" style="margin:0">
+      <button class="btn btn-sm" onclick="exportLogs()">匯出 CSV</button>
+      <button class="btn btn-sm btn-success" onclick="exportExcel('logs-table', '操作紀錄')">匯出 Excel (.xlsx)</button>
+      <button class="btn btn-sm btn-danger" onclick="clearLogs()">清除紀錄</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="form-row" style="margin-bottom:1.25rem">
+      <input type="text" id="log-search" placeholder="搜尋紀錄內容..." oninput="renderLogs()">
+      <select id="log-filter-type" onchange="renderLogs()">
+        <option value="">全部類型</option>
+        <option value="登入">登入/登出</option>
+        <option value="住戶">住戶異動</option>
+        <option value="抽籤">抽籤執行</option>
+        <option value="設定">設定變更</option>
+        <option value="互換">車位互換</option>
+        <option value="審核">審核異動</option>
+      </select>
+    </div>
+    <div id="log-count" style="font-size:12px;color:var(--text-muted);margin-bottom:1rem"></div>
+    <div id="log-timeline"></div>
+    
+    <table id="logs-table" style="display:none">
+      <thead><tr><th>時間</th><th>類型</th><th>訊息</th><th>使用者</th></tr></thead>
+      <tbody id="logs-table-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== 7. 車位互換 ===== -->
+<div id="page-swap" class="page">
+  <div class="section-title">車位互換管理</div>
+  
+  <div id="swap-no-admin" style="display:none" class="card">
+    <div class="empty">一般住戶僅供檢視，如需申請互換請聯繫社區管理中心。</div>
+  </div>
+
+  <div id="swap-admin-content">
+    <div class="card">
+      <div class="flex-between">
+        <div class="card-title" style="margin:0;border:none;padding:0">互換功能開關與設定</div>
+        <span id="swap-status-badge" class="badge">檢查中...</span>
+      </div>
+      <div class="form-row mt-2" style="margin-top:1rem">
+        <div>
+          <label>開放互換截止日期</label>
+          <input type="text" id="swap-deadline" placeholder="YYYY-MM-DD">
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px">
+          <button class="btn btn-primary" onclick="saveSwapConfig()">儲存設定</button>
+          <button class="btn btn-success" onclick="setSwapEnabled(true)">開放功能</button>
+          <button class="btn btn-danger" onclick="setSwapEnabled(false)">鎖定功能</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">執行車位互換 (支援所有輪次)</div>
+        <div style="margin-bottom:12px">
+          <label>選擇互換輪次</label>
+          <select id="swap-round" onchange="onSwapRoundChange()">
+            <option value="所有輪次" selected>所有輪次 (通用)</option>
+            <option value="第一輪">第一輪</option>
+            <option value="第二輪">第二輪</option>
+            <option value="第三輪">第三輪</option>
+          </select>
+        </div>
+
+        <div style="position:relative;margin-bottom:12px">
+          <label>住戶 A</label>
+          <input type="hidden" id="swap-a-idx">
+          <div style="display:flex;gap:6px">
+            <input type="text" id="swap-a-search" placeholder="搜尋棟別/姓名/門牌 (例: A1 張大明)" oninput="searchSwapResident('A')">
+            <button class="btn btn-sm" onclick="clearSwapInput('A')" title="清除">清除</button>
+          </div>
+          <div id="swap-a-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--border-color);border-radius:8px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);z-index:10"></div>
+          <div id="swap-a-info" style="display:none;font-size:12px;color:var(--primary);margin-top:6px"><span id="swap-a-detail"></span></div>
+        </div>
+
+        <div style="position:relative;margin-bottom:1.25rem">
+          <label>住戶 B</label>
+          <input type="hidden" id="swap-b-idx">
+          <div style="display:flex;gap:6px">
+            <input type="text" id="swap-b-search" placeholder="搜尋棟別/姓名/門牌 (例: B1 王美玲)" oninput="searchSwapResident('B')">
+            <button class="btn btn-sm" onclick="clearSwapInput('B')" title="清除">清除</button>
+          </div>
+          <div id="swap-b-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--border-color);border-radius:8px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);z-index:10"></div>
+          <div id="swap-b-info" style="display:none;font-size:12px;color:#16a34a;margin-top:6px"><span id="swap-b-detail"></span></div>
+        </div>
+
+        <div id="swap-preview" style="font-size:13px;padding:1rem;background:#f8fafc;border-radius:8px;border:1px solid var(--border-color);margin-bottom:1.25rem">請選擇兩位住戶</div>
+        <button class="btn btn-primary" style="width:100%;padding:.7rem" onclick="confirmSwap()">確認交換車位</button>
+      </div>
+
+      <div class="card">
+        <div class="flex-between">
+          <div class="card-title" style="margin:0;border:none;padding:0">歷史互換紀錄</div>
+          <button class="btn btn-sm" onclick="exportSwapLogs()">匯出 CSV</button>
+        </div>
+        <div id="swap-log-list" style="margin-top:1rem;max-height:340px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 8. 中籤查詢 ===== -->
+<div id="page-inquiry" class="page">
+  <div class="section-title">住戶中籤快速查詢</div>
+  <div class="card" style="max-width:520px;margin:0 auto 1.5rem">
+    <label>請輸入您的登記車牌號碼 (支援模糊查詢，如 ABC1234 或 ABC-1234)</label>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <input type="text" id="inq-plate" placeholder="例: ABC-1234 或 ABC1234" oninput="formatPlateInput(this)">
+      <button class="btn btn-primary" onclick="doInquiry()">立即查詢</button>
+    </div>
+  </div>
+  <div id="inq-result" style="display:none"></div>
+</div>
+
+<!-- ===== 9. 車位平面圖 ===== -->
+<div id="page-floorplan" class="page">
+  <div class="flex-between" style="margin-bottom:1.25rem">
+    <div class="section-title" style="margin:0">機車位配置平面圖</div>
+    <div class="btn-row" style="margin:0" id="admin-floorplan-upload">
+      <label class="btn btn-primary btn-sm" style="margin:0;cursor:pointer">
+        📤 上傳自訂平面圖 <input type="file" accept="image/*" style="display:none" onchange="uploadCustomFloorplan(this)">
+      </label>
+      <button class="btn btn-sm" onclick="zoomFloorplan(0.1)">放大 (+)</button>
+      <button class="btn btn-sm" onclick="zoomFloorplan(-0.1)">縮小 (-)</button>
+      <button class="btn btn-sm" onclick="resetFloorplanZoom()">重置 (100%)</button>
+    </div>
+  </div>
+
+  <div class="round-tabs">
+    <div class="round-tab active" id="fp-tab-1" onclick="switchFloorplan(1)">B1 區車位圖</div>
+    <div class="round-tab" id="fp-tab-2" onclick="switchFloorplan(2)">B2 區車位圖</div>
+  </div>
+
+  <div class="card" style="overflow:auto;text-align:center;padding:1.5rem">
+    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center;">
+      <div id="fp-content-1" style="max-width:100%">
+        <img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:1rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+        <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:12px">
+          <h4 style="color:#334155;margin-bottom:1rem">B1 機車位配置平面圖</h4>
+          <div class="seat-grid" id="fp-b1-grid"></div>
+        </div>
+      </div>
+      <div id="fp-content-2" style="max-width:100%; display:none">
+        <img id="custom-fp-img-2" src="" style="display:none;max-width:100%;margin-bottom:1rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+        <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:12px">
+          <h4 style="color:#334155;margin-bottom:1rem">B2 機車位配置平面圖</h4>
+          <div class="seat-grid" id="fp-b2-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 10. 說明 (含詳細操作說明) ===== -->
+<div id="page-guide" class="page">
+  <div class="section-title">系統操作說明指南</div>
+  <div class="card">
+    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 1. 住戶名單與車牌管理</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。</p>
+    
+    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 2. 執行抽籤與 A/B 棟優先區間</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「執行抽籤」頁面可依序進行各輪抽籤，並可在此設定作廢車位。系統將自動過濾未參加者，並依據設定之 A/B 棟優先區間（預設 19~56）與住戶指定車位進行智慧亂數配置。</p>
+
+    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 3. 抽籤結果與全部輪次總表</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或「全部輪次總表」，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。</p>
+
+    <h3 style="font-size:15px;color:var(--primary);margin-bottom:1rem">📌 4. 車位互換管理</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">支援跨輪次或單一輪次的車位自由互換。搜尋住戶時可直接輸入「棟別、姓名或門牌」（例如：A1 張大明），並可點擊清除按鈕重新選取。互換後會同步記錄詳細車位號碼異動。</p>
+
+    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 5. 權限與帳號管理</h3>
+    <p style="font-size:13px;color:var(--text-muted)"><b>系統管理員</b>擁有全部管理與系統設定權限，且可自行編輯自己的帳號與密碼，並能編輯與重設所有社區主任的密碼；<b>社區主任</b>可編輯住戶與執行抽籤；<b>一般住戶</b>僅供檢視總表、中籤查詢與平面圖。</p>
+  </div>
+</div>
+
+<!-- ===== 11. 系統設定 (僅管理員可訪問) ===== -->
+<div id="page-settings" class="page">
+  <div class="section-title">系統設定與權限維護</div>
+  
+  <div class="card">
+    <div class="card-title">車位與 A/B 棟優先區間設定</div>
+    <div class="form-row">
+      <div>
+        <label>總車位數</label>
+        <input type="number" id="set-total-seats" value="122">
+      </div>
+      <div>
+        <label>作廢車位（逗號分隔，例：5,10,15）</label>
+        <input type="text" id="set-void-seats" placeholder="5,10,15">
+      </div>
+    </div>
+    <div class="form-row mt-2" style="margin-top:12px">
+      <div>
+        <label>A/B棟優先區間（起）</label>
+        <input type="number" id="set-ab-start" value="19">
+      </div>
+      <div>
+        <label>A/B棟優先區間（迄）</label>
+        <input type="number" id="set-ab-end" value="56">
+      </div>
+    </div>
+    <div class="btn-row mt-2" style="margin-top:1rem">
+      <button class="btn btn-primary" onclick="saveSeatSettings()">儲存車位與區間設定</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">系統通用與版次設定</div>
+    <div class="form-row">
+      <div>
+        <label>系統版次標題</label>
+        <input type="text" id="set-app-version" value="v1.14">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn btn-primary" onclick="saveVersionSettings()">更新版次</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:1rem">
+      <div class="card-title" style="margin:0;border:none;padding:0">管理員與社區主任帳號清單</div>
+      <button class="btn btn-primary btn-sm" onclick="openDirectorModal('add')">＋ 新增社區主任帳號</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>姓名</th><th>帳號</th><th>身分角色</th><th>操作</th></tr>
+        </thead>
+        <tbody id="directors-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">待審核之指定車位申請</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>住戶</th><th>門牌</th><th>申請指定車位</th><th>提交人</th><th>操作</th></tr>
+        </thead>
+        <tbody id="pending-audit-tbody">
+          <tr><td colspan="5" class="empty">目前無待審核的指定車位申請</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">系統資料初始化</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">注意：重置將清除所有住戶名單、抽籤結果與互換紀錄。</p>
+    <button class="btn btn-danger" onclick="resetSystemData()">重置所有系統資料</button>
+  </div>
+</div>
+
+<!-- 新增/編輯住戶 Modal -->
+<div class="modal-overlay" id="resident-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">新增住戶</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div>
+        <label>棟別</label>
+        <select id="res-build">
+          <option value="A1">A1</option><option value="A2">A2</option>
+          <option value="B1">B1</option><option value="B2">B2</option>
+          <option value="C1">C1</option><option value="C2">C2</option><option value="C3">C3</option>
+          <option value="D1">D1</option><option value="D2">D2</option>
+          <option value="E1">E1</option><option value="E2">E2</option>
+        </select>
+      </div>
+      <div>
+        <label>門牌號碼</label>
+        <input type="text" id="res-room" placeholder="例: 3F-1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>住戶姓名</label>
+        <input type="text" id="res-name" placeholder="請輸入姓名">
+      </div>
+      <div>
+        <label>身分</label>
+        <select id="res-reserve">
+          <option value="N">一般戶</option>
+          <option value="Y">保留戶</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row-3">
+      <div><label>參加第一輪</label><select id="res-r1"><option value="Y">參加</option><option value="N">不參加</option></select></div>
+      <div><label>參加第二輪</label><select id="res-r2"><option value="Y">參加</option><option value="N">不參加</option></select></div>
+      <div><label>參加第三輪</label><select id="res-r3"><option value="Y">參加</option><option value="N">不參加</option></select></div>
+    </div>
+    <div class="form-row-3">
+      <div><label>指定車位1</label><input type="number" id="res-pref1" placeholder="選填"></div>
+      <div><label>指定車位2</label><input type="number" id="res-pref2" placeholder="選填"></div>
+      <div><label>指定車位3</label><input type="number" id="res-pref3" placeholder="選填"></div>
+    </div>
+    <div class="form-row-3">
+      <div><label>車牌 1 (自動勾第1輪)</label><input type="text" id="res-plate1" placeholder="例: ABC-1234" oninput="onPlateInput(this)"></div>
+      <div><label>車牌 2 (自動勾第2輪)</label><input type="text" id="res-plate2" placeholder="選填" oninput="onPlateInput(this)"></div>
+      <div><label>車牌 3 (自動勾第3輪)</label><input type="text" id="res-plate3" placeholder="選填" oninput="onPlateInput(this)"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveResident()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/編輯 帳號 Modal (支援管理員與主任) -->
+<div class="modal-overlay" id="director-modal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title" id="director-modal-title">新增帳號</div>
+    <input type="hidden" id="dir-edit-idx" value="-1">
+    <div style="margin-bottom:1rem">
+      <label>姓名</label>
+      <input type="text" id="dir-name" placeholder="請輸入姓名">
+    </div>
+    <div style="margin-bottom:1rem">
+      <label>登入帳號</label>
+      <input type="text" id="dir-user" placeholder="請輸入帳號">
+    </div>
+    <div style="margin-bottom:1rem">
+      <label>登入密碼</label>
+      <input type="text" id="dir-pass" placeholder="請輸入密碼">
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeDirectorModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveDirectorAccount()">確認儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 執行抽籤動畫 Modal -->
+<div class="modal-overlay" id="lottery-anim-modal">
+  <div class="lottery-modal">
+    <h3 id="lam-title" class="modal-title" style="margin-bottom:1rem">正在進行抽籤...</h3>
+    <div class="lm-progress-wrap"><div class="lm-progress-bar" id="lam-bar"></div></div>
+    <div class="lm-balls" id="lam-balls">
+      <div class="lm-ball">?</div>
+    </div>
+    <p id="lam-msg" style="font-size:13px;color:var(--text-muted)">正在隨機搖號中...</p>
+    <div class="modal-footer" style="justify-content:center;margin-top:1.5rem">
+      <button class="btn btn-primary" id="lam-close-btn" onclick="closeLotteryModal()" style="display:none">關閉頁面</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentUser = { name: "系統管理員", role: "admin", username: "admin", password: "1234" };
+  let accountsList = [
+    { name: "系統管理員", username: "admin", password: "1234", role: "admin" },
+    { name: "王主任", username: "director1", password: "1234", role: "director" }
+  ];
+
+  let pendingAudits = [];
+  let currentRound = "第一輪";
+  let currentResultRound = "第一輪";
+  let currentFloorplan = 1;
+  let fpZoomLevel = 1.0;
+
+  let systemSettings = {
+    totalSeats: 122,
+    voidSeats: [13, 44, 88],
+    abStart: 19,
+    abEnd: 56,
+    appVersion: "v1.14",
+    swapEnabled: true,
+    swapDeadline: "2026-06-30"
+  };
+
+  let residents = [
+    { id: 1, build: "A1", room: "2F-1", name: "張大明", r1: "Y", r2: "N", r3: "N", reserve: "N", pref1: 5, pref2: "", pref3: "", plate1: "ABC-1234", plate2: "", plate3: "" },
+    { id: 2, build: "A2", room: "3F-2", name: "李小華", r1: "Y", r2: "Y", r3: "N", reserve: "N", pref1: 12, pref2: "", pref3: "", plate1: "XYZ-9988", plate2: "XYZ-9989", plate3: "" },
+    { id: 3, build: "B1", room: "4F-1", name: "王美玲", r1: "N", r2: "N", r3: "N", reserve: "Y", pref1: 1, pref2: "", pref3: "", plate1: "", plate2: "", plate3: "" },
+    { id: 4, build: "B2", room: "5F-3", name: "陳國棟", r1: "Y", r2: "Y", r3: "Y", reserve: "N", pref1: 20, pref2: 21, pref3: "", plate1: "MNO-4321", plate2: "MNO-4322", plate3: "MNO-4323" }
+  ];
+
+  let lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
+  let swapLogs = [];
+  let systemLogs = [];
+
+  window.onload = function() {
+    checkLogin();
+    initApp();
+  };
+
+  function checkLogin() {
+    const logged = localStorage.getItem("lottery_user");
+    const savedAccounts = localStorage.getItem("accounts_list");
+    if (savedAccounts) {
+      accountsList = JSON.parse(savedAccounts);
+    }
+    const savedResidents = localStorage.getItem("residents_list");
+    if (savedResidents) {
+      residents = JSON.parse(savedResidents);
+    }
+    const savedResults = localStorage.getItem("lottery_results");
+    if (savedResults) {
+      lotteryResults = JSON.parse(savedResults);
+    }
+    const savedSwapLogs = localStorage.getItem("swap_logs");
+    if (savedSwapLogs) {
+      swapLogs = JSON.parse(savedSwapLogs);
+    }
+    const savedSettings = localStorage.getItem("system_settings");
+    if (savedSettings) {
+      systemSettings = JSON.parse(savedSettings);
+    }
+    const savedFloorplan1 = localStorage.getItem("custom_fp_1");
+    if (savedFloorplan1) {
+      const imgElem = document.getElementById("custom-fp-img-1");
+      if(imgElem) { imgElem.src = savedFloorplan1; imgElem.style.display = "inline-block"; }
+    }
+    const savedFloorplan2 = localStorage.getItem("custom_fp_2");
+    if (savedFloorplan2) {
+      const imgElem = document.getElementById("custom-fp-img-2");
+      if(imgElem) { imgElem.src = savedFloorplan2; imgElem.style.display = "inline-block"; }
+    }
+
+    if (!logged) {
+      document.getElementById("login-overlay").style.display = "flex";
+    } else {
+      currentUser = JSON.parse(logged);
+      // 同步最新帳號資訊
+      let liveAcc = accountsList.find(a => a.username === currentUser.username);
+      if (liveAcc) currentUser = { ...liveAcc };
+      initUserBar();
+    }
+  }
+
+  function doLogin() {
+    const u = document.getElementById("login-user").value.trim();
+    const p = document.getElementById("login-pw").value.trim();
+
+    const matchedAcc = accountsList.find(acc => acc.username === u && acc.password === p);
+    if (matchedAcc) {
+      currentUser = { ...matchedAcc };
+      localStorage.setItem("lottery_user", JSON.stringify(currentUser));
+      document.getElementById("login-overlay").style.display = "none";
+      initUserBar();
+      addLog("登入", `${currentUser.name} (${currentUser.role === 'admin' ? '管理員' : '社區主任'}) 登入系統`);
+    } else {
+      document.getElementById("login-error").style.display = "block";
+    }
+  }
+
+  function guestLogin() {
+    currentUser = { name: "社區住戶", role: "guest", username: "guest", password: "" };
+    localStorage.setItem("lottery_user", JSON.stringify(currentUser));
+    document.getElementById("login-overlay").style.display = "none";
+    initUserBar();
+    addLog("登入", "以社區住戶身分進入系統");
+  }
+
+  function doLogout() {
+    localStorage.removeItem("lottery_user");
+    location.reload();
+  }
+
+  function initUserBar() {
+    const bar = document.getElementById("user-bar");
+    bar.style.display = "flex";
+    let roleTitle = "管理員";
+    if (currentUser.role === 'director') roleTitle = "社區主任";
+    if (currentUser.role === 'guest') roleTitle = "住戶";
+
+    document.getElementById("user-bar-name").innerText = `👤 ${currentUser.name} (${roleTitle})`;
+    document.querySelectorAll(".app-version-label").forEach(el => el.innerText = systemSettings.appVersion);
+    document.getElementById("login-version-hint").innerText = systemSettings.appVersion;
+    
+    const resTabs = ['nav-tab-residents', 'nav-tab-residents-mob'];
+    resTabs.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = (currentUser.role === 'guest') ? 'none' : 'block';
+    });
+
+    const lotTabs = ['nav-tab-lottery', 'nav-tab-lottery-mob'];
+    lotTabs.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = (currentUser.role === 'guest') ? 'none' : 'block';
+    });
+
+    const logsTabs = ['nav-tab-logs', 'nav-tab-logs-mob'];
+    logsTabs.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
+    });
+
+    const settingsTabs = ['nav-tab-settings', 'nav-tab-settings-mob'];
+    settingsTabs.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
+    });
+
+    if (currentUser.role === 'guest') {
+      document.getElementById("swap-no-admin").style.display = "block";
+      document.getElementById("swap-admin-content").style.display = "none";
+      document.getElementById("btn-add-resident").style.display = "none";
+      document.getElementById("admin-floorplan-upload").style.display = "none";
+    } else {
+      document.getElementById("swap-no-admin").style.display = "none";
+      document.getElementById("swap-admin-content").style.display = "block";
+      document.getElementById("btn-add-resident").style.display = "inline-block";
+      document.getElementById("admin-floorplan-upload").style.display = "flex";
+    }
+  }
+
+  function initApp() {
+    renderDashboard();
+    renderResidents();
+    renderResults();
+    renderSummary();
+    renderLogs();
+    renderSwap();
+    renderDirectorsList();
+    renderPendingAudits();
+    initFloorplanSeats();
+    updateLotteryCards();
+  }
+
+  function showPage(pageId) {
+    if (pageId === 'residents' && currentUser.role === 'guest') {
+      alert("權限不足！一般住戶無法檢視住戶名單。");
+      return;
+    }
+    if (pageId === 'lottery' && currentUser.role === 'guest') {
+      alert("權限不足！一般住戶無法執行抽籤。");
+      return;
+    }
+    if (pageId === 'logs' && currentUser.role !== 'admin') {
+      alert("權限不足！操作紀錄僅限系統管理員檢視。");
+      return;
+    }
+    if (pageId === 'settings' && currentUser.role !== 'admin') {
+      alert("權限不足！系統設定僅限系統管理員檢視與操作。");
+      return;
+    }
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    
+    document.getElementById('page-' + pageId).classList.add('active');
+    
+    document.querySelectorAll(`.nav-tab`).forEach(t => {
+      if(t.getAttribute('onclick') && t.getAttribute('onclick').includes(pageId)) {
+        t.classList.add('active');
+      }
+    });
+
+    if(pageId === 'dashboard') renderDashboard();
+    if(pageId === 'residents') renderResidents();
+    if(pageId === 'results') renderResults();
+    if(pageId === 'summary') renderSummary();
+    if(pageId === 'logs') renderLogs();
+    if(pageId === 'swap') renderSwap();
+    if(pageId === 'lottery') updateLotteryCards();
+    if(pageId === 'settings' && currentUser.role === 'admin') {
+      document.getElementById("set-total-seats").value = systemSettings.totalSeats;
+      document.getElementById("set-void-seats").value = systemSettings.voidSeats.join(',');
+      document.getElementById("set-ab-start").value = systemSettings.abStart;
+      document.getElementById("set-ab-end").value = systemSettings.abEnd;
+      document.getElementById("set-app-version").value = systemSettings.appVersion;
+      renderDirectorsList();
+      renderPendingAudits();
+    }
+  }
+
+  function toggleMobileMenu() {
+    document.getElementById('nav-hamburger').classList.toggle('open');
+    document.getElementById('nav-menu-mobile').classList.toggle('open');
+  }
+
+  function closeMobileMenu() {
+    document.getElementById('nav-hamburger').classList.remove('open');
+    document.getElementById('nav-menu-mobile').classList.remove('open');
+  }
+
+  // ================= 1. 總覽邏輯 =================
+  function renderDashboard() {
+    const total = residents.length;
+    const voidCount = systemSettings.voidSeats.length;
+    const availableSeats = systemSettings.totalSeats - voidCount;
+    
+    let gotR1 = Object.keys(lotteryResults["第一輪"]).length;
+    let gotR2 = Object.keys(lotteryResults["第二輪"]).length;
+    let gotR3 = Object.keys(lotteryResults["第三輪"]).length;
+
+    document.getElementById("dash-stats").innerHTML = `
+      <div class="stat"><div class="stat-label">總住戶數</div><div class="stat-value blue">${total}</div></div>
+      <div class="stat"><div class="stat-label">可用車位</div><div class="stat-value green">${availableSeats}</div></div>
+      <div class="stat"><div class="stat-label">第一輪中籤</div><div class="stat-value orange">${gotR1}</div></div>
+      <div class="stat"><div class="stat-label">第二輪中籤</div><div class="stat-value orange">${gotR2}</div></div>
+      <div class="stat"><div class="stat-label">第三輪中籤</div><div class="stat-value orange">${gotR3}</div></div>
+    `;
+
+    document.getElementById("dash-rounds").innerHTML = `
+      <div style="font-size:13px;margin-bottom:8px">第一輪抽籤：${gotR1 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+      <div style="font-size:13px;margin-bottom:8px">第二輪抽籤：${gotR2 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+      <div style="font-size:13px;margin-bottom:8px">第三輪抽籤：${gotR3 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+    `;
+
+    document.getElementById("dash-void-tags").innerHTML = systemSettings.voidSeats.map(s => `<span class="badge badge-red" style="margin-right:4px">#${s} 作廢</span>`).join('');
+    document.getElementById("dash-void-input").value = systemSettings.voidSeats.join(',');
+
+    let seatHtml = '<div class="seat-grid">';
+    for(let i=1; i<=systemSettings.totalSeats; i++) {
+      let isVoid = systemSettings.voidSeats.includes(i);
+      let occupant = getSeatOccupant(i);
+      let cls = "seat seat-free";
+      let title = `車位 #${i}：空位`;
+      if(isVoid) {
+        cls = "seat seat-void";
+        title = `車位 #${i}：已作廢`;
+      } else if(occupant) {
+        cls = "seat seat-used";
+        title = `車位 #${i}：${occupant.name} (${occupant.room})`;
+      }
+      seatHtml += `<div class="${cls}" title="${title}">${i}</div>`;
+    }
+    seatHtml += '</div>';
+    document.getElementById("dash-seatmap").innerHTML = seatHtml;
+  }
+
+  function getSeatOccupant(seatNum) {
+    for(let r of ["第一輪", "第二輪", "第三輪"]) {
+      for(let id in lotteryResults[r]) {
+        if(lotteryResults[r][id] === seatNum) {
+          let res = residents.find(x => x.id == id);
+          if(res) return res;
+        }
+      }
+    }
+    return null;
+  }
+
+  function saveVoidFromDash() {
+    const val = document.getElementById("dash-void-input").value;
+    const arr = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x > 0 && x <= systemSettings.totalSeats);
+    systemSettings.voidSeats = [...new Set(arr)].sort((a,b)=>a-b);
+    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+    renderDashboard();
+    initFloorplanSeats();
+    addLog("設定", `更新作廢車位設定：${systemSettings.voidSeats.join(',')}`);
+    alert("作廢車位已儲存並同步！");
+  }
+
+  // ================= 2. 住戶名單邏輯 =================
+  function renderResidents() {
+    const search = document.getElementById("search-resident").value.toLowerCase();
+    const bFilter = document.getElementById("filter-build").value;
+    const rFilter = document.getElementById("filter-reserve").value;
+
+    const filtered = residents.filter(r => {
+      const matchSearch = r.name.toLowerCase().includes(search) || r.room.toLowerCase().includes(search) || r.build.toLowerCase().includes(search);
+      const matchBuild = bFilter === "" || r.build === bFilter;
+      const matchReserve = rFilter === "" || r.reserve === rFilter;
+      return matchSearch && matchBuild && matchReserve;
+    });
+
+    document.getElementById("resident-count").innerText = `顯示 ${filtered.length} 筆住戶 (共 ${residents.length} 筆)`;
+
+    let html = "";
+    filtered.forEach(r => {
+      html += `<tr>
+        <td>${r.id}</td>
+        <td>${r.build}</td>
+        <td>${r.room}</td>
+        <td><b>${r.name}</b></td>
+        <td><button class="yn-btn ${r.r1==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r1')">${r.r1}</button></td>
+        <td><button class="yn-btn ${r.r2==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r2')">${r.r2}</button></td>
+        <td><button class="yn-btn ${r.r3==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r3')">${r.r3}</button></td>
+        <td>${r.reserve==='Y'?'<span class="badge badge-purple">保留戶</span>':'一般戶'}</td>
+        <td>${r.pref1 || '-'}</td>
+        <td>${r.pref2 || '-'}</td>
+        <td>${r.pref3 || '-'}</td>
+        <td><code>${r.plate1 || '-'}</code></td>
+        <td><code>${r.plate2 || '-'}</code></td>
+        <td><code>${r.plate3 || '-'}</code></td>
+        <td>
+          <button class="btn btn-sm" onclick="openEditModal(${r.id})">編輯</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteResident(${r.id})">刪除</button>
+        </td>
+      </tr>`;
+    });
+    document.getElementById("resident-tbody").innerHTML = html;
+  }
+
+  function toggleResidentRound(id, roundKey) {
+    const r = residents.find(x => x.id === id);
+    if (!r) return;
+    
+    let pCheck = "";
+    if (roundKey === 'r1') pCheck = r.plate1.trim();
+    if (roundKey === 'r2') pCheck = r.plate2.trim();
+    if (roundKey === 'r3') pCheck = r.plate3.trim();
+
+    if (!pCheck && r[roundKey] === 'N') {
+      alert(`該住戶尚未輸入對應的「車牌 ${roundKey.replace('r','')}」，無法勾選參加該輪次！`);
+      return;
+    }
+
+    r[roundKey] = r[roundKey] === 'Y' ? 'N' : 'Y';
+    localStorage.setItem("residents_list", JSON.stringify(residents));
+    renderResidents();
+    updateLotteryCards();
+  }
+
+  function onPlateInput(inputElem) {
+    const p1 = document.getElementById("res-plate1").value.trim();
+    const p2 = document.getElementById("res-plate2").value.trim();
+    const p3 = document.getElementById("res-plate3").value.trim();
+    
+    document.getElementById("res-r1").value = p1 !== "" ? "Y" : "N";
+    document.getElementById("res-r2").value = p2 !== "" ? "Y" : "N";
+    document.getElementById("res-r3").value = p3 !== "" ? "Y" : "N";
+  }
+
+  function openAddModal() {
+    document.getElementById("modal-title").innerText = "新增住戶";
+    document.getElementById("edit-id").value = "";
+    document.getElementById("res-room").value = "";
+    document.getElementById("res-name").value = "";
+    document.getElementById("res-r1").value = "N";
+    document.getElementById("res-r2").value = "N";
+    document.getElementById("res-r3").value = "N";
+    document.getElementById("res-reserve").value = "N";
+    document.getElementById("res-pref1").value = "";
+    document.getElementById("res-pref2").value = "";
+    document.getElementById("res-pref3").value = "";
+    document.getElementById("res-plate1").value = "";
+    document.getElementById("res-plate2").value = "";
+    document.getElementById("res-plate3").value = "";
+    document.getElementById("resident-modal").classList.add("show");
+  }
+
+  function openEditModal(id) {
+    const r = residents.find(x => x.id === id);
+    if(!r) return;
+    document.getElementById("modal-title").innerText = "編輯住戶資料";
+    document.getElementById("edit-id").value = r.id;
+    document.getElementById("res-build").value = r.build;
+    document.getElementById("res-room").value = r.room;
+    document.getElementById("res-name").value = r.name;
+    document.getElementById("res-r1").value = r.r1;
+    document.getElementById("res-r2").value = r.r2;
+    document.getElementById("res-r3").value = r.r3;
+    document.getElementById("res-reserve").value = r.reserve;
+    document.getElementById("res-pref1").value = r.pref1;
+    document.getElementById("res-pref2").value = r.pref2;
+    document.getElementById("res-pref3").value = r.pref3;
+    document.getElementById("res-plate1").value = r.plate1;
+    document.getElementById("res-plate2").value = r.plate2;
+    document.getElementById("res-plate3").value = r.plate3;
+    document.getElementById("resident-modal").classList.add("show");
+  }
+
+  function closeModal() {
+    document.getElementById("resident-modal").classList.remove("show");
+  }
+
+  function saveResident() {
+    const id = document.getElementById("edit-id").value;
+    const build = document.getElementById("res-build").value;
+    const room = document.getElementById("res-room").value.trim();
+    const name = document.getElementById("res-name").value.trim();
+    const plate1 = document.getElementById("res-plate1").value.trim();
+    const plate2 = document.getElementById("res-plate2").value.trim();
+    const plate3 = document.getElementById("res-plate3").value.trim();
+
+    if(!room || !name) {
+      alert("請填寫門牌與姓名！");
+      return;
+    }
+
+    let pref1 = parseInt(document.getElementById("res-pref1").value) || "";
+    let pref2 = parseInt(document.getElementById("res-pref2").value) || "";
+    let pref3 = parseInt(document.getElementById("res-pref3").value) || "";
+
+    if (currentUser.role === 'director' && (pref1 !== "" || pref2 !== "" || pref3 !== "")) {
+      pendingAudits.push({
+        id: Date.now(),
+        name,
+        room: `${build} ${room}`,
+        prefs: [pref1, pref2, pref3].filter(x => x !== "").join(', '),
+        director: currentUser.name
+      });
+      alert("指定車位已送出，需經系統管理員審核同意後生效！");
+      addLog("審核", `社區主任 ${currentUser.name} 提交住戶 ${name} 之指定車位審核`);
+      pref1 = ""; pref2 = ""; pref3 = "";
+    }
+
+    let r1 = plate1 !== "" ? "Y" : "N";
+    let r2 = plate2 !== "" ? "Y" : "N";
+    let r3 = plate3 !== "" ? "Y" : "N";
+
+    const data = {
+      build, room, name,
+      r1, r2, r3,
+      reserve: document.getElementById("res-reserve").value,
+      pref1, pref2, pref3,
+      plate1, plate2, plate3
+    };
+
+    if(id === "") {
+      const newId = residents.length > 0 ? Math.max(...residents.map(x => x.id)) + 1 : 1;
+      data.id = newId;
+      residents.push(data);
+      addLog("住戶", `新增住戶：${name} (${build} ${room})`);
+    } else {
+      const idx = residents.findIndex(x => x.id == id);
+      if(idx !== -1) {
+        data.id = parseInt(id);
+        residents[idx] = data;
+        addLog("住戶", `更新住戶：${name} (${build} ${room})`);
+      }
+    }
+
+    localStorage.setItem("residents_list", JSON.stringify(residents));
+    closeModal();
+    renderResidents();
+    renderDashboard();
+    updateLotteryCards();
+    renderPendingAudits();
+  }
+
+  function deleteResident(id) {
+    if(currentUser.role === 'guest') {
+      alert("權限不足！");
+      return;
+    }
+    if(confirm("確定要刪除此住戶嗎？")) {
+      residents = residents.filter(x => x.id !== id);
+      localStorage.setItem("residents_list", JSON.stringify(residents));
+      renderResidents();
+      renderDashboard();
+      updateLotteryCards();
+      addLog("住戶", `刪除住戶 ID: ${id}`);
+    }
+  }
+
+  function importCSV(inputElem) {
+    const file = inputElem.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const text = e.target.result;
+      const lines = text.split('\n');
+      let count = 0;
+      for(let i=1; i<lines.length; i++) {
+        const line = lines[i].trim();
+        if(!line) continue;
+        const cols = line.split(',').map(c => c.trim());
+        if(cols.length >= 4) {
+          const newId = residents.length > 0 ? Math.max(...residents.map(x => x.id)) + 1 : 1;
+          const p1 = cols[11] || "";
+          const p2 = cols[12] || "";
+          const p3 = cols[13] || "";
+          residents.push({
+            id: newId,
+            build: cols[1] || "A1",
+            room: cols[2] || "1F",
+            name: cols[3] || "未命名",
+            r1: p1 ? "Y" : "N",
+            r2: p2 ? "Y" : "N",
+            r3: p3 ? "Y" : "N",
+            reserve: cols[7] || "N",
+            pref1: cols[8] || "",
+            pref2: cols[9] || "",
+            pref3: cols[10] || "",
+            plate1: p1,
+            plate2: p2,
+            plate3: p3
+          });
+          count++;
+        }
+      }
+      localStorage.setItem("residents_list", JSON.stringify(residents));
+      renderResidents();
+      renderDashboard();
+      updateLotteryCards();
+      alert(`成功匯入 ${count} 筆住戶資料！`);
+      addLog("住戶", `成功匯入 CSV 檔案 (${count} 筆)`);
+      inputElem.value = "";
+    };
+    reader.readAsText(file, "UTF-8");
+  }
+
+  // ================= 3. 執行抽籤邏輯 =================
+  function selectLotteryRound(round) {
+    currentRound = round;
+    document.querySelectorAll(".lrs-card").forEach(c => {
+      if(c.getAttribute("data-round") === round) c.classList.add("active");
+      else c.classList.remove("active");
+    });
+    document.getElementById("lottery-round-label").innerText = round;
+    updateLotteryCards();
+  }
+
+  function updateLotteryCards() {
+    const voidCount = systemSettings.voidSeats.length;
+    const available = systemSettings.totalSeats - voidCount;
+
+    ["第一輪", "第二輪", "第三輪"].forEach((r, idx) => {
+      let rKey = `r${idx+1}`;
+      let participants = residents.filter(x => x[rKey] === 'Y').length;
+      let gotCount = Object.keys(lotteryResults[r]).length;
+      
+      let pEl = document.getElementById(`lrs-p${idx+1}`);
+      let sEl = document.getElementById(`lrs-s${idx+1}`);
+      let aEl = document.getElementById(`lrs-a${idx+1}`);
+      let badgeEl = document.getElementById(`lrs-badge-${idx+1}`);
+
+      if(pEl) pEl.innerText = participants;
+      if(sEl) sEl.innerText = available;
+      if(aEl) aEl.innerText = gotCount;
+
+      if(badgeEl) {
+        if(gotCount > 0) {
+          badgeEl.innerText = "已完成";
+          badgeEl.className = "lrs-badge badge-green";
+        } else {
+          badgeEl.innerText = "待執行";
+          badgeEl.className = "lrs-badge badge-gray";
+        }
+      }
+    });
+  }
+
+  function runLottery() {
+    const rKey = currentRound === "第一輪" ? "r1" : (currentRound === "第二輪" ? "r2" : "r3");
+    let eligible = residents.filter(x => x[rKey] === 'Y' && !lotteryResults[currentRound][x.id]);
+    
+    if(eligible.length === 0) {
+      alert(`${currentRound} 沒有符合資格且尚未中籤的參加住戶！`);
+      return;
+    }
+
+    document.getElementById("lam-title").innerText = `正在進行 ${currentRound} 抽籤...`;
+    document.getElementById("lam-close-btn").style.display = "none";
+    document.getElementById("lottery-anim-modal").classList.add("show");
+    
+    let progress = 0;
+    const bar = document.getElementById("lam-bar");
+    const balls = document.getElementById("lam-balls");
+    
+    let timer = setInterval(() => {
+      progress += 20;
+      bar.style.width = progress + "%";
+      balls.innerHTML = `<div class="lm-ball">${Math.floor(Math.random()*100)+1}</div><div class="lm-ball">${Math.floor(Math.random()*100)+1}</div>`;
+      if(progress >= 100) {
+        clearInterval(timer);
+        document.getElementById("lam-title").innerText = `${currentRound} 抽籤完成！`;
+        document.getElementById("lam-msg").innerText = "已成功依據優先區間與指定車位完成分配。";
+        document.getElementById("lam-close-btn").style.display = "inline-block";
+        
+        executeLotteryAllocation(currentRound, eligible);
+        localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
+        updateLotteryCards();
+        renderDashboard();
+        addLog("抽籤", `執行 ${currentRound} 抽籤完成`);
+      }
+    }, 200);
+  }
+
+  function closeLotteryModal() {
+    document.getElementById("lottery-anim-modal").classList.remove("show");
+  }
+
+  function executeLotteryAllocation(round, eligible) {
+    let availableSeats = [];
+    for(let i=1; i<=systemSettings.totalSeats; i++) {
+      if(!systemSettings.voidSeats.includes(i)) availableSeats.push(i);
+    }
+
+    let usedSeats = new Set();
+    for(let r in lotteryResults) {
+      for(let id in lotteryResults[r]) {
+        usedSeats.add(lotteryResults[r][id]);
+      }
+    }
+    let freeSeats = availableSeats.filter(s => !usedSeats.has(s));
+
+    const abStart = systemSettings.abStart;
+    const abEnd = systemSettings.abEnd;
+    let abPrioritySeats = freeSeats.filter(s => s >= abStart && s <= abEnd);
+    let otherSeats = freeSeats.filter(s => s < abStart || s > abEnd);
+
+    eligible.sort(() => Math.random() - 0.5);
+
+    eligible.forEach(res => {
+      if(freeSeats.length === 0) return;
+      let assignedSeat = null;
+
+      let prefs = [res.pref1, res.pref2, res.pref3].filter(p => p && freeSeats.includes(p));
+      if(prefs.length > 0) {
+        assignedSeat = prefs[0];
+      } else if (res.build.startsWith("A") || res.build.startsWith("B")) {
+        if(abPrioritySeats.length > 0) {
+          let idx = Math.floor(Math.random() * abPrioritySeats.length);
+          assignedSeat = abPrioritySeats[idx];
+          abPrioritySeats.splice(idx, 1);
+        } else {
+          let idx = Math.floor(Math.random() * otherSeats.length);
+          assignedSeat = otherSeats[idx];
+          otherSeats.splice(idx, 1);
+        }
+      } else {
+        if(otherSeats.length > 0) {
+          let idx = Math.floor(Math.random() * otherSeats.length);
+          assignedSeat = otherSeats[idx];
+          otherSeats.splice(idx, 1);
+        } else {
+          let idx = Math.floor(Math.random() * abPrioritySeats.length);
+          assignedSeat = abPrioritySeats[idx];
+          abPrioritySeats.splice(idx, 1);
+        }
+      }
+      
+      lotteryResults[round][res.id] = assignedSeat;
+      freeSeats = freeSeats.filter(s => s !== assignedSeat);
+    });
+  }
+
+  function clearCurrentRound() {
+    if(confirm(`確定要清除 ${currentRound} 的所有抽籤結果嗎？`)) {
+      lotteryResults[currentRound] = {};
+      localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
+      updateLotteryCards();
+      renderDashboard();
+      addLog("抽籤", `清除 ${currentRound} 結果`);
+    }
+  }
+
+  function confirmClearAll() {
+    if(confirm("警告：確定要重置全部輪次的抽籤結果嗎？")) {
+      lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
+      localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
+      updateLotteryCards();
+      renderDashboard();
+      addLog("抽籤", "重置全部輪次結果");
+    }
+  }
+
+  function toggleLotteryPreview() {
+    const prev = document.getElementById("lottery-preview");
+    if(prev.style.display === "none") {
+      prev.style.display = "block";
+      document.getElementById("preview-toggle-icon").innerText = "▲";
+      let got = lotteryResults[currentRound];
+      let html = `<b>${currentRound} 目前中籤清單：</b><br>`;
+      let count = 0;
+      for(let id in got) {
+        let res = residents.find(x => x.id == id);
+        if(res) {
+          html += `${res.build}-${res.room} ${res.name} ➔ 車位 #${got[id]}<br>`;
+          count++;
+        }
+      }
+      prev.innerHTML = count > 0 ? html : "尚無中籤資料。";
+    } else {
+      prev.style.display = "none";
+      document.getElementById("preview-toggle-icon").innerText = "▼";
+    }
+  }
+
+  // ================= 4. 抽籤結果與彙整總表整合 =================
+  function selectResultRound(round) {
+    currentResultRound = round;
+    document.querySelectorAll("#result-round-tabs .round-tab").forEach(t => {
+      if(t.getAttribute("data-round") === round) t.classList.add("active");
+      else t.classList.remove("active");
+    });
+    renderResults();
+  }
+
+  function renderResults() {
+    const search = document.getElementById("search-result").value.toLowerCase();
+    const type = document.getElementById("filter-result-type").value;
+    const thElem = document.getElementById("results-th");
+    const tbody = document.getElementById("result-tbody");
+
+    if (currentResultRound === "全部輪次") {
+      thElem.innerHTML = `<th>棟別</th><th>門牌</th><th>姓名</th><th>身分</th><th>第一輪</th><th>第二輪</th><th>第三輪</th><th>車牌1</th><th>車牌2</th><th>車牌3</th>`;
+      let html = "";
+      residents.forEach(r => {
+        const matchSearch = r.name.toLowerCase().includes(search) || r.room.toLowerCase().includes(search) || r.build.toLowerCase().includes(search);
+        if(!matchSearch && search !== "") return;
+
+        let s1 = lotteryResults["第一輪"][r.id] ? `#` + lotteryResults["第一輪"][r.id] : "-";
+        let s2 = lotteryResults["第二輪"][r.id] ? `#` + lotteryResults["第二輪"][r.id] : "-";
+        let s3 = lotteryResults["第三輪"][r.id] ? `#` + lotteryResults["第三輪"][r.id] : "-";
+        html += `<tr>
+          <td>${r.build}</td>
+          <td>${r.room}</td>
+          <td><b>${r.name}</b></td>
+          <td>${r.reserve==='Y'?'保留戶':'一般戶'}</td>
+          <td>${s1}</td>
+          <td>${s2}</td>
+          <td>${s3}</td>
+          <td><code>${r.plate1 || '-'}</code></td>
+          <td><code>${r.plate2 || '-'}</code></td>
+          <td><code>${r.plate3 || '-'}</code></td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+      return;
+    }
+
+    thElem.innerHTML = `<th>序號</th><th>棟別</th><th>門牌</th><th>姓名</th><th>身分</th><th>分配車位</th><th>狀態</th>`;
+    let gotMap = lotteryResults[currentResultRound];
+    let html = "";
+    let count = 0;
+
+    residents.forEach((r) => {
+      const matchSearch = r.name.toLowerCase().includes(search) || r.room.toLowerCase().includes(search) || r.build.toLowerCase().includes(search);
+      if(!matchSearch && search !== "") return;
+
+      let seat = gotMap[r.id];
+      let statusStr = seat ? '<span class="badge badge-green">中籤</span>' : '<span class="badge badge-gray">未中籤</span>';
+
+      if(type === 'got' && !seat) return;
+      if(type === 'no' && seat) return;
+
+      count++;
+      html += `<tr>
+        <td>${count}</td>
+        <td>${r.build}</td>
+        <td>${r.room}</td>
+        <td><b>${r.name}</b></td>
+        <td>${r.reserve==='Y'?'保留戶':'一般戶'}</td>
+        <td>${seat ? '<b>#'+seat+'</b>' : '-'}</td>
+        <td>${statusStr}</td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  function exportResultsPDF() { window.print(); addLog("設定", `匯出抽籤結果 PDF 報表`); }
+  function exportRoundResult() { exportCSV(); }
+  function printRoundResult() { window.print(); }
+
+  function renderSummary() { renderResults(); }
+  function exportSummary() { exportExcel('results-table', '抽籤結果與總表'); }
+  function printSummary() { window.print(); }
+
+  // ================= 6. 車位互換管理邏輯 =================
+  function renderSwap() {
+    document.getElementById("swap-deadline").value = systemSettings.swapDeadline;
+    const badge = document.getElementById("swap-status-badge");
+    if(systemSettings.swapEnabled) {
+      badge.innerText = "互換開放中";
+      badge.className = "badge badge-green";
+    } else {
+      badge.innerText = "互換已鎖定";
+      badge.className = "badge badge-red";
+    }
+
+    let html = "";
+    if(swapLogs.length === 0) {
+      html = '<div class="empty">尚無互換紀錄</div>';
+    } else {
+      swapLogs.forEach(l => {
+        html += `<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-color)">
+          <b>[${l.round}]</b> ${l.time}<br>${l.desc}
+        </div>`;
+      });
+    }
+    document.getElementById("swap-log-list").innerHTML = html;
+  }
+
+  function saveSwapConfig() {
+    systemSettings.swapDeadline = document.getElementById("swap-deadline").value;
+    renderSwap();
+    alert("互換設定已儲存！");
+    addLog("設定", `更新互換截止日：${systemSettings.swapDeadline}`);
+  }
+
+  function setSwapEnabled(en) {
+    systemSettings.swapEnabled = en;
+    renderSwap();
+    alert(en ? "車位互換功能已開放！" : "車位互換功能已鎖定！");
+    addLog("設定", en ? "開放車位互換" : "鎖定車位互換");
+  }
+
+  function searchSwapResident(type) {
+    const keyword = document.getElementById(`swap-${type.toLowerCase()}-search`).value.toLowerCase();
+    const dropdown = document.getElementById(`swap-${type.toLowerCase()}-dropdown`);
+    if(!keyword) {
+      dropdown.style.display = 'none';
+      return;
+    }
+    const round = document.getElementById("swap-round").value;
+    const matches = residents.filter(r => 
+      r.name.toLowerCase().includes(keyword) || 
+      r.room.toLowerCase().includes(keyword) || 
+      r.build.toLowerCase().includes(keyword) ||
+      `${r.build}${r.room}`.toLowerCase().includes(keyword)
+    );
+    
+    let html = "";
+    matches.forEach(m => {
+      let seat = round === "所有輪次" ? (lotteryResults["第一輪"][m.id] || lotteryResults["第二輪"][m.id] || lotteryResults["第三輪"][m.id]) : lotteryResults[round][m.id];
+      html += `<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border-color)" onclick="selectSwapResident('${type}', ${m.id}, '${m.name} (${m.build}-${m.room})', ${seat || 0})">
+        <b>${m.build}-${m.room}</b> ${m.name} ${seat ? '(車位 #'+seat+')' : '(無車位)'}
+      </div>`;
+    });
+    dropdown.innerHTML = html;
+    dropdown.style.display = matches.length > 0 ? 'block' : 'none';
+  }
+
+  function clearSwapInput(type) {
+    document.getElementById(`swap-${type.toLowerCase()}-idx`).value = "";
+    document.getElementById(`swap-${type.toLowerCase()}-search`).value = "";
+    document.getElementById(`swap-${type.toLowerCase()}-dropdown`).style.display = 'none';
+    document.getElementById(`swap-${type.toLowerCase()}-info`).style.display = 'none';
+    updateSwapPreview();
+  }
+
+  function selectSwapResident(type, id, nameStr, seat) {
+    document.getElementById(`swap-${type.toLowerCase()}-idx`).value = id;
+    document.getElementById(`swap-${type.toLowerCase()}-search`).value = nameStr;
+    document.getElementById(`swap-${type.toLowerCase()}-dropdown`).style.display = 'none';
+    
+    const info = document.getElementById(`swap-${type.toLowerCase()}-info`);
+    const detail = document.getElementById(`swap-${type.toLowerCase()}-detail`);
+    info.style.display = 'block';
+    detail.innerText = seat > 0 ? `持有車位：#${seat}` : `目前無車位`;
+    updateSwapPreview();
+  }
+
+  function onSwapRoundChange() {
+    document.getElementById("swap-a-idx").value = "";
+    document.getElementById("swap-a-search").value = "";
+    document.getElementById("swap-a-info").style.display = "none";
+    document.getElementById("swap-b-idx").value = "";
+    document.getElementById("swap-b-search").value = "";
+    document.getElementById("swap-b-info").style.display = "none";
+    updateSwapPreview();
+  }
+
+  function updateSwapPreview() {
+    const aId = document.getElementById("swap-a-idx").value;
+    const bId = document.getElementById("swap-b-idx").value;
+    const round = document.getElementById("swap-round").value;
+    const prev = document.getElementById("swap-preview");
+
+    if(!aId || !bId) {
+      prev.innerText = "請選擇兩位住戶進行互換預覽。";
+      return;
+    }
+    if(aId === bId) {
+      prev.innerText = "不能選擇同一位住戶互換！";
+      return;
+    }
+
+    let seatA = round === "所有輪次" ? (lotteryResults["第一輪"][aId] || lotteryResults["第二輪"][aId] || lotteryResults["第三輪"][aId]) : lotteryResults[round][aId];
+    let seatB = round === "所有輪次" ? (lotteryResults["第一輪"][bId] || lotteryResults["第二輪"][bId] || lotteryResults["第三輪"][bId]) : lotteryResults[round][bId];
+    
+    prev.innerHTML = `<b>互換預覽 (${round})：</b><br>住戶 A 原車位：${seatA ? '#'+seatA : '無'} ➔ 換至：${seatB ? '#'+seatB : '無'}<br>住戶 B 原車位：${seatB ? '#'+seatB : '無'} ➔ 換至：${seatA ? '#'+seatA : '無'}`;
+  }
+
+  function confirmSwap() {
+    if(!systemSettings.swapEnabled) {
+      alert("目前車位互換功能已鎖定或逾期！");
+      return;
+    }
+    const aId = document.getElementById("swap-a-idx").value;
+    const bId = document.getElementById("swap-b-idx").value;
+    const round = document.getElementById("swap-round").value;
+
+    if(!aId || !bId || aId === bId) {
+      alert("請正確選擇兩位不同的住戶！");
+      return;
+    }
+
+    let resA = residents.find(x => x.id == aId);
+    let resB = residents.find(x => x.id == bId);
+
+    let seatA_desc = "";
+    let seatB_desc = "";
+
+    if (round === "所有輪次") {
+      ["第一輪", "第二輪", "第三輪"].forEach(r => {
+        let seatA = lotteryResults[r][aId];
+        let seatB = lotteryResults[r][bId];
+        if(seatA) lotteryResults[r][bId] = seatA; else delete lotteryResults[r][bId];
+        if(seatB) lotteryResults[r][aId] = seatB; else delete lotteryResults[r][aId];
+      });
+      seatA_desc = `車位(#${lotteryResults["第一輪"][bId] || '無'})`;
+      seatB_desc = `車位(#${lotteryResults["第一輪"][aId] || '無'})`;
+    } else {
+      let seatA = lotteryResults[round][aId];
+      let seatB = lotteryResults[round][bId];
+      if(seatA) lotteryResults[round][bId] = seatA; else delete lotteryResults[round][bId];
+      if(seatB) lotteryResults[round][aId] = seatB; else delete lotteryResults[round][aId];
+      seatA_desc = `車位(#${seatA || '無'} ➔ #${seatB || '無'})`;
+      seatB_desc = `車位(#${seatB || '無'} ➔ #${seatA || '無'})`;
+    }
+
+    swapLogs.unshift({
+      round,
+      time: new Date().toLocaleString(),
+      desc: `${resA.name}(${resA.build}-${resA.room}) 與 ${resB.name}(${resB.build}-${resB.room}) 互換車位 (${round}) | 異動詳情：${resA.name}獲得${seatA_desc}, ${resB.name}獲得${seatB_desc}`
+    });
+
+    localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
+    localStorage.setItem("swap_logs", JSON.stringify(swapLogs));
+    renderSwap();
+    renderDashboard();
+    renderResults();
+    alert("車位互換成功！");
+    addLog("互換", `${resA.name} 與 ${resB.name} 互換車位 (${round})`);
+  }
+
+  // ================= 7. 中籤快速查詢邏輯 =================
+  function formatPlateInput(elem) {
+    elem.value = elem.value.toUpperCase();
+  }
+
+  function doInquiry() {
+    const rawInput = document.getElementById("inq-plate").value.trim();
+    const resultBox = document.getElementById("inq-result");
+    if(!rawInput) {
+      alert("請輸入車牌號碼！");
+      return;
+    }
+
+    const cleanInput = rawInput.replace(/[-\s]/g, "").toUpperCase();
+
+    let matchRes = residents.filter(r => {
+      const p1 = (r.plate1 || "").replace(/[-\s]/g, "").toUpperCase();
+      const p2 = (r.plate2 || "").replace(/[-\s]/g, "").toUpperCase();
+      const p3 = (r.plate3 || "").replace(/[-\s]/g, "").toUpperCase();
+      return (p1 && p1.includes(cleanInput)) || (p2 && p2.includes(cleanInput)) || (p3 && p3.includes(cleanInput));
+    });
+
+    if(matchRes.length === 0) {
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `<div class="card" style="text-align:center;color:#dc2626">查無與車牌 <b>${rawInput}</b> 相符的登記紀錄。</div>`;
+      return;
+    }
+
+    let html = "";
+    matchRes.forEach(r => {
+      let s1 = lotteryResults["第一輪"][r.id] ? `#` + lotteryResults["第一輪"][r.id] : "未中籤";
+      let s2 = lotteryResults["第二輪"][r.id] ? `#` + lotteryResults["第二輪"][r.id] : "未中籤";
+      let s3 = lotteryResults["第三輪"][r.id] ? `#` + lotteryResults["第三輪"][r.id] : "未中籤";
+      
+      html += `<div class="card" style="max-width:500px;margin:0 auto 1rem">
+        <h4 style="color:var(--primary);margin-bottom:.5rem">查詢結果：${r.name} (${r.build} ${r.room})</h4>
+        <p style="font-size:13px;color:var(--text-muted)">登記車牌：<code>${r.plate1 || r.plate2 || r.plate3}</code></p>
+        <div style="margin-top:1rem;font-size:14px">
+          <div>第一輪分配：<b>${s1}</b></div>
+          <div>第二輪分配：<b>${s2}</b></div>
+          <div>第三輪分配：<b>${s3}</b></div>
+        </div>
+      </div>`;
+    });
+    resultBox.style.display = "block";
+    resultBox.innerHTML = html;
+  }
+
+  // ================= 8. 平面圖功能 =================
+  function switchFloorplan(floorNum) {
+    currentFloorplan = floorNum;
+    if(floorNum === 1) {
+      document.getElementById("fp-tab-1").classList.add("active");
+      document.getElementById("fp-tab-2").classList.remove("active");
+      document.getElementById("fp-content-1").style.display = "block";
+      document.getElementById("fp-content-2").style.display = "none";
+    } else {
+      document.getElementById("fp-tab-2").classList.add("active");
+      document.getElementById("fp-tab-1").classList.remove("active");
+      document.getElementById("fp-content-2").style.display = "block";
+      document.getElementById("fp-content-1").style.display = "none";
+    }
+    resetFloorplanZoom();
+  }
+
+  function zoomFloorplan(delta) {
+    fpZoomLevel += delta;
+    if(fpZoomLevel < 0.5) fpZoomLevel = 0.5;
+    if(fpZoomLevel > 3.0) fpZoomLevel = 3.0;
+    document.getElementById("fp-img-wrap").style.transform = `scale(${fpZoomLevel})`;
+  }
+
+  function resetFloorplanZoom() {
+    fpZoomLevel = 1.0;
+    document.getElementById("fp-img-wrap").style.transform = `scale(1.0)`;
+  }
+
+  function uploadCustomFloorplan(inputElem) {
+    const file = inputElem.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const imgId = currentFloorplan === 1 ? "custom-fp-img-1" : "custom-fp-img-2";
+      const imgElem = document.getElementById(imgId);
+      imgElem.src = e.target.result;
+      imgElem.style.display = "inline-block";
+      
+      localStorage.setItem(`custom_fp_${currentFloorplan}`, e.target.result);
+
+      alert(`已成功上傳更新 B${currentFloorplan} 區配置平面圖並同步至所有使用者！`);
+      addLog("設定", `管理員上傳更新 B${currentFloorplan} 區平面圖`);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function initFloorplanSeats() {
+    let b1Html = "";
+    let b2Html = "";
+    for(let i=1; i<=61; i++) {
+      b1Html += `<div class="seat seat-free">${i}</div>`;
+    }
+    for(let i=62; i<=122; i++) {
+      b2Html += `<div class="seat seat-free">${i}</div>`;
+    }
+    const b1Grid = document.getElementById("fp-b1-grid");
+    const b2Grid = document.getElementById("fp-b2-grid");
+    if(b1Grid) b1Grid.innerHTML = b1Html;
+    if(b2Grid) b2Grid.innerHTML = b2Html;
+  }
+
+  // ================= 9. 系統設定與帳號管理邏輯 (含管理員編輯自己與重設密碼) =================
+  function saveSeatSettings() {
+    const tSeats = parseInt(document.getElementById("set-total-seats").value);
+    const voidVal = document.getElementById("set-void-seats").value;
+    const abStart = parseInt(document.getElementById("set-ab-start").value) || 19;
+    const abEnd = parseInt(document.getElementById("set-ab-end").value) || 56;
+
+    if(isNaN(tSeats) || tSeats <= 0) {
+      alert("請輸入有效的車位總數！");
+      return;
+    }
+    systemSettings.totalSeats = tSeats;
+    systemSettings.abStart = abStart;
+    systemSettings.abEnd = abEnd;
+
+    const arr = voidVal.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x > 0 && x <= tSeats);
+    systemSettings.voidSeats = [...new Set(arr)].sort((a,b)=>a-b);
+
+    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+
+    initFloorplanSeats();
+    renderDashboard();
+    alert("車位與區域設定已成功儲存並同步！");
+    addLog("設定", `更新車位設定：總數 ${tSeats} 席, 作廢車位 [${systemSettings.voidSeats.join(',')}]`);
+  }
+
+  function saveVersionSettings() {
+    const ver = document.getElementById("set-app-version").value.trim();
+    if(!ver) {
+      alert("版本號不能為空！");
+      return;
+    }
+    systemSettings.appVersion = ver;
+    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+    initUserBar();
+    alert("系統版次更新成功！");
+    addLog("設定", `更新系統版次為 ${ver}`);
+  }
+
+  function renderDirectorsList() {
+    const tbody = document.getElementById("directors-tbody");
+    let html = "";
+    accountsList.forEach((acc, idx) => {
+      let roleBadge = acc.role === 'admin' ? '<span class="badge badge-blue">系統管理員</span>' : '<span class="badge badge-purple">社區主任</span>';
+      let actions = `
+        <button class="btn btn-sm" onclick="openDirectorModal('edit', ${idx})">編輯/重設密碼</button>
+        ${acc.role !== 'admin' ? `<button class="btn btn-sm btn-danger" onclick="deleteDirectorAccount(${idx})">刪除</button>` : ''}
+      `;
+      html += `<tr>
+        <td><b>${acc.name}</b></td>
+        <td><code>${acc.username}</code></td>
+        <td>${roleBadge}</td>
+        <td>${actions}</td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  function openDirectorModal(mode, idx = -1) {
+    if (currentUser.role !== 'admin') {
+      alert("權限不足！");
+      return;
+    }
+    document.getElementById("director-modal").classList.add("show");
+    if (mode === 'add') {
+      document.getElementById("director-modal-title").innerText = "新增社區主任帳號";
+      document.getElementById("dir-edit-idx").value = -1;
+      document.getElementById("dir-name").value = "";
+      document.getElementById("dir-user").value = "";
+      document.getElementById("dir-pass").value = "";
+    } else {
+      let acc = accountsList[idx];
+      document.getElementById("director-modal-title").innerText = acc.role === 'admin' ? "編輯管理員帳號與密碼" : "編輯/重設社區主任密碼";
+      document.getElementById("dir-edit-idx").value = idx;
+      document.getElementById("dir-name").value = acc.name;
+      document.getElementById("dir-user").value = acc.username;
+      document.getElementById("dir-pass").value = acc.password;
+    }
+  }
+
+  function closeDirectorModal() {
+    document.getElementById("director-modal").classList.remove("show");
+  }
+
+  function saveDirectorAccount() {
+    const idx = parseInt(document.getElementById("dir-edit-idx").value);
+    const name = document.getElementById("dir-name").value.trim();
+    const user = document.getElementById("dir-user").value.trim();
+    const pass = document.getElementById("dir-pass").value.trim();
+
+    if (!name || !user || !pass) {
+      alert("所有欄位皆不可為空！");
+      return;
+    }
+
+    if (idx === -1) {
+      accountsList.push({ name, username: user, password: pass, role: "director" });
+      addLog("設定", `新增社區主任帳號：${name} (${user})`);
+    } else {
+      let targetAcc = accountsList[idx];
+      targetAcc.name = name;
+      targetAcc.username = user;
+      targetAcc.password = pass;
+      if (targetAcc.username === currentUser.username) {
+        currentUser = { ...targetAcc };
+        localStorage.setItem("lottery_user", JSON.stringify(currentUser));
+      }
+      addLog("設定", `編輯/重設帳號資料：${name}`);
+    }
+
+    localStorage.setItem("accounts_list", JSON.stringify(accountsList));
+
+    closeDirectorModal();
+    renderDirectorsList();
+    initUserBar();
+    alert("帳號資料儲存成功！");
+  }
+
+  function deleteDirectorAccount(idx) {
+    if (accountsList[idx].role === 'admin') {
+      alert("無法刪除系統管理員核心帳號！");
+      return;
+    }
+    if (confirm(`確定要刪除帳號 「${accountsList[idx].name}」 嗎？`)) {
+      let removed = accountsList.splice(idx, 1);
+      localStorage.setItem("accounts_list", JSON.stringify(accountsList));
+      renderDirectorsList();
+      addLog("設定", `刪除社區主任帳號：${removed[0].name}`);
+    }
+  }
+
+  function renderPendingAudits() {
+    const tbody = document.getElementById("pending-audit-tbody");
+    if (pendingAudits.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty">目前無待審核的指定車位申請</td></tr>`;
+      return;
+    }
+    let html = "";
+    pendingAudits.forEach((aud, i) => {
+      html += `<tr>
+        <td><b>${aud.name}</b></td>
+        <td>${aud.room}</td>
+        <td><code>#${aud.prefs}</code></td>
+        <td>${aud.director}</td>
+        <td>
+          <button class="btn btn-sm btn-success" onclick="approveAudit(${i})">同意</button>
+          <button class="btn btn-sm btn-danger" onclick="rejectAudit(${i})">拒絕</button>
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  function approveAudit(i) {
+    let aud = pendingAudits[i];
+    let res = residents.find(x => x.name === aud.name && `${x.build} ${x.room}` === aud.room);
+    if (res) {
+      let pArr = aud.prefs.split(',').map(x => parseInt(x.trim()));
+      res.pref1 = pArr[0] || "";
+      res.pref2 = pArr[1] || "";
+      res.pref3 = pArr[2] || "";
+      localStorage.setItem("residents_list", JSON.stringify(residents));
+    }
+    pendingAudits.splice(i, 1);
+    renderPendingAudits();
+    renderResidents();
+    alert("已同意該指定車位申請！");
+    addLog("審核", `管理員同意住戶 ${aud.name} 之指定車位`);
+  }
+
+  function rejectAudit(i) {
+    let aud = pendingAudits[i];
+    pendingAudits.splice(i, 1);
+    renderPendingAudits();
+    alert("已拒絕該指定車位申請。");
+    addLog("審核", `管理員拒絕住戶 ${aud.name} 之指定車位`);
+  }
+
+  function resetSystemData() {
+    if(currentUser.role !== 'admin') {
+      alert("權限不足，僅系統管理員可重置資料！");
+      return;
+    }
+    if(confirm("警告：確定要清空並重置所有系統資料嗎？此動作無法復原！")) {
+      residents = [];
+      lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
+      swapLogs = [];
+      systemLogs = [];
+      pendingAudits = [];
+      localStorage.removeItem("residents_list");
+      localStorage.removeItem("lottery_results");
+      localStorage.removeItem("swap_logs");
+      localStorage.removeItem("system_settings");
+      localStorage.removeItem("custom_fp_1");
+      localStorage.removeItem("custom_fp_2");
+      initApp();
+      alert("系統資料已全部重置！");
+      addLog("設定", "重置所有系統資料");
+    }
+  }
+
+  // ================= 10. 操作紀錄邏輯 =================
+  function addLog(type, msg) {
+    systemLogs.unshift({
+      time: new Date().toLocaleString(),
+      type,
+      msg,
+      user: currentUser.name
+    });
+  }
+
+  function renderLogs() {
+    if (currentUser.role !== 'admin') return;
+    const search = document.getElementById("log-search").value.toLowerCase();
+    const typeFilter = document.getElementById("log-filter-type").value;
+
+    const filtered = systemLogs.filter(l => {
+      const matchS = l.msg.toLowerCase().includes(search) || l.user.toLowerCase().includes(search);
+      const matchT = typeFilter === "" || l.type === typeFilter;
+      return matchS && matchT;
+    });
+
+    document.getElementById("log-count").innerText = `顯示 ${filtered.length} 筆紀錄`;
+
+    let html = "";
+    if(filtered.length === 0) {
+      html = '<div class="empty">尚無操作紀錄</div>';
+    } else {
+      filtered.forEach(l => {
+        html += `<div class="log-tl-item">
+          <div class="log-tl-line"></div>
+          <div class="log-tl-dot"></div>
+          <div class="log-tl-content">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">${l.time} <span class="badge badge-blue">${l.type}</span> 👤 ${l.user}</div>
+            <div style="font-size:13px;color:var(--text-main)">${l.msg}</div>
+          </div>
+        </div>`;
+      });
+    }
+    document.getElementById("log-timeline").innerHTML = html;
+  }
+
+  function clearLogs() {
+    if(confirm("確定要清除所有操作紀錄嗎？")) {
+      systemLogs = [];
+      renderLogs();
+    }
+  }
+
+  function exportLogs() { exportCSV(); }
+
+  // ================= 11. 匯出工具 =================
+  function exportCSV() {
+    let csv = "\ufeffID,棟別,門牌,姓名,身分\n";
+    residents.forEach(r => {
+      csv += `${r.id},${r.build},${r.room},${r.name},${r.reserve}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `稙村秀社區機車位資料_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+
+  function exportExcel(tableId, titleName) {
+    const table = document.getElementById(tableId);
+    if(!table) {
+      alert("找不到可匯出的表格資料！");
+      return;
+    }
+    const wb = XLSX.utils.table_to_book(table, {sheet: titleName});
+    XLSX.writeFile(wb, `${titleName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    addLog("設定", `匯出 Excel 報表：${titleName}`);
+  }
+</script>
+</body>
+</html>
