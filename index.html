@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.21</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.22</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -166,7 +166,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.21</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.22</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -174,7 +174,7 @@
     <button class="nav-tab" onclick="showPage('results')">抽籤結果與總表</button>
     <button class="nav-tab" id="nav-tab-logs" onclick="showPage('logs')">操作紀錄</button>
     <button class="nav-tab" onclick="showPage('swap')">車位互換</button>
-    <button class="nav-tab" onclick="showPage('inquiry')">中籤查詢</button>
+    <button class="nav-tab" id="nav-tab-inquiry" onclick="showPage('inquiry')">中籤查詢</button>
     <button class="nav-tab" onclick="showPage('floorplan')">平面圖</button>
     <button class="nav-tab" id="nav-tab-settings" onclick="showPage('settings')">系統設定</button>
     <button class="nav-tab" onclick="showPage('guide')">說明</button>
@@ -197,7 +197,7 @@
   <button class="nav-tab" onclick="showPage('guide');closeMobileMenu()">說明</button>
 </div>
 
-<!-- ===== 登入對話框 (已移除版次顯示，背景比例適當) ===== -->
+<!-- ===== 登入對話框 ===== -->
 <div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(3px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
   <div style="background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-radius:20px;padding:2.5rem;width:90%;max-width:400px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3)">
     <h3 id="login-modal-title" style="margin-bottom:1.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:700">稙村秀社區機車位電腦抽籤系統</h3>
@@ -524,7 +524,7 @@
   <div id="inq-result" style="display:none"></div>
 </div>
 
-<!-- ===== 9. 車位平面圖 (車位標籤同步顯示中籤住戶棟別與門牌) ===== -->
+<!-- ===== 9. 車位平面圖 ===== -->
 <div id="page-floorplan" class="page">
   <div class="flex-between" style="margin-bottom:1.25rem">
     <div class="section-title" style="margin:0">機車位配置平面圖</div>
@@ -563,7 +563,7 @@
   </div>
 </div>
 
-<!-- ===== 10. 說明 (含詳細操作說明) ===== -->
+<!-- ===== 10. 說明 ===== -->
 <div id="page-guide" class="page">
   <div class="section-title">系統操作說明指南</div>
   <div class="card">
@@ -580,7 +580,7 @@
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">支援跨輪次或單一輪次的車位自由互換。搜尋住戶時可直接輸入「棟別、姓名或門牌」（例如：A1 張大明），並可點擊清除按鈕重新選取。互換後會同步記錄詳細車位號碼異動。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 5. 權限與帳號管理</h3>
-    <p style="font-size:13px;color:var(--text-muted)"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤；<b>一般住戶</b>僅供檢視總表、中籤查詢與平面圖。</p>
+    <p style="font-size:13px;color:var(--text-muted)"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供檢視總表、中籤查詢與平面圖。</p>
   </div>
 </div>
 
@@ -597,7 +597,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.21">
+        <input type="text" id="set-app-version" value="v1.22">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -798,7 +798,7 @@
     voidSeats: [13, 44, 88],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.21",
+    appVersion: "v1.22",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: ""
@@ -841,6 +841,10 @@
     const savedSettings = localStorage.getItem("system_settings");
     if (savedSettings) {
       systemSettings = JSON.parse(savedSettings);
+    }
+    const savedAudits = localStorage.getItem("pending_audits");
+    if (savedAudits) {
+      pendingAudits = JSON.parse(savedAudits);
     }
 
     applySystemBranding();
@@ -1090,15 +1094,15 @@
       let isVoid = systemSettings.voidSeats.includes(i);
       let occupant = getSeatOccupant(i);
       let cls = "seat seat-free";
-      let label = `${i}號`;
+      let title = `車位 ${i}號：空位`;
       if(isVoid) {
         cls = "seat seat-void";
-        label = `${i}號<br><span style="font-size:9px">(作廢)</span>`;
+        title = `車位 ${i}號：已作廢`;
       } else if(occupant) {
         cls = "seat seat-used";
-        label = `${i}號<br><b>${occupant.build} ${occupant.room}</b>`;
+        title = `車位 ${i}號：${occupant.name} (${occupant.room})`;
       }
-      seatHtml += `<div class="${cls}" title="車位 ${i}號">${label}</div>`;
+      seatHtml += `<div class="${cls}" title="${title}">${i}號</div>`;
     }
     seatHtml += '</div>';
     document.getElementById("dash-seatmap").innerHTML = seatHtml;
@@ -1267,6 +1271,7 @@
         prefs: [pref1, pref2, pref3].filter(x => x !== "").join(', '),
         director: currentUser.name
       });
+      localStorage.setItem("pending_audits", JSON.stringify(pendingAudits));
       alert("指定車位已送出，需經系統管理員審核同意後生效！");
       addLog("審核", `社區主任 ${currentUser.name} 提交住戶 ${name} 之指定車位審核`);
       pref1 = ""; pref2 = ""; pref3 = "";
@@ -1299,6 +1304,7 @@
     }
 
     localStorage.setItem("residents_list", JSON.stringify(residents));
+    localStorage.setItem("pending_audits", JSON.stringify(pendingAudits));
     closeModal();
     renderResidents();
     renderDashboard();
@@ -1850,7 +1856,7 @@
     resultBox.innerHTML = html;
   }
 
-  // ================= 8. 平面圖功能 (車位標籤同步顯示棟別與門牌) =================
+  // ================= 8. 平面圖功能 =================
   function switchFloorplan(floorNum) {
     currentFloorplan = floorNum;
     if(floorNum === 1) {
@@ -2105,6 +2111,7 @@
       localStorage.setItem("residents_list", JSON.stringify(residents));
     }
     pendingAudits.splice(i, 1);
+    localStorage.setItem("pending_audits", JSON.stringify(pendingAudits));
     renderPendingAudits();
     renderResidents();
     alert("已同意該指定車位申請！");
@@ -2114,6 +2121,7 @@
   function rejectAudit(i) {
     let aud = pendingAudits[i];
     pendingAudits.splice(i, 1);
+    localStorage.setItem("pending_audits", JSON.stringify(pendingAudits));
     renderPendingAudits();
     alert("已拒絕該指定車位申請。");
     addLog("審核", `管理員拒絕住戶 ${aud.name} 之指定車位`);
@@ -2134,6 +2142,7 @@
       localStorage.removeItem("lottery_results");
       localStorage.removeItem("swap_logs");
       localStorage.removeItem("system_settings");
+      localStorage.removeItem("pending_audits");
       localStorage.removeItem("custom_fp_1");
       localStorage.removeItem("custom_fp_2");
       initApp();
