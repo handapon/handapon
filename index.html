@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.34</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.35</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -171,7 +171,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.34</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.35</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -602,7 +602,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.34">
+        <input type="text" id="set-app-version" value="v1.35">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -810,7 +810,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.34",
+    appVersion: "v1.35",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -828,6 +828,34 @@
   let lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
   let swapLogs = [];
   let systemLogs = [];
+
+  // 輔助函式：計算有效分配車位數（過濾無效、Null 或 0）
+  function getValidWinnerCount(round) {
+    if (!lotteryResults || !lotteryResults[round]) return 0;
+    let count = 0;
+    for (let id in lotteryResults[round]) {
+      let seat = lotteryResults[round][id];
+      if (seat !== null && seat !== undefined && seat !== "" && Number(seat) > 0) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  // 查驗車位佔用者 (嚴格強型別比對)
+  function getSeatOccupant(seatNum) {
+    for (let r of ["第一輪", "第二輪", "第三輪"]) {
+      if (!lotteryResults[r]) continue;
+      for (let id in lotteryResults[r]) {
+        let seat = lotteryResults[r][id];
+        if (Number(seat) === Number(seatNum)) {
+          let res = residents.find(x => Number(x.id) === Number(id));
+          if (res) return res;
+        }
+      }
+    }
+    return null;
+  }
 
   // ================= 雲端即時同步核心 REST API 模組 =================
   async function cloudSyncPush() {
@@ -869,9 +897,9 @@
         if (data.residents) residents = data.residents;
         if (data.lotteryResults) lotteryResults = data.lotteryResults;
         if (data.systemSettings) {
-          let codeVer = systemSettings.appVersion; // 鎖定程式碼最新版次
+          let codeVer = systemSettings.appVersion;
           systemSettings = data.systemSettings;
-          systemSettings.appVersion = codeVer;   // 確保版次不被舊字串覆蓋
+          systemSettings.appVersion = codeVer;
         }
         if (data.accountsList) accountsList = data.accountsList;
         if (data.pendingAudits) pendingAudits = data.pendingAudits;
@@ -1139,9 +1167,9 @@
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
     const availableSeats = systemSettings.totalSeats - voidCount;
     
-    let gotR1 = Object.keys(lotteryResults["第一輪"] || {}).length;
-    let gotR2 = Object.keys(lotteryResults["第二輪"] || {}).length;
-    let gotR3 = Object.keys(lotteryResults["第三輪"] || {}).length;
+    let gotR1 = getValidWinnerCount("第一輪");
+    let gotR2 = getValidWinnerCount("第二輪");
+    let gotR3 = getValidWinnerCount("第三輪");
 
     document.getElementById("dash-stats").innerHTML = `
       <div class="stat"><div class="stat-label">總住戶數</div><div class="stat-value blue">${total}</div></div>
@@ -1179,19 +1207,6 @@
     }
     seatHtml += '</div>';
     document.getElementById("dash-seatmap").innerHTML = seatHtml;
-  }
-
-  function getSeatOccupant(seatNum) {
-    for(let r of ["第一輪", "第二輪", "第三輪"]) {
-      if(!lotteryResults[r]) continue;
-      for(let id in lotteryResults[r]) {
-        if(lotteryResults[r][id] === seatNum) {
-          let res = residents.find(x => x.id == id);
-          if(res) return res;
-        }
-      }
-    }
-    return null;
   }
 
   function previewVoidCount() {
@@ -1261,13 +1276,13 @@
   }
 
   function toggleResidentRound(id, roundKey) {
-    const r = residents.find(x => x.id === id);
+    const r = residents.find(x => Number(x.id) === Number(id));
     if (!r) return;
     
     let pCheck = "";
-    if (roundKey === 'r1') pCheck = r.plate1.trim();
-    if (roundKey === 'r2') pCheck = r.plate2.trim();
-    if (roundKey === 'r3') pCheck = r.plate3.trim();
+    if (roundKey === 'r1') pCheck = r.plate1 ? r.plate1.trim() : "";
+    if (roundKey === 'r2') pCheck = r.plate2 ? r.plate2.trim() : "";
+    if (roundKey === 'r3') pCheck = r.plate3 ? r.plate3.trim() : "";
 
     if (!pCheck && r[roundKey] === 'N') {
       alert(`該住戶尚未輸入對應的「車牌 ${roundKey.replace('r','')}」，無法勾選參加該輪次！`);
@@ -1309,7 +1324,7 @@
   }
 
   function openEditModal(id) {
-    const r = residents.find(x => x.id === id);
+    const r = residents.find(x => Number(x.id) === Number(id));
     if(!r) return;
     document.getElementById("modal-title").innerText = "編輯住戶資料";
     document.getElementById("edit-id").value = r.id;
@@ -1377,14 +1392,14 @@
     };
 
     if(id === "") {
-      const newId = residents.length > 0 ? Math.max(...residents.map(x => x.id)) + 1 : 1;
+      const newId = residents.length > 0 ? Math.max(...residents.map(x => Number(x.id))) + 1 : 1;
       data.id = newId;
       residents.push(data);
       addLog("住戶", `新增住戶：${name} (${build} ${room})`);
     } else {
-      const idx = residents.findIndex(x => x.id == id);
+      const idx = residents.findIndex(x => Number(x.id) === Number(id));
       if(idx !== -1) {
-        data.id = parseInt(id);
+        data.id = Number(id);
         residents[idx] = data;
         addLog("住戶", `更新住戶：${name} (${build} ${room})`);
       }
@@ -1404,7 +1419,7 @@
       return;
     }
     if(confirm("確定要刪除此住戶嗎？")) {
-      residents = residents.filter(x => x.id !== id);
+      residents = residents.filter(x => Number(x.id) !== Number(id));
       cloudSyncPush();
       renderResidents();
       renderDashboard();
@@ -1445,7 +1460,7 @@
         if(!line) continue;
         const cols = line.split(',').map(c => c.trim());
         if(cols.length >= 4) {
-          const newId = residents.length > 0 ? Math.max(...residents.map(x => x.id)) + 1 : 1;
+          const newId = residents.length > 0 ? Math.max(...residents.map(x => Number(x.id))) + 1 : 1;
           const p1 = cols[11] || "";
           const p2 = cols[12] || "";
           const p3 = cols[13] || "";
@@ -1479,7 +1494,7 @@
     reader.readAsText(file, "UTF-8");
   }
 
-  // ================= 3. 執行抽籤邏輯 (嚴格限制中籤數上限) =================
+  // ================= 3. 執行抽籤邏輯 (嚴格限制數值) =================
   function selectLotteryRound(round) {
     currentRound = round;
     document.querySelectorAll(".lrs-card").forEach(c => {
@@ -1497,7 +1512,7 @@
     ["第一輪", "第二輪", "第三輪"].forEach((r, idx) => {
       let rKey = `r${idx+1}`;
       let participants = residents.filter(x => x[rKey] === 'Y').length;
-      let gotCount = Object.keys(lotteryResults[r] || {}).length;
+      let gotCount = getValidWinnerCount(r);
       
       let pEl = document.getElementById(`lrs-p${idx+1}`);
       let sEl = document.getElementById(`lrs-s${idx+1}`);
@@ -1543,15 +1558,16 @@
       balls.innerHTML = `<div class="lm-ball">${Math.floor(Math.random()*100)+1}</div><div class="lm-ball">${Math.floor(Math.random()*100)+1}</div>`;
       if(progress >= 100) {
         clearInterval(timer);
+        executeLotteryAllocation(currentRound, eligible);
+        let winCount = getValidWinnerCount(currentRound);
         document.getElementById("lam-title").innerText = `${currentRound} 抽籤完成！`;
-        document.getElementById("lam-msg").innerText = `共 ${eligible.length} 位住戶參加，已精確完成中籤號碼分配。`;
+        document.getElementById("lam-msg").innerText = `共 ${eligible.length} 位住戶參加，精確分配出 ${winCount} 個車位。`;
         document.getElementById("lam-close-btn").style.display = "inline-block";
         
-        executeLotteryAllocation(currentRound, eligible);
         updateLotteryCards();
         renderDashboard();
         initFloorplanSeats();
-        addLog("抽籤", `執行 ${currentRound} 抽籤完成（共抽出 ${Object.keys(lotteryResults[currentRound]).length} 席）`);
+        addLog("抽籤", `執行 ${currentRound} 抽籤完成（共抽出 ${winCount} 席）`);
       }
     }, 200);
   }
@@ -1561,10 +1577,8 @@
   }
 
   function executeLotteryAllocation(round, eligible) {
-    // 1. 強制重置該輪中籤紀錄，防止殘留舊資料
     lotteryResults[round] = {};
 
-    // 2. 計算全區可分配空車位（扣除作廢車位與其他輪次已使用車位）
     let availableSeats = [];
     for(let i=1; i<=systemSettings.totalSeats; i++) {
       if(!(systemSettings.voidSeats && systemSettings.voidSeats.includes(i))) availableSeats.push(i);
@@ -1574,7 +1588,8 @@
     for(let r in lotteryResults) {
       if(r !== round) {
         for(let id in lotteryResults[r]) {
-          usedSeats.add(lotteryResults[r][id]);
+          let s = lotteryResults[r][id];
+          if(s) usedSeats.add(Number(s));
         }
       }
     }
@@ -1585,48 +1600,41 @@
     let abPrioritySeats = freeSeats.filter(s => s >= abStart && s <= abEnd);
     let otherSeats = freeSeats.filter(s => s < abStart || s > abEnd);
 
-    // 3. 打亂參加住戶順序 (公平亂數)
     let shuffledEligible = [...eligible].sort(() => Math.random() - 0.5);
 
-    // 4. 嚴格對每一個參加者分配一個車位，確保「中籤數 ≡ 參加人數」
     shuffledEligible.forEach(res => {
-      if(freeSeats.length === 0) return; // 無剩餘車位時停止
+      if(freeSeats.length === 0) return;
       let assignedSeat = null;
 
-      let prefs = [res.pref1, res.pref2, res.pref3].filter(p => p && freeSeats.includes(p));
+      let prefs = [res.pref1, res.pref2, res.pref3].filter(p => p && freeSeats.includes(Number(p)));
       if(prefs.length > 0) {
-        assignedSeat = prefs[0];
+        assignedSeat = Number(prefs[0]);
       } else if (res.build.startsWith("A") || res.build.startsWith("B")) {
         if(abPrioritySeats.length > 0) {
           let idx = Math.floor(Math.random() * abPrioritySeats.length);
           assignedSeat = abPrioritySeats[idx];
-          abPrioritySeats.splice(idx, 1);
         } else if(otherSeats.length > 0) {
           let idx = Math.floor(Math.random() * otherSeats.length);
           assignedSeat = otherSeats[idx];
-          otherSeats.splice(idx, 1);
         }
       } else {
         if(otherSeats.length > 0) {
           let idx = Math.floor(Math.random() * otherSeats.length);
           assignedSeat = otherSeats[idx];
-          otherSeats.splice(idx, 1);
         } else if(abPrioritySeats.length > 0) {
           let idx = Math.floor(Math.random() * abPrioritySeats.length);
           assignedSeat = abPrioritySeats[idx];
-          abPrioritySeats.splice(idx, 1);
         }
       }
       
       if(assignedSeat) {
-        lotteryResults[round][res.id] = assignedSeat;
+        lotteryResults[round][res.id] = Number(assignedSeat);
         freeSeats = freeSeats.filter(s => s !== assignedSeat);
         abPrioritySeats = abPrioritySeats.filter(s => s !== assignedSeat);
         otherSeats = otherSeats.filter(s => s !== assignedSeat);
       }
     });
 
-    // 5. 立即同步寫入 Firebase 雲端資料庫
     cloudSyncPush();
   }
 
@@ -1658,13 +1666,16 @@
       prev.style.display = "block";
       document.getElementById("preview-toggle-icon").innerText = "▲";
       let got = lotteryResults[currentRound] || {};
-      let html = `<b>${currentRound} 目前中籤清單（共 ${Object.keys(got).length} 筆）：</b><br>`;
+      let html = `<b>${currentRound} 目前中籤清單（共 ${getValidWinnerCount(currentRound)} 筆）：</b><br>`;
       let count = 0;
       for(let id in got) {
-        let res = residents.find(x => x.id == id);
-        if(res) {
-          html += `${res.build}-${res.room} ${getDisplayName(res.name)} ➔ 車位 ${got[id]}號<br>`;
-          count++;
+        let seat = got[id];
+        if(seat) {
+          let res = residents.find(x => Number(x.id) === Number(id));
+          if(res) {
+            html += `${res.build}-${res.room} ${getDisplayName(res.name)} ➔ 車位 ${seat}號<br>`;
+            count++;
+          }
         }
       }
       prev.innerHTML = count > 0 ? html : "尚無中籤資料。";
@@ -1727,10 +1738,11 @@
       if(!matchSearch && search !== "") return;
 
       let seat = gotMap[r.id];
-      let statusStr = seat ? '<span class="badge badge-green">中籤</span>' : '<span class="badge badge-gray">未中籤</span>';
+      let hasSeat = (seat !== null && seat !== undefined && seat !== "" && Number(seat) > 0);
+      let statusStr = hasSeat ? '<span class="badge badge-green">中籤</span>' : '<span class="badge badge-gray">未中籤</span>';
 
-      if(type === 'got' && !seat) return;
-      if(type === 'no' && seat) return;
+      if(type === 'got' && !hasSeat) return;
+      if(type === 'no' && hasSeat) return;
 
       count++;
       html += `<tr>
@@ -1739,7 +1751,7 @@
         <td>${r.room}</td>
         <td><b>${getDisplayName(r.name)}</b></td>
         <td>${r.reserve==='Y'?'保留戶':'一般戶'}</td>
-        <td>${seat ? '<b>'+seat+'號</b>' : '-'}</td>
+        <td>${hasSeat ? '<b>'+seat+'號</b>' : '-'}</td>
         <td>${statusStr}</td>
       </tr>`;
     });
@@ -1892,8 +1904,8 @@
       return;
     }
 
-    let resA = residents.find(x => x.id == aId);
-    let resB = residents.find(x => x.id == bId);
+    let resA = residents.find(x => Number(x.id) === Number(aId));
+    let resB = residents.find(x => Number(x.id) === Number(bId));
 
     let seatA_desc = "";
     let seatB_desc = "";
