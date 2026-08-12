@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.25</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.30</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -146,6 +146,10 @@
   .log-tl-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-top:3px;border:3px solid #fff;box-shadow:0 0 0 2px var(--primary);z-index:1;background:var(--primary)}
   .log-tl-content{flex:1;margin-left:14px;background:#f8fafc;padding:.75rem 1rem;border-radius:8px;border:1px solid var(--border-color)}
 
+  #sync-status-indicator { font-size:11px; padding:2px 8px; border-radius:4px; transition:all .3s; }
+  .sync-online { background:#dcfce7; color:#15803d; }
+  .sync-offline { background:#fef2f2; color:#dc2626; }
+
   @media(max-width:768px){
     .nav-tabs{display:none}
     .nav-hamburger{display:flex}
@@ -161,12 +165,13 @@
 <!-- ===== 使用者頂部列 ===== -->
 <div class="user-bar" id="user-bar" style="display:none">
   <span id="user-bar-name">👤 未登入</span>
+  <span id="sync-status-indicator" class="sync-offline">雲端同步中...</span>
   <button class="user-bar-btn" onclick="doLogout()">登出系統</button>
 </div>
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.25</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.30</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -226,7 +231,7 @@
     </div>
     <div class="card">
       <div class="card-title">系統快速導覽</div>
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。管理員與主任可於住戶名單進行登記與車號連動設定，並至執行抽籤頁面管理作廢車位與執行各輪抽籤。</p>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統採用雲端即時同步，管理員與主任可於住戶名單進行登記與車號連動設定，並至執行抽籤頁面管理作廢車位與執行各輪抽籤。</p>
     </div>
   </div>
   <div class="card">
@@ -284,7 +289,7 @@
   </div>
 </div>
 
-<!-- ===== 3. 執行抽籤 (含作廢車位設定) ===== -->
+<!-- ===== 3. 執行抽籤 ===== -->
 <div id="page-lottery" class="page">
   <div class="flex-between" style="margin-bottom:1.25rem">
     <div class="section-title" style="margin:0">執行機車位抽籤</div>
@@ -584,7 +589,7 @@
   </div>
 </div>
 
-<!-- ===== 11. 系統設定 (僅管理員可訪問) ===== -->
+<!-- ===== 11. 系統設定 ===== -->
 <div id="page-settings" class="page">
   <div class="section-title">系統設定與權限維護</div>
   
@@ -597,7 +602,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.25">
+        <input type="text" id="set-app-version" value="v1.30">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -783,6 +788,10 @@
 </div>
 
 <script>
+  // ================= Firebase 雲端資料庫 URL 設定 =================
+  // 請貼上您在 Firebase 申請到的 Realtime Database 網址 (記得結尾保持斜線 /)
+  const FIREBASE_DB_URL = "https://parking-lottery-resident-list-default-rtdb.asia-southeast1.firebasedatabase.app/";
+
   let currentUser = { name: "系統管理員", role: "admin", username: "admin", password: "1234" };
   let accountsList = [
     { name: "系統管理員", username: "admin", password: "1234", role: "admin" },
@@ -802,7 +811,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.25",
+    appVersion: "v1.30",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: ""
@@ -819,6 +828,69 @@
   let swapLogs = [];
   let systemLogs = [];
 
+  // ================= 雲端即時同步核心 REST API 模組 =================
+  async function cloudSyncPush() {
+    if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
+      console.warn("尚未填入有效的 Firebase 資料庫網址，目前使用本機預設快取。");
+      updateSyncStatusUI(false, "僅本機");
+      return;
+    }
+    const payload = {
+      residents,
+      lotteryResults,
+      systemSettings,
+      accountsList,
+      pendingAudits,
+      swapLogs,
+      systemLogs
+    };
+    try {
+      await fetch(`${FIREBASE_DB_URL}parkingData.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      updateSyncStatusUI(true, "雲端已同步");
+    } catch (e) {
+      console.error("雲端資料同步失敗：", e);
+      updateSyncStatusUI(false, "同步失敗");
+    }
+  }
+
+  async function cloudSyncPull() {
+    if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
+      updateSyncStatusUI(false, "未設定雲端");
+      return false;
+    }
+    try {
+      const res = await fetch(`${FIREBASE_DB_URL}parkingData.json`);
+      const data = await res.json();
+      if (data) {
+        if (data.residents) residents = data.residents;
+        if (data.lotteryResults) lotteryResults = data.lotteryResults;
+        if (data.systemSettings) systemSettings = data.systemSettings;
+        if (data.accountsList) accountsList = data.accountsList;
+        if (data.pendingAudits) pendingAudits = data.pendingAudits;
+        if (data.swapLogs) swapLogs = data.swapLogs;
+        if (data.systemLogs) systemLogs = data.systemLogs;
+        updateSyncStatusUI(true, "雲端已同步");
+        return true;
+      }
+    } catch (e) {
+      console.error("雲端資料讀取失敗：", e);
+      updateSyncStatusUI(false, "離線模式");
+    }
+    return false;
+  }
+
+  function updateSyncStatusUI(isOnline, text) {
+    const el = document.getElementById("sync-status-indicator");
+    if(el) {
+      el.innerText = text;
+      el.className = isOnline ? "sync-online" : "sync-offline";
+    }
+  }
+
   function maskName(name) {
     if (!name) return "";
     const str = name.trim();
@@ -833,51 +905,16 @@
     return (currentUser.role === 'guest') ? maskName(name) : name;
   }
 
-  window.onload = function() {
+  window.onload = async function() {
+    await cloudSyncPull();
     checkLogin();
     initApp();
   };
 
   function checkLogin() {
     const logged = localStorage.getItem("lottery_user");
-    const savedAccounts = localStorage.getItem("accounts_list");
-    if (savedAccounts) {
-      accountsList = JSON.parse(savedAccounts);
-    }
-    const savedResidents = localStorage.getItem("residents_list");
-    if (savedResidents) {
-      residents = JSON.parse(savedResidents);
-    }
-    const savedResults = localStorage.getItem("lottery_results");
-    if (savedResults) {
-      lotteryResults = JSON.parse(savedResults);
-    }
-    const savedSwapLogs = localStorage.getItem("swap_logs");
-    if (savedSwapLogs) {
-      swapLogs = JSON.parse(savedSwapLogs);
-    }
-    const savedSettings = localStorage.getItem("system_settings");
-    if (savedSettings) {
-      systemSettings = JSON.parse(savedSettings);
-    }
-    const savedAudits = localStorage.getItem("pending_audits");
-    if (savedAudits) {
-      pendingAudits = JSON.parse(savedAudits);
-    }
-
     applySystemBranding();
     applyLoginBackground();
-
-    const savedFloorplan1 = localStorage.getItem("custom_fp_1");
-    if (savedFloorplan1) {
-      const imgElem = document.getElementById("custom-fp-img-1");
-      if(imgElem) { imgElem.src = savedFloorplan1; imgElem.style.display = "inline-block"; }
-    }
-    const savedFloorplan2 = localStorage.getItem("custom_fp_2");
-    if (savedFloorplan2) {
-      const imgElem = document.getElementById("custom-fp-img-2");
-      if(imgElem) { imgElem.src = savedFloorplan2; imgElem.style.display = "inline-block"; }
-    }
 
     if (!logged) {
       document.getElementById("login-overlay").style.display = "flex";
@@ -918,9 +955,9 @@
     const reader = new FileReader();
     reader.onload = function(e) {
       systemSettings.loginBg = e.target.result;
-      localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+      cloudSyncPush();
       applyLoginBackground();
-      alert("登入頁面背景圖已成功更新並同步！");
+      alert("登入頁面背景圖已成功更新並全域同步！");
       addLog("設定", "管理員更新登入頁面背景圖");
     };
     reader.readAsDataURL(file);
@@ -928,7 +965,7 @@
 
   function resetLoginBackground() {
     systemSettings.loginBg = "";
-    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+    cloudSyncPush();
     applyLoginBackground();
     alert("已恢復預設登入背景！");
     addLog("設定", "管理員重置登入頁面背景圖");
@@ -1061,7 +1098,7 @@
     if(pageId === 'settings' && currentUser.role === 'admin') {
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
       document.getElementById("set-total-seats").value = systemSettings.totalSeats;
-      document.getElementById("set-void-seats").value = systemSettings.voidSeats.join(',');
+      document.getElementById("set-void-seats").value = systemSettings.voidSeats ? systemSettings.voidSeats.join(',') : '';
       document.getElementById("set-ab-start").value = systemSettings.abStart;
       document.getElementById("set-ab-end").value = systemSettings.abEnd;
       document.getElementById("set-app-version").value = systemSettings.appVersion;
@@ -1083,12 +1120,12 @@
   // ================= 1. 總覽邏輯 =================
   function renderDashboard() {
     const total = residents.length;
-    const voidCount = systemSettings.voidSeats.length;
+    const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
     const availableSeats = systemSettings.totalSeats - voidCount;
     
-    let gotR1 = Object.keys(lotteryResults["第一輪"]).length;
-    let gotR2 = Object.keys(lotteryResults["第二輪"]).length;
-    let gotR3 = Object.keys(lotteryResults["第三輪"]).length;
+    let gotR1 = Object.keys(lotteryResults["第一輪"] || {}).length;
+    let gotR2 = Object.keys(lotteryResults["第二輪"] || {}).length;
+    let gotR3 = Object.keys(lotteryResults["第三輪"] || {}).length;
 
     document.getElementById("dash-stats").innerHTML = `
       <div class="stat"><div class="stat-label">總住戶數</div><div class="stat-value blue">${total}</div></div>
@@ -1104,14 +1141,14 @@
       <div style="font-size:13px;margin-bottom:8px">第三輪抽籤：${gotR3 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
     `;
 
-    document.getElementById("dash-void-tags").innerHTML = systemSettings.voidSeats.length > 0 
+    document.getElementById("dash-void-tags").innerHTML = (systemSettings.voidSeats && systemSettings.voidSeats.length > 0) 
       ? systemSettings.voidSeats.map(s => `<span class="badge badge-red" style="margin-right:4px">${s}號 作廢</span>`).join('') 
       : '<span style="font-size:12px;color:var(--text-muted)">無作廢車位</span>';
-    document.getElementById("dash-void-input").value = systemSettings.voidSeats.join(',');
+    document.getElementById("dash-void-input").value = systemSettings.voidSeats ? systemSettings.voidSeats.join(',') : '';
 
     let seatHtml = '<div class="seat-grid">';
     for(let i=1; i<=systemSettings.totalSeats; i++) {
-      let isVoid = systemSettings.voidSeats.includes(i);
+      let isVoid = systemSettings.voidSeats && systemSettings.voidSeats.includes(i);
       let occupant = getSeatOccupant(i);
       let cls = "seat seat-free";
       let label = `${i}號`;
@@ -1130,6 +1167,7 @@
 
   function getSeatOccupant(seatNum) {
     for(let r of ["第一輪", "第二輪", "第三輪"]) {
+      if(!lotteryResults[r]) continue;
       for(let id in lotteryResults[r]) {
         if(lotteryResults[r][id] === seatNum) {
           let res = residents.find(x => x.id == id);
@@ -1156,13 +1194,13 @@
     const val = document.getElementById("dash-void-input").value;
     const arr = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x > 0 && x <= systemSettings.totalSeats);
     systemSettings.voidSeats = [...new Set(arr)].sort((a,b)=>a-b);
-    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+    cloudSyncPush();
     renderDashboard();
     initFloorplanSeats();
     renderSwap();
     renderResults();
     addLog("設定", `更新作廢車位設定：${systemSettings.voidSeats.length > 0 ? systemSettings.voidSeats.join(',') : '無'}`);
-    alert("作廢車位已儲存並同步！");
+    alert("作廢車位已儲存並全域雲端同步！");
   }
 
   // ================= 2. 住戶名單邏輯 =================
@@ -1221,7 +1259,7 @@
     }
 
     r[roundKey] = r[roundKey] === 'Y' ? 'N' : 'Y';
-    localStorage.setItem("residents_list", JSON.stringify(residents));
+    cloudSyncPush();
     renderResidents();
     updateLotteryCards();
   }
@@ -1305,7 +1343,6 @@
         prefs: [pref1, pref2, pref3].filter(x => x !== "").join(', '),
         director: currentUser.name
       });
-      localStorage.setItem("pending_audits", JSON.stringify(pendingAudits));
       alert("指定車位已送出，需經系統管理員審核同意後生效！");
       addLog("審核", `社區主任 ${currentUser.name} 提交住戶 ${name} 之指定車位審核`);
       pref1 = ""; pref2 = ""; pref3 = "";
@@ -1337,8 +1374,7 @@
       }
     }
 
-    localStorage.setItem("residents_list", JSON.stringify(residents));
-    localStorage.setItem("pending_audits", JSON.stringify(pendingAudits));
+    cloudSyncPush();
     closeModal();
     renderResidents();
     renderDashboard();
@@ -1353,7 +1389,7 @@
     }
     if(confirm("確定要刪除此住戶嗎？")) {
       residents = residents.filter(x => x.id !== id);
-      localStorage.setItem("residents_list", JSON.stringify(residents));
+      cloudSyncPush();
       renderResidents();
       renderDashboard();
       updateLotteryCards();
@@ -1370,14 +1406,12 @@
       residents = [];
       lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
       pendingAudits = [];
-      localStorage.removeItem("residents_list");
-      localStorage.removeItem("lottery_results");
-      localStorage.removeItem("pending_audits");
+      cloudSyncPush();
       renderResidents();
       renderDashboard();
       updateLotteryCards();
       renderPendingAudits();
-      alert("所有住戶資料已成功清空！");
+      alert("所有住戶資料已成功清空並全域同步！");
       addLog("住戶", "管理員刪除所有住戶資料");
     }
   }
@@ -1418,7 +1452,7 @@
           count++;
         }
       }
-      localStorage.setItem("residents_list", JSON.stringify(residents));
+      cloudSyncPush();
       renderResidents();
       renderDashboard();
       updateLotteryCards();
@@ -1441,13 +1475,13 @@
   }
 
   function updateLotteryCards() {
-    const voidCount = systemSettings.voidSeats.length;
+    const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
     const available = systemSettings.totalSeats - voidCount;
 
     ["第一輪", "第二輪", "第三輪"].forEach((r, idx) => {
       let rKey = `r${idx+1}`;
       let participants = residents.filter(x => x[rKey] === 'Y').length;
-      let gotCount = Object.keys(lotteryResults[r]).length;
+      let gotCount = Object.keys(lotteryResults[r] || {}).length;
       
       let pEl = document.getElementById(`lrs-p${idx+1}`);
       let sEl = document.getElementById(`lrs-s${idx+1}`);
@@ -1472,7 +1506,7 @@
 
   function runLottery() {
     const rKey = currentRound === "第一輪" ? "r1" : (currentRound === "第二輪" ? "r2" : "r3");
-    let eligible = residents.filter(x => x[rKey] === 'Y' && !lotteryResults[currentRound][x.id]);
+    let eligible = residents.filter(x => x[rKey] === 'Y' && !(lotteryResults[currentRound] && lotteryResults[currentRound][x.id]));
     
     if(eligible.length === 0) {
       alert(`${currentRound} 沒有符合資格且尚未中籤的參加住戶！`);
@@ -1498,7 +1532,7 @@
         document.getElementById("lam-close-btn").style.display = "inline-block";
         
         executeLotteryAllocation(currentRound, eligible);
-        localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
+        cloudSyncPush();
         updateLotteryCards();
         renderDashboard();
         initFloorplanSeats();
@@ -1512,9 +1546,10 @@
   }
 
   function executeLotteryAllocation(round, eligible) {
+    if(!lotteryResults[round]) lotteryResults[round] = {};
     let availableSeats = [];
     for(let i=1; i<=systemSettings.totalSeats; i++) {
-      if(!systemSettings.voidSeats.includes(i)) availableSeats.push(i);
+      if(!(systemSettings.voidSeats && systemSettings.voidSeats.includes(i))) availableSeats.push(i);
     }
 
     let usedSeats = new Set();
@@ -1569,7 +1604,7 @@
   function clearCurrentRound() {
     if(confirm(`確定要清除 ${currentRound} 的所有抽籤結果嗎？`)) {
       lotteryResults[currentRound] = {};
-      localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
+      cloudSyncPush();
       updateLotteryCards();
       renderDashboard();
       initFloorplanSeats();
@@ -1580,7 +1615,7 @@
   function confirmClearAll() {
     if(confirm("警告：確定要重置全部輪次的抽籤結果嗎？")) {
       lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
-      localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
+      cloudSyncPush();
       updateLotteryCards();
       renderDashboard();
       initFloorplanSeats();
@@ -1593,7 +1628,7 @@
     if(prev.style.display === "none") {
       prev.style.display = "block";
       document.getElementById("preview-toggle-icon").innerText = "▲";
-      let got = lotteryResults[currentRound];
+      let got = lotteryResults[currentRound] || {};
       let html = `<b>${currentRound} 目前中籤清單：</b><br>`;
       let count = 0;
       for(let id in got) {
@@ -1633,9 +1668,9 @@
         const matchSearch = r.name.toLowerCase().includes(search) || r.room.toLowerCase().includes(search) || r.build.toLowerCase().includes(search);
         if(!matchSearch && search !== "") return;
 
-        let s1 = lotteryResults["第一輪"][r.id] ? lotteryResults["第一輪"][r.id] + '號' : "-";
-        let s2 = lotteryResults["第二輪"][r.id] ? lotteryResults["第二輪"][r.id] + '號' : "-";
-        let s3 = lotteryResults["第三輪"][r.id] ? lotteryResults["第三輪"][r.id] + '號' : "-";
+        let s1 = (lotteryResults["第一輪"] && lotteryResults["第一輪"][r.id]) ? lotteryResults["第一輪"][r.id] + '號' : "-";
+        let s2 = (lotteryResults["第二輪"] && lotteryResults["第二輪"][r.id]) ? lotteryResults["第二輪"][r.id] + '號' : "-";
+        let s3 = (lotteryResults["第三輪"] && lotteryResults["第三輪"][r.id]) ? lotteryResults["第三輪"][r.id] + '號' : "-";
         html += `<tr>
           <td>${r.build}</td>
           <td>${r.room}</td>
@@ -1654,7 +1689,7 @@
     }
 
     thElem.innerHTML = `<th>序號</th><th>棟別</th><th>門牌</th><th>姓名</th><th>身分</th><th>分配車位</th><th>狀態</th>`;
-    let gotMap = lotteryResults[currentResultRound];
+    let gotMap = lotteryResults[currentResultRound] || {};
     let html = "";
     let count = 0;
 
@@ -1717,6 +1752,7 @@
 
   function saveSwapConfig() {
     systemSettings.swapDeadline = document.getElementById("swap-deadline").value;
+    cloudSyncPush();
     renderSwap();
     alert("互換設定已儲存！");
     addLog("設定", `更新互換截止日：${systemSettings.swapDeadline}`);
@@ -1724,6 +1760,7 @@
 
   function setSwapEnabled(en) {
     systemSettings.swapEnabled = en;
+    cloudSyncPush();
     renderSwap();
     alert(en ? "車位互換功能已開放！" : "車位互換功能已鎖定！");
     addLog("設定", en ? "開放車位互換" : "鎖定車位互換");
@@ -1746,7 +1783,9 @@
     
     let html = "";
     matches.forEach(m => {
-      let seat = round === "所有輪次" ? (lotteryResults["第一輪"][m.id] || lotteryResults["第二輪"][m.id] || lotteryResults["第三輪"][m.id]) : lotteryResults[round][m.id];
+      let seat = round === "所有輪次" 
+        ? ((lotteryResults["第一輪"]&&lotteryResults["第一輪"][m.id]) || (lotteryResults["第二輪"]&&lotteryResults["第二輪"][m.id]) || (lotteryResults["第三輪"]&&lotteryResults["第三輪"][m.id])) 
+        : (lotteryResults[round]&&lotteryResults[round][m.id]);
       html += `<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border-color)" onclick="selectSwapResident('${type}', ${m.id}, '${getDisplayName(m.name)} (${m.build}-${m.room})', ${seat || 0})">
         <b>${m.build}-${m.room}</b> ${getDisplayName(m.name)} ${seat ? '('+seat+'號)' : '(無車位)'}
       </div>`;
@@ -1800,8 +1839,12 @@
       return;
     }
 
-    let seatA = round === "所有輪次" ? (lotteryResults["第一輪"][aId] || lotteryResults["第二輪"][aId] || lotteryResults["第三輪"][aId]) : lotteryResults[round][aId];
-    let seatB = round === "所有輪次" ? (lotteryResults["第一輪"][bId] || lotteryResults["第二輪"][bId] || lotteryResults["第三輪"][bId]) : lotteryResults[round][bId];
+    let seatA = round === "所有輪次" 
+      ? ((lotteryResults["第一輪"]&&lotteryResults["第一輪"][aId]) || (lotteryResults["第二輪"]&&lotteryResults["第二輪"][aId]) || (lotteryResults["第三輪"]&&lotteryResults["第三輪"][aId])) 
+      : (lotteryResults[round]&&lotteryResults[round][aId]);
+    let seatB = round === "所有輪次" 
+      ? ((lotteryResults["第一輪"]&&lotteryResults["第一輪"][bId]) || (lotteryResults["第二輪"]&&lotteryResults["第二輪"][bId]) || (lotteryResults["第三輪"]&&lotteryResults["第三輪"][bId])) 
+      : (lotteryResults[round]&&lotteryResults[round][bId]);
     
     prev.innerHTML = `<b>互換預覽 (${round})：</b><br>住戶 A 原車位：${seatA ? seatA+'號' : '無'} ➔ 換至：${seatB ? seatB+'號' : '無'}<br>住戶 B 原車位：${seatB ? seatB+'號' : '無'} ➔ 換至：${seatA ? seatA+'號' : '無'}`;
   }
@@ -1828,6 +1871,7 @@
 
     if (round === "所有輪次") {
       ["第一輪", "第二輪", "第三輪"].forEach(r => {
+        if(!lotteryResults[r]) lotteryResults[r] = {};
         let seatA = lotteryResults[r][aId];
         let seatB = lotteryResults[r][bId];
         if(seatA) lotteryResults[r][bId] = seatA; else delete lotteryResults[r][bId];
@@ -1836,6 +1880,7 @@
       seatA_desc = `車位(${lotteryResults["第一輪"][bId] ? lotteryResults["第一輪"][bId]+'號' : '無'})`;
       seatB_desc = `車位(${lotteryResults["第一輪"][aId] ? lotteryResults["第一輪"][aId]+'號' : '無'})`;
     } else {
+      if(!lotteryResults[round]) lotteryResults[round] = {};
       let seatA = lotteryResults[round][aId];
       let seatB = lotteryResults[round][bId];
       if(seatA) lotteryResults[round][bId] = seatA; else delete lotteryResults[round][bId];
@@ -1850,13 +1895,12 @@
       desc: `${getDisplayName(resA.name)}(${resA.build}-${resA.room}) 與 ${getDisplayName(resB.name)}(${resB.build}-${resB.room}) 互換車位 (${round}) | 異動詳情：${getDisplayName(resA.name)}獲得${seatA_desc}, ${getDisplayName(resB.name)}獲得${seatB_desc}`
     });
 
-    localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
-    localStorage.setItem("swap_logs", JSON.stringify(swapLogs));
+    cloudSyncPush();
     renderSwap();
     renderDashboard();
     renderResults();
     initFloorplanSeats();
-    alert("車位互換成功！");
+    alert("車位互換成功並已全域同步！");
     addLog("互換", `${resA.name} 與 ${resB.name} 互換車位 (${round})`);
   }
 
@@ -1890,9 +1934,9 @@
 
     let html = "";
     matchRes.forEach(r => {
-      let s1 = lotteryResults["第一輪"][r.id] ? lotteryResults["第一輪"][r.id] + '號' : "未中籤";
-      let s2 = lotteryResults["第二輪"][r.id] ? lotteryResults["第二輪"][r.id] + '號' : "未中籤";
-      let s3 = lotteryResults["第三輪"][r.id] ? lotteryResults["第三輪"][r.id] + '號' : "未中籤";
+      let s1 = (lotteryResults["第一輪"] && lotteryResults["第一輪"][r.id]) ? lotteryResults["第一輪"][r.id] + '號' : "未中籤";
+      let s2 = (lotteryResults["第二輪"] && lotteryResults["第二輪"][r.id]) ? lotteryResults["第二輪"][r.id] + '號' : "未中籤";
+      let s3 = (lotteryResults["第三輪"] && lotteryResults["第三輪"][r.id]) ? lotteryResults["第三輪"][r.id] + '號' : "未中籤";
       
       html += `<div class="card" style="max-width:500px;margin:0 auto 1rem">
         <h4 style="color:var(--primary);margin-bottom:.5rem">查詢結果：${getDisplayName(r.name)} (${r.build} ${r.room})</h4>
@@ -1961,8 +2005,9 @@
   function initFloorplanSeats() {
     let b1Html = "";
     let b2Html = "";
+    const vSeats = systemSettings.voidSeats || [];
     for(let i=1; i<=61; i++) {
-      let isVoid = systemSettings.voidSeats.includes(i);
+      let isVoid = vSeats.includes(i);
       let occupant = getSeatOccupant(i);
       let cls = "seat seat-free";
       let label = `${i}號`;
@@ -1976,7 +2021,7 @@
       b1Html += `<div class="${cls}">${label}</div>`;
     }
     for(let i=62; i<=122; i++) {
-      let isVoid = systemSettings.voidSeats.includes(i);
+      let isVoid = vSeats.includes(i);
       let occupant = getSeatOccupant(i);
       let cls = "seat seat-free";
       let label = `${i}號`;
@@ -2005,10 +2050,10 @@
     }
     systemSettings.appTitle = titleVal;
     systemSettings.appVersion = ver;
-    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
+    cloudSyncPush();
     applySystemBranding();
     initUserBar();
-    alert("系統標題與版次更新成功並已同步！");
+    alert("系統標題與版次更新成功並已全域同步！");
     addLog("設定", `更新系統標題為「${titleVal}」，版次為 ${ver}`);
   }
 
@@ -2029,8 +2074,7 @@
     const arr = voidVal.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x > 0 && x <= tSeats);
     systemSettings.voidSeats = [...new Set(arr)].sort((a,b)=>a-b);
 
-    localStorage.setItem("system_settings", JSON.stringify(systemSettings));
-
+    cloudSyncPush();
     initFloorplanSeats();
     renderDashboard();
     renderSwap();
@@ -2114,12 +2158,11 @@
       addLog("設定", `編輯/重設帳號資料：${name}`);
     }
 
-    localStorage.setItem("accounts_list", JSON.stringify(accountsList));
-
+    cloudSyncPush();
     closeDirectorModal();
     renderDirectorsList();
     initUserBar();
-    alert("帳號資料儲存成功！");
+    alert("帳號資料儲存成功並已全域同步！");
   }
 
   function deleteDirectorAccount(idx) {
@@ -2129,7 +2172,7 @@
     }
     if (confirm(`確定要刪除帳號 「${accountsList[idx].name}」 嗎？`)) {
       let removed = accountsList.splice(idx, 1);
-      localStorage.setItem("accounts_list", JSON.stringify(accountsList));
+      cloudSyncPush();
       renderDirectorsList();
       addLog("設定", `刪除社區主任帳號：${removed[0].name}`);
     }
@@ -2165,20 +2208,19 @@
       res.pref1 = pArr[0] || "";
       res.pref2 = pArr[1] || "";
       res.pref3 = pArr[2] || "";
-      localStorage.setItem("residents_list", JSON.stringify(residents));
     }
     pendingAudits.splice(i, 1);
-    localStorage.setItem("pending_audits", JSON.stringify(pendingAudits));
+    cloudSyncPush();
     renderPendingAudits();
     renderResidents();
-    alert("已同意該指定車位申請！");
+    alert("已同意該指定車位申請並同步！");
     addLog("審核", `管理員同意住戶 ${aud.name} 之指定車位`);
   }
 
   function rejectAudit(i) {
     let aud = pendingAudits[i];
     pendingAudits.splice(i, 1);
-    localStorage.setItem("pending_audits", JSON.stringify(pendingAudits));
+    cloudSyncPush();
     renderPendingAudits();
     alert("已拒絕該指定車位申請。");
     addLog("審核", `管理員拒絕住戶 ${aud.name} 之指定車位`);
@@ -2195,15 +2237,9 @@
       swapLogs = [];
       systemLogs = [];
       pendingAudits = [];
-      localStorage.removeItem("residents_list");
-      localStorage.removeItem("lottery_results");
-      localStorage.removeItem("swap_logs");
-      localStorage.removeItem("system_settings");
-      localStorage.removeItem("pending_audits");
-      localStorage.removeItem("custom_fp_1");
-      localStorage.removeItem("custom_fp_2");
+      cloudSyncPush();
       initApp();
-      alert("系統資料已全部重置！");
+      alert("系統資料已全部重置並全域同步！");
       addLog("設定", "重置所有系統資料");
     }
   }
@@ -2252,6 +2288,7 @@
   function clearLogs() {
     if(confirm("確定要清除所有操作紀錄嗎？")) {
       systemLogs = [];
+      cloudSyncPush();
       renderLogs();
     }
   }
