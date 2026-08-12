@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.24</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.25</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -166,7 +166,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.24</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.25</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -597,7 +597,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.24">
+        <input type="text" id="set-app-version" value="v1.25">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -784,7 +784,6 @@
 
 <script>
   let currentUser = { name: "系統管理員", role: "admin", username: "admin", password: "1234" };
-  // 保留社區主任帳號設定：歐洪禎 與 逄錦麟
   let accountsList = [
     { name: "系統管理員", username: "admin", password: "1234", role: "admin" },
     { name: "歐洪禎", username: "director1", password: "1234", role: "director" },
@@ -797,14 +796,13 @@
   let currentFloorplan = 1;
   let fpZoomLevel = 1.0;
 
-  // 作廢位預設值保持為無 (空白陣列)
   let systemSettings = {
     appTitle: "稙村秀社區機車位電腦抽籤系統",
     totalSeats: 122,
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.24",
+    appVersion: "v1.25",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: ""
@@ -821,7 +819,6 @@
   let swapLogs = [];
   let systemLogs = [];
 
-  // 姓名中間字改為 O 的去識別化遮蔽函數
   function maskName(name) {
     if (!name) return "";
     const str = name.trim();
@@ -1144,7 +1141,9 @@
   }
 
   function previewVoidCount() {
-    const val = document.getElementById("dash-void-input").value;
+    const elem = document.getElementById("dash-void-input");
+    if(!elem) return;
+    const val = elem.value || "";
     const arr = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x > 0 && x <= systemSettings.totalSeats);
     const unique = [...new Set(arr)];
     const prevEl = document.getElementById("dash-void-preview");
