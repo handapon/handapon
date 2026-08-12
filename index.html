@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.35</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.36</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -171,7 +171,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.35</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.36</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -602,7 +602,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.35">
+        <input type="text" id="set-app-version" value="v1.36">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -810,7 +810,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.35",
+    appVersion: "v1.36",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1494,7 +1494,7 @@
     reader.readAsText(file, "UTF-8");
   }
 
-  // ================= 3. 執行抽籤邏輯 (嚴格限制數值) =================
+  // ================= 3. 執行抽籤邏輯 (嚴密邏輯除錯) =================
   function selectLotteryRound(round) {
     currentRound = round;
     document.querySelectorAll(".lrs-card").forEach(c => {
@@ -1511,6 +1511,7 @@
 
     ["第一輪", "第二輪", "第三輪"].forEach((r, idx) => {
       let rKey = `r${idx+1}`;
+      // 參加人數：勾選當輪且尚未在其他輪次中籤者
       let participants = residents.filter(x => x[rKey] === 'Y').length;
       let gotCount = getValidWinnerCount(r);
       
@@ -1537,10 +1538,16 @@
 
   function runLottery() {
     const rKey = currentRound === "第一輪" ? "r1" : (currentRound === "第二輪" ? "r2" : "r3");
-    let eligible = residents.filter(x => x[rKey] === 'Y');
+    
+    // 關鍵修復：排除已經在任何輪次中籤的住戶，防止一人多車位
+    let eligible = residents.filter(x => {
+      if (x[rKey] !== 'Y') return false;
+      let alreadyWon = ["第一輪", "第二輪", "第三輪"].some(r => lotteryResults[r] && lotteryResults[r][x.id]);
+      return !alreadyWon;
+    });
     
     if(eligible.length === 0) {
-      alert(`${currentRound} 沒有符合資格的參加住戶！`);
+      alert(`${currentRound} 沒有符合資格（未中籤且勾選參加）的住戶！`);
       return;
     }
 
@@ -1577,35 +1584,43 @@
   }
 
   function executeLotteryAllocation(round, eligible) {
+    // 1. 強制重置該輪中籤紀錄
     lotteryResults[round] = {};
 
-    let availableSeats = [];
-    for(let i=1; i<=systemSettings.totalSeats; i++) {
-      if(!(systemSettings.voidSeats && systemSettings.voidSeats.includes(i))) availableSeats.push(i);
-    }
-
-    let usedSeats = new Set();
+    // 2. 計算全區有效可分配空車位（嚴格排除作廢車位與所有輪次已用車位）
+    let voidSeatsSet = new Set(systemSettings.voidSeats || []);
+    let usedSeatsSet = new Set();
+    
     for(let r in lotteryResults) {
-      if(r !== round) {
+      if(r !== round && lotteryResults[r]) {
         for(let id in lotteryResults[r]) {
           let s = lotteryResults[r][id];
-          if(s) usedSeats.add(Number(s));
+          if(s) usedSeatsSet.add(Number(s));
         }
       }
     }
-    let freeSeats = availableSeats.filter(s => !usedSeats.has(s));
+
+    let freeSeats = [];
+    for(let i = 1; i <= systemSettings.totalSeats; i++) {
+      if(!voidSeatsSet.has(i) && !usedSeatsSet.has(i)) {
+        freeSeats.push(i);
+      }
+    }
 
     const abStart = systemSettings.abStart;
     const abEnd = systemSettings.abEnd;
     let abPrioritySeats = freeSeats.filter(s => s >= abStart && s <= abEnd);
     let otherSeats = freeSeats.filter(s => s < abStart || s > abEnd);
 
+    // 3. 隨機打亂參加名單
     let shuffledEligible = [...eligible].sort(() => Math.random() - 0.5);
 
+    // 4. 精確配對
     shuffledEligible.forEach(res => {
       if(freeSeats.length === 0) return;
       let assignedSeat = null;
 
+      // 檢查指定車位
       let prefs = [res.pref1, res.pref2, res.pref3].filter(p => p && freeSeats.includes(Number(p)));
       if(prefs.length > 0) {
         assignedSeat = Number(prefs[0]);
@@ -1629,6 +1644,7 @@
       
       if(assignedSeat) {
         lotteryResults[round][res.id] = Number(assignedSeat);
+        // 使用 filter 安全剔除已分配車位，防止索引錯位
         freeSeats = freeSeats.filter(s => s !== assignedSeat);
         abPrioritySeats = abPrioritySeats.filter(s => s !== assignedSeat);
         otherSeats = otherSeats.filter(s => s !== assignedSeat);
