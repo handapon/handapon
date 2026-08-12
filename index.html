@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.23</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.24</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -166,7 +166,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.23</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.24</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -597,7 +597,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.23">
+        <input type="text" id="set-app-version" value="v1.24">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -678,9 +678,12 @@
   </div>
 
   <div class="card">
-    <div class="card-title">系統資料初始化</div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">注意：重置將清除所有住戶名單、抽籤結果與互換紀錄。</p>
-    <button class="btn btn-danger" onclick="resetSystemData()">重置所有系統資料</button>
+    <div class="card-title">系統資料管理與初始化</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">注意事項：請謹慎執行以下清空或重置操作。</p>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="deleteAllResidents()">🗑️ 刪除所有住戶資料</button>
+      <button class="btn btn-danger" onclick="resetSystemData()">⚠️ 重置所有系統資料</button>
+    </div>
   </div>
 </div>
 
@@ -781,9 +784,11 @@
 
 <script>
   let currentUser = { name: "系統管理員", role: "admin", username: "admin", password: "1234" };
+  // 保留社區主任帳號設定：歐洪禎 與 逄錦麟
   let accountsList = [
     { name: "系統管理員", username: "admin", password: "1234", role: "admin" },
-    { name: "王主任", username: "director1", password: "1234", role: "director" }
+    { name: "歐洪禎", username: "director1", password: "1234", role: "director" },
+    { name: "逄錦麟", username: "director2", password: "1234", role: "director" }
   ];
 
   let pendingAudits = [];
@@ -792,13 +797,14 @@
   let currentFloorplan = 1;
   let fpZoomLevel = 1.0;
 
+  // 作廢位預設值保持為無 (空白陣列)
   let systemSettings = {
     appTitle: "稙村秀社區機車位電腦抽籤系統",
     totalSeats: 122,
-    voidSeats: [13, 44, 88],
+    voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.23",
+    appVersion: "v1.24",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: ""
@@ -814,6 +820,21 @@
   let lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
   let swapLogs = [];
   let systemLogs = [];
+
+  // 姓名中間字改為 O 的去識別化遮蔽函數
+  function maskName(name) {
+    if (!name) return "";
+    const str = name.trim();
+    if (str.length <= 1) return str;
+    if (str.length === 2) return str[0] + "O";
+    if (str.length === 3) return str[0] + "O" + str[2];
+    if (str.length === 4) return str[0] + "OO" + str[3];
+    return str[0] + "O".repeat(str.length - 2) + str[str.length - 1];
+  }
+
+  function getDisplayName(name) {
+    return (currentUser.role === 'guest') ? maskName(name) : name;
+  }
 
   window.onload = function() {
     checkLogin();
@@ -952,7 +973,7 @@
     if (currentUser.role === 'director') roleTitle = "社區主任";
     if (currentUser.role === 'guest') roleTitle = "住戶";
 
-    document.getElementById("user-bar-name").innerText = `👤 ${currentUser.name} (${roleTitle})`;
+    document.getElementById("user-bar-name").innerText = `👤 ${getDisplayName(currentUser.name)} (${roleTitle})`;
     applySystemBranding();
     
     const resTabs = ['nav-tab-residents', 'nav-tab-residents-mob'];
@@ -1086,7 +1107,9 @@
       <div style="font-size:13px;margin-bottom:8px">第三輪抽籤：${gotR3 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
     `;
 
-    document.getElementById("dash-void-tags").innerHTML = systemSettings.voidSeats.map(s => `<span class="badge badge-red" style="margin-right:4px">${s}號 作廢</span>`).join('');
+    document.getElementById("dash-void-tags").innerHTML = systemSettings.voidSeats.length > 0 
+      ? systemSettings.voidSeats.map(s => `<span class="badge badge-red" style="margin-right:4px">${s}號 作廢</span>`).join('') 
+      : '<span style="font-size:12px;color:var(--text-muted)">無作廢車位</span>';
     document.getElementById("dash-void-input").value = systemSettings.voidSeats.join(',');
 
     let seatHtml = '<div class="seat-grid">';
@@ -1139,7 +1162,7 @@
     initFloorplanSeats();
     renderSwap();
     renderResults();
-    addLog("設定", `更新作廢車位設定：${systemSettings.voidSeats.join(',')}`);
+    addLog("設定", `更新作廢車位設定：${systemSettings.voidSeats.length > 0 ? systemSettings.voidSeats.join(',') : '無'}`);
     alert("作廢車位已儲存並同步！");
   }
 
@@ -1164,7 +1187,7 @@
         <td>${r.id}</td>
         <td>${r.build}</td>
         <td>${r.room}</td>
-        <td><b>${r.name}</b></td>
+        <td><b>${getDisplayName(r.name)}</b></td>
         <td><button class="yn-btn ${r.r1==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r1')">${r.r1}</button></td>
         <td><button class="yn-btn ${r.r2==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r2')">${r.r2}</button></td>
         <td><button class="yn-btn ${r.r3==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r3')">${r.r3}</button></td>
@@ -1336,6 +1359,27 @@
       renderDashboard();
       updateLotteryCards();
       addLog("住戶", `刪除住戶 ID: ${id}`);
+    }
+  }
+
+  function deleteAllResidents() {
+    if(currentUser.role !== 'admin') {
+      alert("權限不足，僅系統管理員可刪除所有住戶資料！");
+      return;
+    }
+    if(confirm("警告：確定要清空所有住戶名單嗎？這將同時連帶清空抽籤結果！")) {
+      residents = [];
+      lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
+      pendingAudits = [];
+      localStorage.removeItem("residents_list");
+      localStorage.removeItem("lottery_results");
+      localStorage.removeItem("pending_audits");
+      renderResidents();
+      renderDashboard();
+      updateLotteryCards();
+      renderPendingAudits();
+      alert("所有住戶資料已成功清空！");
+      addLog("住戶", "管理員刪除所有住戶資料");
     }
   }
 
@@ -1556,7 +1600,7 @@
       for(let id in got) {
         let res = residents.find(x => x.id == id);
         if(res) {
-          html += `${res.build}-${res.room} ${res.name} ➔ 車位 ${got[id]}號<br>`;
+          html += `${res.build}-${res.room} ${getDisplayName(res.name)} ➔ 車位 ${got[id]}號<br>`;
           count++;
         }
       }
@@ -1596,7 +1640,7 @@
         html += `<tr>
           <td>${r.build}</td>
           <td>${r.room}</td>
-          <td><b>${r.name}</b></td>
+          <td><b>${getDisplayName(r.name)}</b></td>
           <td>${r.reserve==='Y'?'保留戶':'一般戶'}</td>
           <td>${s1}</td>
           <td>${s2}</td>
@@ -1630,7 +1674,7 @@
         <td>${count}</td>
         <td>${r.build}</td>
         <td>${r.room}</td>
-        <td><b>${r.name}</b></td>
+        <td><b>${getDisplayName(r.name)}</b></td>
         <td>${r.reserve==='Y'?'保留戶':'一般戶'}</td>
         <td>${seat ? '<b>'+seat+'號</b>' : '-'}</td>
         <td>${statusStr}</td>
@@ -1704,8 +1748,8 @@
     let html = "";
     matches.forEach(m => {
       let seat = round === "所有輪次" ? (lotteryResults["第一輪"][m.id] || lotteryResults["第二輪"][m.id] || lotteryResults["第三輪"][m.id]) : lotteryResults[round][m.id];
-      html += `<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border-color)" onclick="selectSwapResident('${type}', ${m.id}, '${m.name} (${m.build}-${m.room})', ${seat || 0})">
-        <b>${m.build}-${m.room}</b> ${m.name} ${seat ? '('+seat+'號)' : '(無車位)'}
+      html += `<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border-color)" onclick="selectSwapResident('${type}', ${m.id}, '${getDisplayName(m.name)} (${m.build}-${m.room})', ${seat || 0})">
+        <b>${m.build}-${m.room}</b> ${getDisplayName(m.name)} ${seat ? '('+seat+'號)' : '(無車位)'}
       </div>`;
     });
     dropdown.innerHTML = html;
@@ -1804,7 +1848,7 @@
     swapLogs.unshift({
       round,
       time: new Date().toLocaleString(),
-      desc: `${resA.name}(${resA.build}-${resA.room}) 與 ${resB.name}(${resB.build}-${resB.room}) 互換車位 (${round}) | 異動詳情：${resA.name}獲得${seatA_desc}, ${resB.name}獲得${seatB_desc}`
+      desc: `${getDisplayName(resA.name)}(${resA.build}-${resA.room}) 與 ${getDisplayName(resB.name)}(${resB.build}-${resB.room}) 互換車位 (${round}) | 異動詳情：${getDisplayName(resA.name)}獲得${seatA_desc}, ${getDisplayName(resB.name)}獲得${seatB_desc}`
     });
 
     localStorage.setItem("lottery_results", JSON.stringify(lotteryResults));
@@ -1852,10 +1896,10 @@
       let s3 = lotteryResults["第三輪"][r.id] ? lotteryResults["第三輪"][r.id] + '號' : "未中籤";
       
       html += `<div class="card" style="max-width:500px;margin:0 auto 1rem">
-        <h4 style="color:var(--primary);margin-bottom:.5rem">查詢結果：${r.name} (${r.build} ${r.room})</h4>
+        <h4 style="color:var(--primary);margin-bottom:.5rem">查詢結果：${getDisplayName(r.name)} (${r.build} ${r.room})</h4>
         <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">登記車牌：<code>${r.plate1 || r.plate2 || r.plate3}</code></p>
         <div style="font-size:13px;color:#0f172a;background:#f8fafc;padding:8px;border-radius:6px;border:1px solid var(--border-color);margin-bottom:8px">
-          👤 <b>車主身分反查</b>：${r.build}棟 ${r.room} - ${r.name} (${r.reserve === 'Y' ? '保留戶' : '一般戶'})
+          👤 <b>車主身分反查</b>：${r.build}棟 ${r.room} - ${getDisplayName(r.name)} (${r.reserve === 'Y' ? '保留戶' : '一般戶'})
         </div>
         <div style="font-size:14px">
           <div>第一輪分配：<b>${s1}</b></div>
@@ -2010,7 +2054,7 @@
         ${acc.role !== 'admin' ? `<button class="btn btn-sm btn-danger" onclick="deleteDirectorAccount(${idx})">刪除</button>` : ''}
       `;
       html += `<tr>
-        <td><b>${acc.name}</b></td>
+        <td><b>${getDisplayName(acc.name)}</b></td>
         <td><code>${acc.username}</code></td>
         <td>${roleBadge}</td>
         <td>${actions}</td>
@@ -2101,10 +2145,10 @@
     let html = "";
     pendingAudits.forEach((aud, i) => {
       html += `<tr>
-        <td><b>${aud.name}</b></td>
+        <td><b>${getDisplayName(aud.name)}</b></td>
         <td>${aud.room}</td>
         <td><code>#${aud.prefs}</code></td>
-        <td>${aud.director}</td>
+        <td>${getDisplayName(aud.director)}</td>
         <td>
           <button class="btn btn-sm btn-success" onclick="approveAudit(${i})">同意</button>
           <button class="btn btn-sm btn-danger" onclick="rejectAudit(${i})">拒絕</button>
@@ -2219,7 +2263,7 @@
   function exportCSV() {
     let csv = "\ufeffID,棟別,門牌,姓名,身分\n";
     residents.forEach(r => {
-      csv += `${r.id},${r.build},${r.room},${r.name},${r.reserve}\n`;
+      csv += `${r.id},${r.build},${r.room},${getDisplayName(r.name)},${r.reserve}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
