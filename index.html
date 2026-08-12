@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.32</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.33</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -171,7 +171,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.32</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.33</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -602,7 +602,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.32">
+        <input type="text" id="set-app-version" value="v1.33">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -810,7 +810,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.32",
+    appVersion: "v1.33",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -868,7 +868,11 @@
       if (data) {
         if (data.residents) residents = data.residents;
         if (data.lotteryResults) lotteryResults = data.lotteryResults;
-        if (data.systemSettings) systemSettings = data.systemSettings;
+        if (data.systemSettings) {
+          let codeVer = systemSettings.appVersion; // 保留程式碼最新版本號
+          systemSettings = data.systemSettings;
+          systemSettings.appVersion = codeVer;   // 確保版次永遠以最新發布的程式碼為準
+        }
         if (data.accountsList) accountsList = data.accountsList;
         if (data.pendingAudits) pendingAudits = data.pendingAudits;
         if (data.swapLogs) swapLogs = data.swapLogs;
@@ -1544,7 +1548,6 @@
         document.getElementById("lam-close-btn").style.display = "inline-block";
         
         executeLotteryAllocation(currentRound, eligible);
-        cloudSyncPush();
         updateLotteryCards();
         renderDashboard();
         initFloorplanSeats();
@@ -1611,6 +1614,9 @@
       lotteryResults[round][res.id] = assignedSeat;
       freeSeats = freeSeats.filter(s => s !== assignedSeat);
     });
+
+    // 關鍵修復：抽籤完成後強制推送至雲端資料庫！
+    cloudSyncPush();
   }
 
   function clearCurrentRound() {
@@ -2319,17 +2325,10 @@
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const a = document.getElementById('a');
-    if (a) {
-      a.href = url;
-      a.download = `稙村秀社區機車位資料_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
-    } else {
-      const newA = document.createElement('a');
-      newA.href = url;
-      newA.download = `稙村秀社區機車位資料_${new Date().toISOString().slice(0,10)}.csv`;
-      newA.click();
-    }
+    const newA = document.createElement('a');
+    newA.href = url;
+    newA.download = `稙村秀社區機車位資料_${new Date().toISOString().slice(0,10)}.csv`;
+    newA.click();
   }
 
   function exportExcel(tableId, titleName) {
