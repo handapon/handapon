@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.31</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.32</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -165,13 +165,13 @@
 <!-- ===== 使用者頂部列 ===== -->
 <div class="user-bar" id="user-bar" style="display:none">
   <span id="user-bar-name">👤 未登入</span>
-  <span id="sync-status-indicator" class="sync-offline">雲端同步中...</span>
+  <span id="sync-status-indicator" class="sync-offline">雲端連線中...</span>
   <button class="user-bar-btn" onclick="doLogout()">登出系統</button>
 </div>
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.31</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.32</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -602,7 +602,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.31">
+        <input type="text" id="set-app-version" value="v1.32">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -810,7 +810,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.31",
+    appVersion: "v1.32",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -2319,10 +2319,17 @@
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `稙村秀社區機車位資料_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
+    const a = document.getElementById('a');
+    if (a) {
+      a.href = url;
+      a.download = `稙村秀社區機車位資料_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    } else {
+      const newA = document.createElement('a');
+      newA.href = url;
+      newA.download = `稙村秀社區機車位資料_${new Date().toISOString().slice(0,10)}.csv`;
+      newA.click();
+    }
   }
 
   function exportExcel(tableId, titleName) {
