@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.30</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.31</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -171,7 +171,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.30</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.31</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -602,7 +602,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.30">
+        <input type="text" id="set-app-version" value="v1.31">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -789,7 +789,6 @@
 
 <script>
   // ================= Firebase 雲端資料庫 URL 設定 =================
-  // 請貼上您在 Firebase 申請到的 Realtime Database 網址 (記得結尾保持斜線 /)
   const FIREBASE_DB_URL = "https://parking-lottery-resident-list-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
   let currentUser = { name: "系統管理員", role: "admin", username: "admin", password: "1234" };
@@ -811,10 +810,12 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.30",
+    appVersion: "v1.31",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
-    loginBg: ""
+    loginBg: "",
+    customFp1: "",
+    customFp2: ""
   };
 
   let residents = [
@@ -831,7 +832,6 @@
   // ================= 雲端即時同步核心 REST API 模組 =================
   async function cloudSyncPush() {
     if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
-      console.warn("尚未填入有效的 Firebase 資料庫網址，目前使用本機預設快取。");
       updateSyncStatusUI(false, "僅本機");
       return;
     }
@@ -915,6 +915,7 @@
     const logged = localStorage.getItem("lottery_user");
     applySystemBranding();
     applyLoginBackground();
+    renderCustomFloorplans();
 
     if (!logged) {
       document.getElementById("login-overlay").style.display = "flex";
@@ -923,6 +924,17 @@
       let liveAcc = accountsList.find(a => a.username === currentUser.username);
       if (liveAcc) currentUser = { ...liveAcc };
       initUserBar();
+    }
+  }
+
+  function renderCustomFloorplans() {
+    if (systemSettings.customFp1) {
+      const imgElem = document.getElementById("custom-fp-img-1");
+      if(imgElem) { imgElem.src = systemSettings.customFp1; imgElem.style.display = "inline-block"; }
+    }
+    if (systemSettings.customFp2) {
+      const imgElem = document.getElementById("custom-fp-img-2");
+      if(imgElem) { imgElem.src = systemSettings.customFp2; imgElem.style.display = "inline-block"; }
     }
   }
 
@@ -1989,14 +2001,16 @@
     if(!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
+      const imgData = e.target.result;
       const imgId = currentFloorplan === 1 ? "custom-fp-img-1" : "custom-fp-img-2";
       const imgElem = document.getElementById(imgId);
-      imgElem.src = e.target.result;
-      imgElem.style.display = "inline-block";
+      if(imgElem) { imgElem.src = imgData; imgElem.style.display = "inline-block"; }
       
-      localStorage.setItem(`custom_fp_${currentFloorplan}`, e.target.result);
+      if(currentFloorplan === 1) systemSettings.customFp1 = imgData;
+      else systemSettings.customFp2 = imgData;
 
-      alert(`已成功上傳更新 B${currentFloorplan} 區配置平面圖並同步至所有使用者！`);
+      cloudSyncPush();
+      alert(`已成功上傳更新 B${currentFloorplan} 區配置平面圖並全域同步至所有使用者！`);
       addLog("設定", `管理員上傳更新 B${currentFloorplan} 區平面圖`);
     };
     reader.readAsDataURL(file);
@@ -2237,6 +2251,8 @@
       swapLogs = [];
       systemLogs = [];
       pendingAudits = [];
+      systemSettings.customFp1 = "";
+      systemSettings.customFp2 = "";
       cloudSyncPush();
       initApp();
       alert("系統資料已全部重置並全域同步！");
