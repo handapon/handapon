@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.66</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.67</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -172,7 +172,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.66</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.67</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -235,7 +235,7 @@
     </div>
     <div class="card">
       <div class="card-title">系統快速導覽</div>
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統支援同一住戶在不同輪次登記多車位，並自動排除所有先前輪次已分配出去的車位，確保車位絕不重複分配。</p>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統支援跨輪次多車位獨立抽籤，卡片「可用車位」會即時精確扣除先前輪次已分配出去的車位數。</p>
     </div>
   </div>
   <div class="card">
@@ -582,7 +582,7 @@
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
     
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 2. 執行抽籤與跨輪多次中籤支援</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配。</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配，且各輪卡片上的「可用會數/可用車位」會即時精確扣除先前輪次已抽出去的車位數。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 3. 抽籤結果與彙整總表</h3>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。</p>
@@ -608,7 +608,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.66">
+        <input type="text" id="set-app-version" value="v1.67">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -825,7 +825,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.66",
+    appVersion: "v1.67",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1676,7 +1676,7 @@
     reader.readAsText(file, "UTF-8");
   }
 
-  // ================= 3. 執行抽籤邏輯 (v1.66 跨輪多次中籤與車位防重複分配版) =================
+  // ================= 3. 執行抽籤邏輯 (v1.67 修正卡片可用車位動態扣除邏輯) =================
   function selectLotteryRound(round) {
     currentRound = round;
     document.querySelectorAll(".lrs-card").forEach(c => {
@@ -1689,7 +1689,11 @@
 
   function updateLotteryCards() {
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
-    const available = systemSettings.totalSeats - voidCount;
+    const baseAvailable = systemSettings.totalSeats - voidCount;
+
+    // 計算各輪已實際分配出去的車位數
+    let assignedR1 = getValidWinnerCount("第一輪");
+    let assignedR2 = getValidWinnerCount("第二輪");
 
     ["第一輪", "第二輪", "第三輪"].forEach((r, idx) => {
       let rKey = `r${idx+1}`;
@@ -1704,13 +1708,21 @@
       
       let gotCount = getValidWinnerCount(r);
       
+      // 修正：第二輪可用車位 = 總車位 - 作廢 - 第一輪已分配；第三輪可用車位 = 總車位 - 作廢 - 第一輪已分配 - 第二輪已分配
+      let availableForThisRound = baseAvailable;
+      if (r === "第二輪") {
+        availableForThisRound = Math.max(0, baseAvailable - assignedR1);
+      } else if (r === "第三輪") {
+        availableForThisRound = Math.max(0, baseAvailable - assignedR1 - assignedR2);
+      }
+
       let pEl = document.getElementById(`lrs-p${idx+1}`);
       let sEl = document.getElementById(`lrs-s${idx+1}`);
       let aEl = document.getElementById(`lrs-a${idx+1}`);
       let badgeEl = document.getElementById(`lrs-badge-${idx+1}`);
 
       if(pEl) pEl.innerText = participants;
-      if(sEl) sEl.innerText = available;
+      if(sEl) sEl.innerText = availableForThisRound; // 動態正確顯示扣除前輪後的可用車位
       if(aEl) aEl.innerText = gotCount;
 
       if(badgeEl) {
@@ -1788,7 +1800,6 @@
     document.getElementById("lottery-anim-modal").classList.remove("show");
   }
 
-  // 修正：確實彙整所有先前輪次已分配出去的車位，杜絕車位重複分配
   function executeLotteryAllocation(round, eligible) {
     lotteryResults[round] = {};
     const rNum = round === "第一輪" ? 1 : (round === "第二輪" ? 2 : 3);
@@ -1809,7 +1820,6 @@
     let voidSeatsSet = new Set(systemSettings.voidSeats || []);
     let usedSeatsSet = new Set();
 
-    // 彙整所有先前輪次已分配出去的車位
     let roundsToCheck = [];
     if (round === "第二輪") roundsToCheck = ["第一輪"];
     if (round === "第三輪") roundsToCheck = ["第一輪", "第二輪"];
