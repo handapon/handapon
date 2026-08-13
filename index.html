@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.63</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.64</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -172,7 +172,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.63</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.64</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -225,7 +225,6 @@
 <div id="page-dashboard" class="page active">
   <div class="section-title">機車位抽籤總覽</div>
   
-  <!-- 車牌異常警示通知容器（僅限管理員/主任檢視，防止個資外洩） -->
   <div id="plate-warning-banner" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
 
   <div class="stats-grid" id="dash-stats"></div>
@@ -236,7 +235,7 @@
     </div>
     <div class="card">
       <div class="card-title">系統快速導覽</div>
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統採用雲端即時同步，管理員與主任可於住戶名單進行登記與車號連動設定，並至執行抽籤頁面管理作廢車位與執行各輪抽籤。</p>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統支援同一住戶在不同輪次登記多車位，並優先保障第一輪每戶至少 1 個位置。</p>
     </div>
   </div>
   <div class="card">
@@ -301,7 +300,6 @@
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
   </div>
 
-  <!-- 車牌異常警示通知容器（僅限管理員/主任檢視） -->
   <div id="plate-warning-banner-lottery" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
   
   <div class="card" style="background:#f8fafc;border-color:#cbd5e1">
@@ -584,7 +582,7 @@
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
     
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 2. 執行抽籤與 A/B 棟優先區間</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「執行抽籤」頁面可依序進行各輪抽籤，並可在此設定作廢車位。系統恪守「一戶一格」原則（前面輪次已中籤者，後續輪次自動剔除）。抽籤過程採【第一志願 ➔ 第二志願 ➔ 第三志願】分階比對公平分發。保留戶因車位需求與汽車位緊鄰之特殊性，其指定志願車位優先權不受 A/B 棟區間限制；一般戶之志願車位若落在 A/B 棟優先區間（預設 19~56號），則由 A/B 棟住戶優先；無志願或志願未中籤者，則進入亂數智慧配置。</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「執行抽籤」頁面可依序進行各輪抽籤，並可在此設定作廢車位。系統支援同一住戶在不同輪次登記多車位，並優先保障第一輪每戶至少 1 個位置。抽籤過程採【第一志願 ➔ 第二志願 ➔ 第三志願】分階比對公平分發。保留戶因車位需求與汽車位緊鄰之特殊性，其指定志願車位優先權不受 A/B 棟區間限制；一般戶之志願車位若落在 A/B 棟優先區間（預設 19~56號），則由 A/B 棟住戶優先；無志願或志願未中籤者，則進入亂數智慧配置。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 3. 抽籤結果與彙整總表</h3>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。</p>
@@ -610,7 +608,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.63">
+        <input type="text" id="set-app-version" value="v1.64">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -827,7 +825,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.63",
+    appVersion: "v1.64",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1251,12 +1249,11 @@
     document.getElementById('nav-menu-mobile').classList.remove('open');
   }
 
-  // ================= 1. 總覽邏輯與車牌異常提醒巡檢 (僅限管理員與主任可見，防止個資外洩) =================
+  // ================= 1. 總覽邏輯與車牌異常提醒巡檢 (僅限管理員/主任檢視，防止個資外洩) =================
   function checkPlateWarnings() {
     const banner1 = document.getElementById("plate-warning-banner");
     const banner2 = document.getElementById("plate-warning-banner-lottery");
 
-    // 一般住戶(guest)禁止檢視車牌異常明細，保護鄰居個資
     if (!currentUser || currentUser.role === 'guest') {
       if(banner1) banner1.style.display = "none";
       if(banner2) banner2.style.display = "none";
@@ -1416,7 +1413,6 @@
       }
     }
     
-    // 嚴格檢核當輪車位是否非空
     let pCheck = "";
     let roundNumStr = roundKey.replace('r','');
     if (roundKey === 'r1') pCheck = r.plate1 ? r.plate1.trim() : "";
@@ -1697,7 +1693,7 @@
 
     ["第一輪", "第二輪", "第三輪"].forEach((r, idx) => {
       let rKey = `r${idx+1}`;
-      let plateKey = `plate${idx+1}`; // 嚴格對應當輪車位欄位 (plate1, plate2, plate3)
+      let plateKey = `plate${idx+1}`; // 嚴格對應當輪車牌欄位 (plate1, plate2, plate3)
       
       let participants = residents.filter(x => {
         if (x[rKey] !== 'Y') return false;
