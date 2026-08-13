@@ -172,7 +172,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.56</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.57</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -603,7 +603,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.56">
+        <input type="text" id="set-app-version" value="v1.57">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -816,11 +816,11 @@
   let systemSettings = {
     appTitle: "稙村秀社區機車位電腦抽籤系統",
     totalSeats: 122,
-    b1Limit: 61, // 新增 B1 區車位上限設定
+    b1Limit: 61,
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.56",
+    appVersion: "v1.57",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1628,7 +1628,7 @@
     reader.readAsText(file, "UTF-8");
   }
 
-  // ================= 3. 執行抽籤邏輯 (v1.56 完美極致版) =================
+  // ================= 3. 執行抽籤邏輯 (v1.57 完整防護版) =================
   function selectLotteryRound(round) {
     currentRound = round;
     document.querySelectorAll(".lrs-card").forEach(c => {
@@ -1645,11 +1645,12 @@
 
     ["第一輪", "第二輪", "第三輪"].forEach((r, idx) => {
       let rKey = `r${idx+1}`;
-      let plateKey = `plate${idx+1}`;
+      
+      // 修正：參與者資格判定應允許住戶以「已註冊之有效車牌（plate1, plate2, plate3 擇一）」參與當前輪次
       let participants = residents.filter(x => {
         if (x[rKey] !== 'Y') return false;
-        let plateVal = x[plateKey] ? x[plateKey].trim() : "";
-        if (!plateVal) return false;
+        let hasPlate = (x.plate1 || x.plate2 || x.plate3 || "").trim() !== "";
+        if (!hasPlate) return false;
 
         let wonBefore = false;
         if (r === "第二輪") wonBefore = (getUserSeat("第一輪", x.id) !== null);
@@ -1682,7 +1683,6 @@
 
   function runLottery() {
     const rKey = currentRound === "第一輪" ? "r1" : (currentRound === "第二輪" ? "r2" : "r3");
-    const plateKey = currentRound === "第一輪" ? "plate1" : (currentRound === "第二輪" ? "plate2" : "plate3");
 
     if (currentRound === "第一輪" && (getValidWinnerCount("第二輪") > 0 || getValidWinnerCount("第三輪") > 0)) {
       if (!confirm("警告：重新執行【第一輪】抽籤將會自動清空【第二輪】與【第三輪】已抽出的車位結果！是否確定繼續？")) {
@@ -1696,8 +1696,8 @@
     
     let eligible = residents.filter(x => {
       if (x[rKey] !== 'Y') return false;
-      let plateVal = x[plateKey] ? x[plateKey].trim() : "";
-      if (!plateVal) return false;
+      let hasPlate = (x.plate1 || x.plate2 || x.plate3 || "").trim() !== "";
+      if (!hasPlate) return false;
 
       let wonBefore = false;
       if (currentRound === "第二輪") wonBefore = (getUserSeat("第一輪", x.id) !== null);
@@ -2299,7 +2299,7 @@
     resultBox.innerHTML = html;
   }
 
-  // ================= 8. 平面圖功能 (動態 B1/B2 區間切分) =================
+  // ================= 8. 平面圖功能 =================
   function switchFloorplan(floorNum) {
     currentFloorplan = floorNum;
     if(floorNum === 1) {
