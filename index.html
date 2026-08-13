@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.64</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.65</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -172,7 +172,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.64</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.65</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -235,7 +235,7 @@
     </div>
     <div class="card">
       <div class="card-title">系統快速導覽</div>
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統支援同一住戶在不同輪次登記多車位，並優先保障第一輪每戶至少 1 個位置。</p>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統支援同一住戶在不同輪次登記多車位，並獨立進行各輪抽籤配置。</p>
     </div>
   </div>
   <div class="card">
@@ -581,8 +581,8 @@
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 1. 住戶名單與車牌管理</h3>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
     
-    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 2. 執行抽籤與 A/B 棟優先區間</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「執行抽籤」頁面可依序進行各輪抽籤，並可在此設定作廢車位。系統支援同一住戶在不同輪次登記多車位，並優先保障第一輪每戶至少 1 個位置。抽籤過程採【第一志願 ➔ 第二志願 ➔ 第三志願】分階比對公平分發。保留戶因車位需求與汽車位緊鄰之特殊性，其指定志願車位優先權不受 A/B 棟區間限制；一般戶之志願車位若落在 A/B 棟優先區間（預設 19~56號），則由 A/B 棟住戶優先；無志願或志願未中籤者，則進入亂數智慧配置。</p>
+    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 2. 執行抽籤與多車位跨輪獨立參與</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位</b>，即使在第一輪已中籤的住戶，只要在第二輪或第三輪有正確填寫對應車牌並勾選參加，依然可以獨立參與後續輪次的抽籤分配！抽籤過程採【第一志願 ➔ 第二志願 ➔ 第三志願】分階比對公平分發，並受 A/B 棟優先區間與保留戶權重保護。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 3. 抽籤結果與彙整總表</h3>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。</p>
@@ -608,7 +608,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.64">
+        <input type="text" id="set-app-version" value="v1.65">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -825,7 +825,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.64",
+    appVersion: "v1.65",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1676,7 +1676,7 @@
     reader.readAsText(file, "UTF-8");
   }
 
-  // ================= 3. 執行抽籤邏輯 (v1.63 嚴格當輪車牌對應與即時警示版) =================
+  // ================= 3. 執行抽籤邏輯 (v1.65 支援多車位跨輪獨立抽籤版) =================
   function selectLotteryRound(round) {
     currentRound = round;
     document.querySelectorAll(".lrs-card").forEach(c => {
@@ -1693,17 +1693,14 @@
 
     ["第一輪", "第二輪", "第三輪"].forEach((r, idx) => {
       let rKey = `r${idx+1}`;
-      let plateKey = `plate${idx+1}`; // 嚴格對應當輪車牌欄位 (plate1, plate2, plate3)
+      let plateKey = `plate${idx+1}`;
       
+      // 修正：支援同一住戶在不同輪次登記多車位，不因前一輪已中籤而排除
       let participants = residents.filter(x => {
         if (x[rKey] !== 'Y') return false;
         let plateVal = x[plateKey] ? x[plateKey].trim() : "";
         if (!plateVal) return false;
-
-        let wonBefore = false;
-        if (r === "第二輪") wonBefore = (getUserSeat("第一輪", x.id) !== null);
-        if (r === "第三輪") wonBefore = (getUserSeat("第一輪", x.id) !== null) || (getUserSeat("第二輪", x.id) !== null);
-        return !wonBefore;
+        return true;
       }).length;
       
       let gotCount = getValidWinnerCount(r);
@@ -1743,19 +1740,16 @@
       }
     }
     
+    // 修正：支援跨輪獨立抽籤，不再過濾 wonBefore
     let eligible = residents.filter(x => {
       if (x[rKey] !== 'Y') return false;
       let plateVal = x[plateKey] ? x[plateKey].trim() : "";
       if (!plateVal) return false;
-
-      let wonBefore = false;
-      if (currentRound === "第二輪") wonBefore = (getUserSeat("第一輪", x.id) !== null);
-      if (currentRound === "第三輪") wonBefore = (getUserSeat("第一輪", x.id) !== null) || (getUserSeat("第二輪", x.id) !== null);
-      return !wonBefore;
+      return true;
     });
     
     if(eligible.length === 0) {
-      alert(`${currentRound} 沒有符合資格（已填寫對應當輪車牌、未中籤且勾選參加）的住戶！`);
+      alert(`${currentRound} 沒有符合資格（已填寫對應當輪車牌且勾選參加）的住戶！`);
       return;
     }
 
@@ -1816,26 +1810,27 @@
     let voidSeatsSet = new Set(systemSettings.voidSeats || []);
     let usedSeatsSet = new Set();
     
-    if (round === "第二輪") {
-      let r1Map = lotteryResults["第一輪"] || {};
-      for(let k in r1Map) { if(r1Map[k]) usedSeatsSet.add(Number(r1Map[k])); }
-    } else if (round === "第三輪") {
-      let r1Map = lotteryResults["第一輪"] || {};
-      let r2Map = lotteryResults["第二輪"] || {};
-      for(let k in r1Map) { if(r1Map[k]) usedSeatsSet.add(Number(r1Map[k])); }
-      for(let k in r2Map) { if(r2Map[k]) usedSeatsSet.add(Number(r2Map[k])); }
-    }
-
+    // 跨輪獨立抽籤：可用車位池排除「作廢車位」與「當輪已佔用車位」
+    // 如果是第二輪/第三輪，僅排除「該輪先前已指定或作廢的車位」
     let freeSeats = [];
     for(let i = 1; i <= systemSettings.totalSeats; i++) {
-      if(!voidSeatsSet.has(i) && !usedSeatsSet.has(i)) {
+      if(!voidSeatsSet.has(i)) {
         freeSeats.push(i);
       }
     }
 
+    // 排除本輪已經透過其他途徑佔用的車位
+    let currentRoundMap = lotteryResults[round] || {};
+    let occupiedSet = new Set();
+    for(let k in currentRoundMap) {
+      if(currentRoundMap[k]) occupiedSet.add(Number(currentRoundMap[k]));
+    }
+
+    let finalFreeSeats = freeSeats.filter(s => !occupiedSet.has(s));
+
     const abStart = systemSettings.abStart;
     const abEnd = systemSettings.abEnd;
-    let freeSeatsSet = new Set(freeSeats);
+    let freeSeatsSet = new Set(finalFreeSeats);
 
     function assignSeatToRes(resId, seatNum) {
       let sNum = Number(seatNum);
@@ -1848,13 +1843,7 @@
       }
     }
 
-    let remainingEligible = eligible.filter(x => {
-      if (round === "第二輪") return (getUserSeat("第一輪", x.id) === null);
-      if (round === "第三輪") return (getUserSeat("第一輪", x.id) === null) && (getUserSeat("第二輪", x.id) === null);
-      return true;
-    });
-
-    remainingEligible = shuffleArray(remainingEligible);
+    let remainingEligible = shuffleArray(eligible);
 
     function processPreferencePass(prefKeyGetter) {
       let prefMap = {};
