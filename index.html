@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.57</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.62</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -172,7 +172,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.57</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.62</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -224,6 +224,10 @@
 <!-- ===== 1. 總覽 ===== -->
 <div id="page-dashboard" class="page active">
   <div class="section-title">機車位抽籤總覽</div>
+  
+  <!-- 車牌異常警示通知容器 -->
+  <div id="plate-warning-banner" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
+
   <div class="stats-grid" id="dash-stats"></div>
   <div class="grid-2">
     <div class="card">
@@ -296,6 +300,9 @@
     <div class="section-title" style="margin:0">執行機車位抽籤</div>
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
   </div>
+
+  <!-- 車牌異常警示通知容器 -->
+  <div id="plate-warning-banner-lottery" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
   
   <div class="card" style="background:#f8fafc;border-color:#cbd5e1">
     <div class="card-title" style="border-left-color:#ea580c">作廢車位設定</div>
@@ -583,7 +590,7 @@
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:1rem">📌 4. 車位互換管理</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">支援跨輪次或單一輪次的車位自由互換。搜尋住戶時可直接輸入「棟別、姓名或門牌」（例如：A1 張大明），並可點擊清除按鈕重新選取。互換後會同步記錄詳細車位號碼異動。</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">支援跨輪次或單一輪次的車位自由互換。搜尋住戶時可直接輸入「棟別,姓名或門牌」（例如：A1 張大明），並可點擊清除按鈕重新選取。互換後會同步記錄詳細車位號碼異動。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 5. 權限與帳號管理</h3>
     <p style="font-size:13px;color:var(--text-muted)"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供檢視總表、中籤查詢與平面圖。</p>
@@ -603,7 +610,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.57">
+        <input type="text" id="set-app-version" value="v1.62">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -820,7 +827,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.57",
+    appVersion: "v1.62",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1183,6 +1190,7 @@
     renderPendingAudits();
     initFloorplanSeats();
     updateLotteryCards();
+    checkPlateWarnings(); // 檢查車牌異常
   }
 
   function showPage(pageId) {
@@ -1213,13 +1221,13 @@
       }
     });
 
-    if(pageId === 'dashboard') renderDashboard();
+    if(pageId === 'dashboard') { renderDashboard(); checkPlateWarnings(); }
     if(pageId === 'residents') renderResidents();
     if(pageId === 'results') renderResults();
     if(pageId === 'summary') renderSummary();
     if(pageId === 'logs') renderLogs();
     if(pageId === 'swap') renderSwap();
-    if(pageId === 'lottery') updateLotteryCards();
+    if(pageId === 'lottery') { updateLotteryCards(); checkPlateWarnings(); }
     if(pageId === 'settings' && currentUser.role === 'admin') {
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
       document.getElementById("set-total-seats").value = systemSettings.totalSeats;
@@ -1243,7 +1251,34 @@
     document.getElementById('nav-menu-mobile').classList.remove('open');
   }
 
-  // ================= 1. 總覽邏輯 =================
+  // ================= 1. 總覽邏輯與車牌異常提醒巡檢 =================
+  function checkPlateWarnings() {
+    let anomalies = [];
+    residents.forEach(r => {
+      if (r.r2 === 'Y' && (!r.plate2 || r.plate2.trim() === "")) {
+        anomalies.push(`${r.build}棟 ${r.room} ${r.name}：已勾選參加「第二輪」，但「車牌 2」欄位空白`);
+      }
+      if (r.r3 === 'Y' && (!r.plate3 || r.plate3.trim() === "")) {
+        anomalies.push(`${r.build}棟 ${r.room} ${r.name}：已勾選參加「第三輪」，但「車牌 3」欄位空白`);
+      }
+    });
+
+    const banner1 = document.getElementById("plate-warning-banner");
+    const banner2 = document.getElementById("plate-warning-banner-lottery");
+
+    if (anomalies.length > 0) {
+      let html = `<b>⚠️ 偵測到 ${anomalies.length} 筆車牌登記異常（勾選參加但對應車牌空白）：</b><ul style="margin-left:1.25rem;margin-top:4px">`;
+      anomalies.forEach(a => html += `<li>${a}</li>`);
+      html += `</ul><div style="margin-top:6px;font-size:12px">請至「住戶名單」編輯並補齊對應車牌號碼，否則該住戶將無法正確參與對應輪次抽籤！</div>`;
+      
+      if(banner1) { banner1.innerHTML = html; banner1.style.display = "block"; }
+      if(banner2) { banner2.innerHTML = html; banner2.style.display = "block"; }
+    } else {
+      if(banner1) banner1.style.display = "none";
+      if(banner2) banner2.style.display = "none";
+    }
+  }
+
   function renderDashboard() {
     const total = residents.length;
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
@@ -1371,13 +1406,15 @@
       }
     }
     
+    // 嚴格檢核當輪車位是否非空
     let pCheck = "";
+    let roundNumStr = roundKey.replace('r','');
     if (roundKey === 'r1') pCheck = r.plate1 ? r.plate1.trim() : "";
     if (roundKey === 'r2') pCheck = r.plate2 ? r.plate2.trim() : "";
     if (roundKey === 'r3') pCheck = r.plate3 ? r.plate3.trim() : "";
 
     if (!pCheck && r[roundKey] === 'N') {
-      alert(`該住戶尚未輸入對應的「車牌 ${roundKey.replace('r','')}」，無法勾選參加該輪次！`);
+      alert(`【車牌檢核提醒】該住戶未填寫對應的「車牌 ${roundNumStr}」（plate${roundNumStr} 欄位為空白），無法勾選參加第 ${roundNumStr} 輪！請先點擊「編輯」補齊該輪專用車牌號碼。`);
       return;
     }
 
@@ -1396,6 +1433,7 @@
     renderResidents();
     renderDashboard();
     updateLotteryCards();
+    checkPlateWarnings();
   }
 
   function onPlateInput(inputElem) {
@@ -1528,6 +1566,7 @@
     renderDashboard();
     updateLotteryCards();
     renderPendingAudits();
+    checkPlateWarnings();
   }
 
   function deleteResident(id) {
@@ -1541,6 +1580,7 @@
       renderResidents();
       renderDashboard();
       updateLotteryCards();
+      checkPlateWarnings();
       addLog("住戶", `刪除住戶 ID: ${id}`);
     }
   }
@@ -1559,6 +1599,7 @@
       renderDashboard();
       updateLotteryCards();
       renderPendingAudits();
+      checkPlateWarnings();
       alert("所有住戶資料已成功清空並全域同步！");
       addLog("住戶", "管理員刪除所有住戶資料");
     }
@@ -1617,6 +1658,7 @@
       renderResidents();
       renderDashboard();
       updateLotteryCards();
+      checkPlateWarnings();
       let alertMsg = `成功匯入 ${count} 筆住戶資料！`;
       if (skippedReserve > 0) {
         alertMsg += `\n（提示：有 ${skippedReserve} 筆保留戶資料因未填寫指定車位被系統防呆跳過）`;
@@ -1628,7 +1670,7 @@
     reader.readAsText(file, "UTF-8");
   }
 
-  // ================= 3. 執行抽籤邏輯 (v1.57 完整防護版) =================
+  // ================= 3. 執行抽籤邏輯 (v1.62 嚴格當輪車牌對應與即時警示版) =================
   function selectLotteryRound(round) {
     currentRound = round;
     document.querySelectorAll(".lrs-card").forEach(c => {
@@ -1645,12 +1687,12 @@
 
     ["第一輪", "第二輪", "第三輪"].forEach((r, idx) => {
       let rKey = `r${idx+1}`;
+      let plateKey = `plate${idx+1}`; // 嚴格對應當輪車牌欄位 (plate1, plate2, plate3)
       
-      // 修正：參與者資格判定應允許住戶以「已註冊之有效車牌（plate1, plate2, plate3 擇一）」參與當前輪次
       let participants = residents.filter(x => {
         if (x[rKey] !== 'Y') return false;
-        let hasPlate = (x.plate1 || x.plate2 || x.plate3 || "").trim() !== "";
-        if (!hasPlate) return false;
+        let plateVal = x[plateKey] ? x[plateKey].trim() : "";
+        if (!plateVal) return false;
 
         let wonBefore = false;
         if (r === "第二輪") wonBefore = (getUserSeat("第一輪", x.id) !== null);
@@ -1683,6 +1725,7 @@
 
   function runLottery() {
     const rKey = currentRound === "第一輪" ? "r1" : (currentRound === "第二輪" ? "r2" : "r3");
+    const plateKey = currentRound === "第一輪" ? "plate1" : (currentRound === "第二輪" ? "plate2" : "plate3");
 
     if (currentRound === "第一輪" && (getValidWinnerCount("第二輪") > 0 || getValidWinnerCount("第三輪") > 0)) {
       if (!confirm("警告：重新執行【第一輪】抽籤將會自動清空【第二輪】與【第三輪】已抽出的車位結果！是否確定繼續？")) {
@@ -1696,8 +1739,8 @@
     
     let eligible = residents.filter(x => {
       if (x[rKey] !== 'Y') return false;
-      let hasPlate = (x.plate1 || x.plate2 || x.plate3 || "").trim() !== "";
-      if (!hasPlate) return false;
+      let plateVal = x[plateKey] ? x[plateKey].trim() : "";
+      if (!plateVal) return false;
 
       let wonBefore = false;
       if (currentRound === "第二輪") wonBefore = (getUserSeat("第一輪", x.id) !== null);
@@ -1706,7 +1749,7 @@
     });
     
     if(eligible.length === 0) {
-      alert(`${currentRound} 沒有符合資格（已填車牌、未中籤且勾選參加）的住戶！`);
+      alert(`${currentRound} 沒有符合資格（已填寫對應當輪車牌、未中籤且勾選參加）的住戶！`);
       return;
     }
 
