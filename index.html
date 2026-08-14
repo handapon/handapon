@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.69</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.71</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -172,7 +172,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.69</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.71</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -225,6 +225,7 @@
 <div id="page-dashboard" class="page active">
   <div class="section-title">機車位抽籤總覽</div>
   
+  <!-- 車牌異常警示通知容器（僅限管理員/主任檢視，防止個資外洩） -->
   <div id="plate-warning-banner" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
 
   <div class="stats-grid" id="dash-stats"></div>
@@ -235,7 +236,7 @@
     </div>
     <div class="card">
       <div class="card-title">系統快速導覽</div>
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統支援同一住戶在不同輪次登記多車位，並自動排除所有先前輪次已分配出去的車位，確保車位絕不重複分配。</p>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統具備嚴格的車位防衝突與中籤保護防呆，確保作廢車位或車位縮減時不會誤刪已中籤的車位。</p>
     </div>
   </div>
   <div class="card">
@@ -300,6 +301,7 @@
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
   </div>
 
+  <!-- 車牌異常警示通知容器（僅限管理員/主任檢視） -->
   <div id="plate-warning-banner-lottery" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
   
   <div class="card" style="background:#f8fafc;border-color:#cbd5e1">
@@ -608,7 +610,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.69">
+        <input type="text" id="set-app-version" value="v1.71">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -825,7 +827,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.69",
+    appVersion: "v1.71",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1572,12 +1574,34 @@
     } else {
       const idx = residents.findIndex(x => Number(x.id) === Number(id));
       if(idx !== -1) {
+        let oldRes = residents[idx];
+        let releasedSeats = [];
+
+        if (r1 === 'N' && oldRes.assign1) {
+          releasedSeats.push(`第一輪車位 ${oldRes.assign1}號`);
+          if (lotteryResults["第一輪"]) delete lotteryResults["第一輪"][oldRes.id];
+        }
+        if (r2 === 'N' && oldRes.assign2) {
+          releasedSeats.push(`第二輪車位 ${oldRes.assign2}號`);
+          if (lotteryResults["第二輪"]) delete lotteryResults["第二輪"][oldRes.id];
+        }
+        if (r3 === 'N' && oldRes.assign3) {
+          releasedSeats.push(`第三輪車位 ${oldRes.assign3}號`);
+          if (lotteryResults["第三輪"]) delete lotteryResults["第三輪"][oldRes.id];
+        }
+
         data.id = Number(id);
-        data.assign1 = residents[idx].assign1 || "";
-        data.assign2 = residents[idx].assign2 || "";
-        data.assign3 = residents[idx].assign3 || "";
+        data.assign1 = r1 === 'Y' ? (oldRes.assign1 || "") : "";
+        data.assign2 = r2 === 'Y' ? (oldRes.assign2 || "") : "";
+        data.assign3 = r3 === 'Y' ? (oldRes.assign3 || "") : "";
         residents[idx] = data;
-        addLog("住戶", `更新住戶：${name} (${build} ${room})`);
+
+        if (releasedSeats.length > 0) {
+          alert(`【系統通知】因車牌被清空或取消參加資格，系統已同步釋放該住戶的原有中籤車位：\n• ${releasedSeats.join('\n• ')}\n\n請注意該車位已重新回到可用車位池！`);
+          addLog("住戶", `更新住戶：${name} (${build} ${room}) 並釋放車位`);
+        } else {
+          addLog("住戶", `更新住戶：${name} (${build} ${room})`);
+        }
       }
     }
 
@@ -1597,7 +1621,6 @@
     }
     if(confirm("確定要刪除此住戶嗎？此動作將同時釋放該住戶已中籤的車位！")) {
       
-      // 💡 [修正核心] 同步清除該住戶在所有輪次的中籤紀錄，釋放幽靈車位
       ["第一輪", "第二輪", "第三輪"].forEach(r => {
         if (lotteryResults[r]) {
           delete lotteryResults[r][id];
