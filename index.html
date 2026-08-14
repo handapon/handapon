@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.73</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.80</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -172,14 +172,14 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.73</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.80</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
     <button class="nav-tab" id="nav-tab-lottery" onclick="showPage('lottery')">執行抽籤</button>
     <button class="nav-tab" onclick="showPage('results')">抽籤結果與總表</button>
     <button class="nav-tab" id="nav-tab-logs" onclick="showPage('logs')">操作紀錄</button>
-    <button class="nav-tab" onclick="showPage('swap')">車位互換</button>
+    <button class="nav-tab" id="nav-tab-swap" onclick="showPage('swap')">車位互換</button>
     <button class="nav-tab" id="nav-tab-inquiry" onclick="showPage('inquiry')">中籤查詢</button>
     <button class="nav-tab" onclick="showPage('floorplan')">平面圖</button>
     <button class="nav-tab" id="nav-tab-settings" onclick="showPage('settings')">系統設定</button>
@@ -196,7 +196,7 @@
   <button class="nav-tab" id="nav-tab-lottery-mob" onclick="showPage('lottery');closeMobileMenu()">執行抽籤</button>
   <button class="nav-tab" onclick="showPage('results');closeMobileMenu()">抽籤結果與總表</button>
   <button class="nav-tab" id="nav-tab-logs-mob" onclick="showPage('logs');closeMobileMenu()">操作紀錄</button>
-  <button class="nav-tab" onclick="showPage('swap');closeMobileMenu()">車位互換</button>
+  <button class="nav-tab" id="nav-tab-swap-mob" onclick="showPage('swap');closeMobileMenu()">車位互換</button>
   <button class="nav-tab" id="nav-tab-inquiry-mob" onclick="showPage('inquiry');closeMobileMenu()">中籤查詢</button>
   <button class="nav-tab" onclick="showPage('floorplan');closeMobileMenu()">平面圖</button>
   <button class="nav-tab" id="nav-tab-settings-mob" onclick="showPage('settings');closeMobileMenu()">系統設定</button>
@@ -225,7 +225,6 @@
 <div id="page-dashboard" class="page active">
   <div class="section-title">機車位抽籤總覽</div>
   
-  <!-- 車牌異常警示通知容器（僅限管理員/主任檢視，防止個資外洩） -->
   <div id="plate-warning-banner" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
 
   <div class="stats-grid" id="dash-stats"></div>
@@ -236,7 +235,7 @@
     </div>
     <div class="card">
       <div class="card-title">系統快速導覽</div>
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統具備嚴格的車位防衝突與中籤保護防呆，確保作廢車位或車位縮減時不會誤刪已中籤的車位。</p>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統支援多輪次獨立抽籤與備份還原功能，確保資料完整與運作順暢。</p>
     </div>
   </div>
   <div class="card">
@@ -251,8 +250,8 @@
     <div class="section-title" style="margin:0">住戶名單管理</div>
     <div class="btn-row" style="margin:0">
       <button class="btn btn-primary" id="btn-add-resident" onclick="openAddModal()">新增住戶</button>
-      <button class="btn" onclick="exportCSV()">匯出 CSV</button>
-      <button class="btn btn-success" onclick="exportExcel('residents-table', '住戶名單')">匯出 Excel (.xlsx)</button>
+      <button class="btn" onclick="exportCSV()">匯出全資料 CSV</button>
+      <button class="btn btn-success" onclick="exportExcel('residents-table', '住戶名單')">匯出名單 Excel</button>
       <label class="btn" style="display:inline-block;margin:0;cursor:pointer">
         匯入 CSV <input type="file" accept=".csv" style="display:none" onchange="importCSV(this)">
       </label>
@@ -301,7 +300,6 @@
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
   </div>
 
-  <!-- 車牌異常警示通知容器（僅限管理員/主任檢視） -->
   <div id="plate-warning-banner-lottery" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
   
   <div class="card" style="background:#f8fafc;border-color:#cbd5e1">
@@ -373,12 +371,13 @@
 <div id="page-results" class="page">
   <div class="flex-between" style="margin-bottom:1.25rem">
     <div class="section-title" style="margin:0">抽籤結果與彙整總表</div>
-    <div class="btn-row" style="margin:0">
+    <!-- 一般住戶隱藏匯出按鈕區塊 -->
+    <div class="btn-row" style="margin:0" id="results-export-btns">
       <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
-      <button class="btn" onclick="exportRoundResult()">匯出 CSV</button>
-      <button class="btn btn-success" onclick="exportExcel('results-table', '抽籤結果與總表')">匯出 Excel (.xlsx)</button>
-      <button class="btn btn-primary" onclick="exportResultsPDF()">📄 匯出 PDF</button>
-      <button class="btn" onclick="printRoundResult()">列印報表</button>
+      <button class="btn" id="btn-export-csv" onclick="exportRoundResult()">匯出目前表格 CSV</button>
+      <button class="btn btn-success" id="btn-export-excel" onclick="exportExcel('results-table', '抽籤結果與總表')">匯出 Excel (.xlsx)</button>
+      <button class="btn btn-primary" id="btn-export-pdf" onclick="exportResultsPDF()">📄 匯出 PDF</button>
+      <button class="btn" id="btn-print" onclick="printRoundResult()">列印報表</button>
     </div>
   </div>
 
@@ -395,8 +394,8 @@
       <select id="filter-result-type" onchange="renderResults()">
         <option value="all">全部結果</option>
         <option value="got">僅顯示中籤者</option>
-        <option value="no">未中籤</option>
-        <option value="skip">未參加</option>
+        <option value="no">未中籤 (有參加但未抽中)</option>
+        <option value="skip">未參加 (該輪未登記)</option>
       </select>
     </div>
     <div class="table-wrap">
@@ -418,7 +417,6 @@
   <div class="flex-between" style="margin-bottom:1.25rem">
     <div class="section-title" style="margin:0">系統操作紀錄</div>
     <div class="btn-row" style="margin:0">
-      <button class="btn btn-sm" onclick="exportLogs()">匯出 CSV</button>
       <button class="btn btn-sm btn-success" onclick="exportExcel('logs-table', '操作紀錄')">匯出 Excel (.xlsx)</button>
       <button class="btn btn-sm btn-danger" onclick="clearLogs()">清除紀錄</button>
     </div>
@@ -447,14 +445,10 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.73 進階版 - 介面去蕪存菁) ===== -->
+<!-- ===== 7. 車位互換 (v1.80 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
-  <div id="swap-no-admin" style="display:none" class="card">
-    <div class="empty">一般住戶僅供檢視，如需申請互換請聯繫社區管理中心。</div>
-  </div>
-
   <div id="swap-admin-content">
     <div class="card">
       <div class="flex-between">
@@ -568,7 +562,7 @@
   </div>
 
   <div class="card" style="overflow:auto;text-align:center;padding:1.5rem">
-    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center;">
+    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top left;">
       <div id="fp-content-1" style="max-width:100%">
         <img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:1rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
         <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:12px">
@@ -598,13 +592,13 @@
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配，且各輪卡片上的「可用車位」會即時精確扣除先前輪次已抽出去的車位數。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 3. 抽籤結果與彙整總表</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。一般住戶僅供線上檢視。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:1rem">📌 4. 車位互換管理 (進階版)</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">系統提供<b>進階個別車位互換模式</b>，搜尋住戶後，您可以針對每一位住戶各自擁有的多個車位，精準指定要拿「第幾輪的車位」與對方互換（例如用 A 的第一輪換 B 的第三輪），系統將無縫處理資料移轉。</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">系統提供<b>進階個別車位互換模式</b>，搜尋住戶後，您可以針對每一位住戶各自擁有的多個車位，精準指定要拿「第幾輪的車位」與對方互換（例如用 A 的第一輪換 B 的第三輪），系統將無縫處理資料移轉與邏輯防呆檢查。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 5. 權限與帳號管理</h3>
-    <p style="font-size:13px;color:var(--text-muted)"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供檢視總表、中籤查詢與平面圖。</p>
+    <p style="font-size:13px;color:var(--text-muted)"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供線上檢視個人中籤與總表（隱匿鄰居姓名且無法下載檔案）。</p>
   </div>
 </div>
 
@@ -621,7 +615,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.73">
+        <input type="text" id="set-app-version" value="v1.80">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -838,7 +832,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.73",
+    appVersion: "v1.80",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -846,13 +840,7 @@
     customFp2: ""
   };
 
-  let residents = [
-    { id: 1, build: "A1", room: "2F-1", name: "張大明", r1: "Y", r2: "N", r3: "N", reserve: "N", pref1: 5, pref2: "", pref3: "", plate1: "ABC-1234", plate2: "", plate3: "", assign1: "", assign2: "", assign3: "" },
-    { id: 2, build: "A2", room: "3F-2", name: "李小華", r1: "Y", r2: "Y", r3: "N", reserve: "N", pref1: 12, pref2: "", pref3: "", plate1: "XYZ-9988", plate2: "XYZ-9989", plate3: "", assign1: "", assign2: "", assign3: "" },
-    { id: 3, build: "B1", room: "4F-1", name: "王美玲", r1: "N", r2: "N", r3: "N", reserve: "Y", pref1: 1, pref2: "", pref3: "", plate1: "", plate2: "", plate3: "", assign1: "", assign2: "", assign3: "" },
-    { id: 4, build: "B2", room: "5F-3", name: "陳國棟", r1: "Y", r2: "Y", r3: "Y", reserve: "N", pref1: 20, pref2: 21, pref3: "", plate1: "MNO-4321", plate2: "MNO-4322", plate3: "MNO-4323", assign1: "", assign2: "", assign3: "" }
-  ];
-
+  let residents = [];
   let lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
   let swapLogs = [];
   let systemLogs = [];
@@ -1153,31 +1141,21 @@
     document.getElementById("user-bar-name").innerText = `👤 ${getDisplayName(currentUser.name)} (${roleTitle})`;
     applySystemBranding();
     
+    const isGuest = currentUser.role === 'guest';
+    
     const resTabs = ['nav-tab-residents', 'nav-tab-residents-mob'];
-    resTabs.forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.style.display = (currentUser.role === 'guest') ? 'none' : 'block';
-    });
+    resTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
 
     const lotTabs = ['nav-tab-lottery', 'nav-tab-lottery-mob'];
-    lotTabs.forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.style.display = (currentUser.role === 'guest') ? 'none' : 'block';
-    });
+    lotTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
 
     const logsTabs = ['nav-tab-logs', 'nav-tab-logs-mob'];
-    logsTabs.forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
-    });
+    logsTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none'; });
 
     const settingsTabs = ['nav-tab-settings', 'nav-tab-settings-mob'];
-    settingsTabs.forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
-    });
+    settingsTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none'; });
 
-    if (currentUser.role === 'guest') {
+    if (isGuest) {
       document.getElementById("swap-no-admin").style.display = "block";
       document.getElementById("swap-admin-content").style.display = "none";
       document.getElementById("btn-add-resident").style.display = "none";
@@ -1188,6 +1166,12 @@
       document.getElementById("btn-add-resident").style.display = "inline-block";
       document.getElementById("admin-floorplan-upload").style.display = "flex";
     }
+
+    const exportBtns = ['btn-export-csv', 'btn-export-excel', 'btn-export-pdf', 'btn-print'];
+    exportBtns.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = isGuest ? 'none' : 'inline-block';
+    });
   }
 
   function initApp() {
@@ -1553,7 +1537,7 @@
         id: Date.now(),
         name,
         room: `${build} ${room}`,
-        prefs: [pref1, pref2, pref3].filter(x => x !== "").join(', '),
+        prefs: [pref1, pref2, pref3].map(x => x === "" ? "無" : x).join(','),
         director: currentUser.name
       });
       alert("指定車位已送出，需經系統管理員審核同意後生效！");
@@ -1681,6 +1665,13 @@
   }
 
   function importCSV(inputElem) {
+    if (residents.length > 0) {
+      if (!confirm("⚠️ 【警告】目前系統中已有住戶資料！\n\n再次匯入 CSV 將會「疊加新增」所有名單，可能會造成資料大量重複。\n您確定要繼續匯入嗎？（若要重新匯入，請先清空所有住戶資料）")) {
+        inputElem.value = "";
+        return;
+      }
+    }
+
     const file = inputElem.files[0];
     if(!file) return;
     const reader = new FileReader();
@@ -1694,20 +1685,24 @@
         const line = lines[i].trim();
         if(!line) continue;
         const cols = line.split(',').map(c => c.trim());
-        if(cols.length >= 4) {
+        if(cols.length >= 4) { 
           const newId = residents.length > 0 ? Math.max(...residents.map(x => Number(x.id))) + 1 : 1;
-          const p1 = cols[11] ? cols[11].toUpperCase() : "";
-          const p2 = cols[12] ? cols[12].toUpperCase() : "";
-          const p3 = cols[13] ? cols[13].toUpperCase() : "";
-          const isRes = cols[7] || "N";
+          const isRes = (cols[4] === '保留戶' || cols[4] === 'Y') ? 'Y' : 'N';
           const pref1 = cols[8] || "";
           const pref2 = cols[9] || "";
           const pref3 = cols[10] || "";
+          const p1 = cols[11] ? cols[11].toUpperCase() : "";
+          const p2 = cols[12] ? cols[12].toUpperCase() : "";
+          const p3 = cols[13] ? cols[13].toUpperCase() : "";
 
           if (isRes === 'Y' && !pref1 && !pref2 && !pref3) {
             skippedReserve++;
             continue;
           }
+          
+          let seat1 = parseInt(cols[5]) || "";
+          let seat2 = parseInt(cols[6]) || "";
+          let seat3 = parseInt(cols[7]) || "";
 
           residents.push({
             id: newId,
@@ -1722,10 +1717,24 @@
             plate1: p1,
             plate2: p2,
             plate3: p3,
-            assign1: "",
-            assign2: "",
-            assign3: ""
+            assign1: seat1,
+            assign2: seat2,
+            assign3: seat3
           });
+          
+          if (seat1) {
+            if (!lotteryResults["第一輪"]) lotteryResults["第一輪"] = {};
+            lotteryResults["第一輪"][newId] = seat1;
+          }
+          if (seat2) {
+            if (!lotteryResults["第二輪"]) lotteryResults["第二輪"] = {};
+            lotteryResults["第二輪"][newId] = seat2;
+          }
+          if (seat3) {
+            if (!lotteryResults["第三輪"]) lotteryResults["第三輪"] = {};
+            lotteryResults["第三輪"][newId] = seat3;
+          }
+          
           count++;
         }
       }
@@ -1734,7 +1743,7 @@
       renderDashboard();
       updateLotteryCards();
       checkPlateWarnings();
-      let alertMsg = `成功匯入 ${count} 筆住戶資料！`;
+      let alertMsg = `成功匯入 ${count} 筆住戶資料！\n系統已同時還原 CSV 中的中籤車位紀錄。`;
       if (skippedReserve > 0) {
         alertMsg += `\n（提示：有 ${skippedReserve} 筆保留戶資料因未填寫指定車位被系統防呆跳過）`;
       }
@@ -1985,9 +1994,13 @@
 
     // ================= Pass 4: 無志願/志願未中者 進入智慧亂數分配 =================
     remainingEligible.sort((a, b) => {
+      let aRes = a.reserve === 'Y' ? 1 : 0;
+      let bRes = b.reserve === 'Y' ? 1 : 0;
+      if (aRes !== bRes) return bRes - aRes; 
+
       let aIsAB = (a.build.startsWith("A") || a.build.startsWith("B")) ? 1 : 0;
       let bIsAB = (b.build.startsWith("A") || b.build.startsWith("B")) ? 1 : 0;
-      return bIsAB - aIsAB;
+      return bIsAB - aIsAB; 
     });
 
     remainingEligible.forEach(res => {
@@ -2117,6 +2130,13 @@
         let seat1 = getUserSeat("第一輪", r.id);
         let seat2 = getUserSeat("第二輪", r.id);
         let seat3 = getUserSeat("第三輪", r.id);
+        
+        let isParticipatingAny = (r.r1 === 'Y' || r.r2 === 'Y' || r.r3 === 'Y');
+        let hasAnySeat = (seat1 || seat2 || seat3);
+
+        if(type === 'got' && !hasAnySeat) return;
+        if(type === 'no' && (hasAnySeat || !isParticipatingAny)) return;
+        if(type === 'skip' && isParticipatingAny) return;
 
         let s1 = seat1 ? seat1 + '號' : (getValidWinnerCount("第一輪") > 0 ? (r.r1 === 'Y' ? "未中籤" : "未參加") : "未執行");
         let s2 = seat2 ? seat2 + '號' : (getValidWinnerCount("第二輪") > 0 ? (r.r2 === 'Y' ? "未中籤" : "未參加") : "未執行");
@@ -2150,10 +2170,17 @@
       let seat = getUserSeat(currentResultRound, r.id);
       let hasSeat = (seat !== null);
       let isExecuted = getValidWinnerCount(currentResultRound) > 0;
-      let statusStr = hasSeat ? '<span class="badge badge-green">中籤</span>' : (isExecuted ? '<span class="badge badge-gray">未中籤</span>' : '<span class="badge badge-gray">未執行</span>');
+      
+      let isParticipating = false;
+      if (currentResultRound === "第一輪") isParticipating = (r.r1 === 'Y');
+      else if (currentResultRound === "第二輪") isParticipating = (r.r2 === 'Y');
+      else if (currentResultRound === "第三輪") isParticipating = (r.r3 === 'Y');
 
       if(type === 'got' && !hasSeat) return;
-      if(type === 'no' && hasSeat) return;
+      if(type === 'no' && (hasSeat || !isParticipating)) return;
+      if(type === 'skip' && isParticipating) return;
+
+      let statusStr = hasSeat ? '<span class="badge badge-green">中籤</span>' : (isExecuted ? (isParticipating ? '<span class="badge badge-gray">未中籤</span>' : '<span class="badge badge-gray">未參加</span>') : '<span class="badge badge-gray">未執行</span>');
 
       count++;
       html += `<tr>
@@ -2170,14 +2197,33 @@
   }
 
   function exportResultsPDF() { window.print(); addLog("設定", `匯出抽籤結果 PDF 報表`); }
-  function exportRoundResult() { exportCSV(); }
-  function printRoundResult() { window.print(); }
+  
+  function exportRoundResult() {
+    let csv = "\ufeff";
+    const table = document.getElementById("results-table");
+    if (!table) return;
+    for (let i = 0; i < table.rows.length; i++) {
+      let rowData = [];
+      for (let j = 0; j < table.rows[i].cells.length; j++) {
+        rowData.push(table.rows[i].cells[j].innerText.replace(/,/g, "，").replace(/\n/g, " "));
+      }
+      csv += rowData.join(",") + "\n";
+    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const newA = document.createElement('a');
+    newA.href = url;
+    newA.download = `稙村秀抽籤結果_${currentResultRound}_${new Date().toISOString().slice(0,10)}.csv`;
+    newA.click();
+    addLog("設定", `匯出目前表格 CSV：${currentResultRound}`);
+  }
 
+  function printRoundResult() { window.print(); }
   function renderSummary() { renderResults(); }
   function exportSummary() { exportExcel('results-table', '抽籤結果與總表'); }
   function printSummary() { window.print(); }
 
-  // ================= 6. 車位互換管理邏輯 (進階獨立互換) =================
+  // ================= 6. 車位互換管理邏輯 =================
   function renderSwap() {
     document.getElementById("swap-deadline").value = systemSettings.swapDeadline;
     const badge = document.getElementById("swap-status-badge");
@@ -2321,6 +2367,11 @@
 
     let aRoundNum = aVal[0]; let aSeat = Number(aVal[1]) || null;
     let bRoundNum = bVal[0]; let bSeat = Number(bVal[1]) || null;
+    
+    if (!aSeat && !bSeat) {
+      alert("【防呆攔截】雙方所選的輪次皆無中籤車位，無法進行無效互換！");
+      return;
+    }
 
     let aRoundName = aRoundNum == '1' ? '第一輪' : (aRoundNum == '2' ? '第二輪' : '第三輪');
     let bRoundName = bRoundNum == '1' ? '第一輪' : (bRoundNum == '2' ? '第二輪' : '第三輪');
@@ -2328,10 +2379,18 @@
     let resA = residents.find(x => Number(x.id) === Number(aId));
     let resB = residents.find(x => Number(x.id) === Number(bId));
 
+    if (bSeat !== null && resA['r' + aRoundNum] !== 'Y') {
+      alert(`【防呆攔截】住戶 A 未參加${aRoundName}（資格為 N），無法將車位轉入該輪次！請先在住戶名單補齊車牌。`);
+      return;
+    }
+    if (aSeat !== null && resB['r' + bRoundNum] !== 'Y') {
+      alert(`【防呆攔截】住戶 B 未參加${bRoundName}（資格為 N），無法將車位轉入該輪次！請先在住戶名單補齊車牌。`);
+      return;
+    }
+
     if (!lotteryResults[aRoundName]) lotteryResults[aRoundName] = {};
     if (!lotteryResults[bRoundName]) lotteryResults[bRoundName] = {};
 
-    // 💡 [修復重點 3] 執行交換時，徹底刪除雙方的舊資料(包含 p_id 幽靈格式)，防止雲端產生重複資料
     delete lotteryResults[aRoundName][aId];
     delete lotteryResults[aRoundName][`p_${aId}`];
     if (bSeat) lotteryResults[aRoundName][aId] = bSeat;
@@ -2359,12 +2418,28 @@
     renderResidents();
     initFloorplanSeats();
     
-    // 更新完資料後重新整理選單內容以便連續操作
     selectSwapResident('A', aId, document.getElementById('swap-a-search').value);
     selectSwapResident('B', bId, document.getElementById('swap-b-search').value);
     
     alert("進階車位互換成功並已全域同步！");
     addLog("互換", `執行進階跨輪互換：${resA.name} 與 ${resB.name}`);
+  }
+
+  // 💡 [修正核心 1] 處理匯出互換紀錄時，避免時間自帶的逗號破壞 CSV 格式
+  function exportSwapLogs() {
+    let csv = "\ufeff互換時間,互換輪次,異動明細\n";
+    swapLogs.forEach(l => {
+      let safeTime = (l.time || "").replace(/,/g, " ");
+      let safeDesc = (l.desc || "").replace(/,/g, "，").replace(/\n/g, " ");
+      csv += `${safeTime},${l.round},${safeDesc}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const newA = document.createElement('a');
+    newA.href = url;
+    newA.download = `稙村秀車位互換紀錄_${new Date().toISOString().slice(0,10)}.csv`;
+    newA.click();
+    addLog("設定", "匯出車位互換紀錄 CSV");
   }
 
   // ================= 7. 中籤快速查詢邏輯 =================
@@ -2401,9 +2476,9 @@
       let seat2 = getUserSeat("第二輪", r.id);
       let seat3 = getUserSeat("第三輪", r.id);
 
-      let s1 = seat1 ? seat1 + '號' : (getValidWinnerCount("第一輪") > 0 ? "未中籤" : "未執行");
-      let s2 = seat2 ? seat2 + '號' : (getValidWinnerCount("第二輪") > 0 ? "未中籤" : "未執行");
-      let s3 = seat3 ? seat3 + '號' : (getValidWinnerCount("第三輪") > 0 ? "未中籤" : "未執行");
+      let s1 = seat1 ? seat1 + '號' : (getValidWinnerCount("第一輪") > 0 ? (r.r1 === 'Y' ? "未中籤" : "未參加") : "未執行");
+      let s2 = seat2 ? seat2 + '號' : (getValidWinnerCount("第二輪") > 0 ? (r.r2 === 'Y' ? "未中籤" : "未參加") : "未執行");
+      let s3 = seat3 ? seat3 + '號' : (getValidWinnerCount("第三輪") > 0 ? (r.r3 === 'Y' ? "未中籤" : "未參加") : "未執行");
       
       html += `<div class="card" style="max-width:500px;margin:0 auto 1rem">
         <h4 style="color:var(--primary);margin-bottom:.5rem">查詢結果：${getDisplayName(r.name)} (${r.build} ${r.room})</h4>
@@ -2711,29 +2786,18 @@
     let aud = pendingAudits[i];
     let res = residents.find(x => x.name === aud.name && `${x.build} ${x.room}` === aud.room);
     if (res) {
-      let pArr = aud.prefs.split(',').map(x => parseInt(x.trim()));
+      let pArr = aud.prefs.split(',').map(x => x.trim() === "無" ? "" : parseInt(x.trim()));
       res.pref1 = pArr[0] || "";
       res.pref2 = pArr[1] || "";
       res.pref3 = pArr[2] || "";
 
-      if (res.assign1 || res.assign2 || res.assign3) {
-        res.assign1 = ""; res.assign2 = ""; res.assign3 = "";
-        for (let r of ["第一輪", "第二輪", "第三輪"]) {
-          if (lotteryResults[r]) delete lotteryResults[r][res.id];
-        }
-        alert("已同意申請！注意：因該住戶已有舊中籤紀錄，系統已重置其車位分配，請於抽籤控制台重新執行抽籤！");
-      } else {
-        alert("已同意該指定車位申請並同步！");
-      }
+      alert("已同意該指定車位申請並同步！\n(備註：變更志願不會影響該住戶已經抽中的車位。若需重新分發，請至抽籤控制台重抽該輪次。)");
     }
     pendingAudits.splice(i, 1);
     cloudSyncPush();
     renderPendingAudits();
     renderResidents();
-    renderDashboard();
-    updateLotteryCards();
-    checkPlateWarnings();
-    addLog("審核", `管理員同意住戶 ${aud.name} 之指定車位`);
+    addLog("審核", `管理員同意住戶 ${aud.name} 之指定車位變更`);
   }
 
   function rejectAudit(i) {
@@ -2816,16 +2880,23 @@
     }
   }
 
-  function exportLogs() { exportCSV(); }
-
   // ================= 11. 匯出工具 =================
   function exportCSV() {
-    let csv = "\ufeffID,棟別,門牌,姓名,身分,第一輪車位,第二輪車位,第三輪車位,車牌1,車牌2,車牌3\n";
+    let csv = "\ufeffID,棟別,門牌,姓名,身分,第一輪車位,第二輪車位,第三輪車位,指定1,指定2,指定3,車牌1,車牌2,車牌3\n";
     residents.forEach(r => {
       let s1 = getUserSeat("第一輪", r.id) || (getValidWinnerCount("第一輪") > 0 ? (r.r1 === 'Y' ? "未中籤" : "未參加") : "未執行");
       let s2 = getUserSeat("第二輪", r.id) || (getValidWinnerCount("第二輪") > 0 ? (r.r2 === 'Y' ? "未中籤" : "未參加") : "未執行");
       let s3 = getUserSeat("第三輪", r.id) || (getValidWinnerCount("第三輪") > 0 ? (r.r3 === 'Y' ? "未中籤" : "未參加") : "未執行");
-      csv += `${r.id},${r.build},${r.room},${getDisplayName(r.name)},${r.reserve === 'Y' ? '保留戶' : '一般戶'},${s1},${s2},${s3},${r.plate1 || ''},${r.plate2 || ''},${r.plate3 || ''}\n`;
+      
+      // 💡 [修正核心 2] 將車牌也納入逗號防護網，確保輸出的 CSV 不被任何輸入值斷行跑版
+      let safeName = getDisplayName(r.name).replace(/,/g, "，").replace(/\n/g, " ");
+      let safeRoom = (r.room || "").replace(/,/g, "，").replace(/\n/g, " ");
+      let safeBuild = (r.build || "").replace(/,/g, "，").replace(/\n/g, " ");
+      let safeP1 = (r.plate1 || "").replace(/,/g, "，").replace(/\n/g, " ");
+      let safeP2 = (r.plate2 || "").replace(/,/g, "，").replace(/\n/g, " ");
+      let safeP3 = (r.plate3 || "").replace(/,/g, "，").replace(/\n/g, " ");
+
+      csv += `${r.id},${safeBuild},${safeRoom},${safeName},${r.reserve === 'Y' ? '保留戶' : '一般戶'},${s1},${s2},${s3},${r.pref1 || ''},${r.pref2 || ''},${r.pref3 || ''},${safeP1},${safeP2},${safeP3}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -2833,6 +2904,7 @@
     newA.href = url;
     newA.download = `稙村秀社區機車位資料彙整_${new Date().toISOString().slice(0,10)}.csv`;
     newA.click();
+    addLog("設定", `匯出住戶全資料 CSV 報表`);
   }
 
   function exportExcel(tableId, titleName) {
