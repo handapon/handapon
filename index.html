@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.72</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.73</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -172,7 +172,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.72</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.73</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -447,7 +447,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.72 進階跨輪互換版) ===== -->
+<!-- ===== 7. 車位互換 (v1.73 進階版 - 介面去蕪存菁) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -477,7 +477,7 @@
     <!-- 進階跨輪互換介面 -->
     <div class="card">
       <div class="card-title" style="border-left-color:#7c3aed">進階車位互換 (支援單一車位跨輪次對調)</div>
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">請搜尋欲互換的兩位住戶，並分別「指定要換出的車位輪次」，系統將精準對調雙方選擇的單一車位。</p>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">請搜尋欲互換的兩位住戶，並分別「指定要換出的車位輪次」，系統將精準對調雙方選擇的單一車位。</p>
 
       <div class="grid-2">
         <!-- 住戶 A -->
@@ -621,7 +621,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.72">
+        <input type="text" id="set-app-version" value="v1.73">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -838,7 +838,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.72",
+    appVersion: "v1.73",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1460,6 +1460,7 @@
       r['assign' + rNum] = "";
       if (lotteryResults[roundName]) {
         delete lotteryResults[roundName][r.id];
+        delete lotteryResults[roundName][`p_${r.id}`];
       }
     }
 
@@ -1590,15 +1591,24 @@
 
         if (r1 === 'N' && oldRes.assign1) {
           releasedSeats.push(`第一輪車位 ${oldRes.assign1}號`);
-          if (lotteryResults["第一輪"]) delete lotteryResults["第一輪"][oldRes.id];
+          if (lotteryResults["第一輪"]) {
+            delete lotteryResults["第一輪"][oldRes.id];
+            delete lotteryResults["第一輪"][`p_${oldRes.id}`];
+          }
         }
         if (r2 === 'N' && oldRes.assign2) {
           releasedSeats.push(`第二輪車位 ${oldRes.assign2}號`);
-          if (lotteryResults["第二輪"]) delete lotteryResults["第二輪"][oldRes.id];
+          if (lotteryResults["第二輪"]) {
+            delete lotteryResults["第二輪"][oldRes.id];
+            delete lotteryResults["第二輪"][`p_${oldRes.id}`];
+          }
         }
         if (r3 === 'N' && oldRes.assign3) {
           releasedSeats.push(`第三輪車位 ${oldRes.assign3}號`);
-          if (lotteryResults["第三輪"]) delete lotteryResults["第三輪"][oldRes.id];
+          if (lotteryResults["第三輪"]) {
+            delete lotteryResults["第三輪"][oldRes.id];
+            delete lotteryResults["第三輪"][`p_${oldRes.id}`];
+          }
         }
 
         data.id = Number(id);
@@ -2321,11 +2331,14 @@
     if (!lotteryResults[aRoundName]) lotteryResults[aRoundName] = {};
     if (!lotteryResults[bRoundName]) lotteryResults[bRoundName] = {};
 
+    // 💡 [修復重點 3] 執行交換時，徹底刪除雙方的舊資料(包含 p_id 幽靈格式)，防止雲端產生重複資料
+    delete lotteryResults[aRoundName][aId];
+    delete lotteryResults[aRoundName][`p_${aId}`];
     if (bSeat) lotteryResults[aRoundName][aId] = bSeat;
-    else delete lotteryResults[aRoundName][aId];
 
+    delete lotteryResults[bRoundName][bId];
+    delete lotteryResults[bRoundName][`p_${bId}`];
     if (aSeat) lotteryResults[bRoundName][bId] = aSeat;
-    else delete lotteryResults[bRoundName][bId];
 
     resA['assign' + aRoundNum] = bSeat || "";
     resB['assign' + bRoundNum] = aSeat || "";
