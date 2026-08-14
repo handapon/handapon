@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.68</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.69</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -172,7 +172,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.68</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.69</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -235,7 +235,7 @@
     </div>
     <div class="card">
       <div class="card-title">系統快速導覽</div>
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統具備嚴格的車位防衝突與中籤保護防呆，確保作廢車位或車位縮減時不會誤刪已中籤的車位。</p>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.7">歡迎使用稙村秀社區機車位電腦抽籤系統。本系統支援同一住戶在不同輪次登記多車位，並自動排除所有先前輪次已分配出去的車位，確保車位絕不重複分配。</p>
     </div>
   </div>
   <div class="card">
@@ -608,7 +608,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.68">
+        <input type="text" id="set-app-version" value="v1.69">
       </div>
     </div>
     <div class="btn-row mt-2" style="margin-top:1rem">
@@ -825,7 +825,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.68",
+    appVersion: "v1.69",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1345,13 +1345,11 @@
     }
   }
 
-  // 防呆檢查：確保設定作廢車位時，不會誤把「已中籤」的車位作廢
   function saveVoidFromDash() {
     const val = document.getElementById("dash-void-input").value;
     const arr = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x > 0 && x <= systemSettings.totalSeats);
     const uniqueInputSeats = [...new Set(arr)];
 
-    // 檢查是否有任何欲作廢的車位已經被住戶中籤
     let conflictedSeats = [];
     uniqueInputSeats.forEach(sNum => {
       let occupant = getSeatOccupant(sNum);
@@ -1597,14 +1595,24 @@
       alert("權限不足！");
       return;
     }
-    if(confirm("確定要刪除此住戶嗎？")) {
+    if(confirm("確定要刪除此住戶嗎？此動作將同時釋放該住戶已中籤的車位！")) {
+      
+      // 💡 [修正核心] 同步清除該住戶在所有輪次的中籤紀錄，釋放幽靈車位
+      ["第一輪", "第二輪", "第三輪"].forEach(r => {
+        if (lotteryResults[r]) {
+          delete lotteryResults[r][id];
+          delete lotteryResults[r][`p_${id}`];
+        }
+      });
+
       residents = residents.filter(x => Number(x.id) !== Number(id));
+      
       cloudSyncPush();
       renderResidents();
       renderDashboard();
       updateLotteryCards();
       checkPlateWarnings();
-      addLog("住戶", `刪除住戶 ID: ${id}`);
+      addLog("住戶", `刪除住戶 ID: ${id} 並釋放其佔用的車位`);
     }
   }
 
@@ -1693,7 +1701,7 @@
     reader.readAsText(file, "UTF-8");
   }
 
-  // ================= 3. 執行抽籤邏輯 (v1.68) =================
+  // ================= 3. 執行抽籤邏輯 =================
   function selectLotteryRound(round) {
     currentRound = round;
     document.querySelectorAll(".lrs-card").forEach(c => {
@@ -2125,7 +2133,7 @@
   function exportSummary() { exportExcel('results-table', '抽籤結果與總表'); }
   function printSummary() { window.print(); }
 
-  // ================= 6. 車位互換管理邏輯 (v1.68 支援多車位跨輪完整預覽與互換) =================
+  // ================= 6. 車位互換管理邏輯 =================
   function renderSwap() {
     document.getElementById("swap-deadline").value = systemSettings.swapDeadline;
     const badge = document.getElementById("swap-status-badge");
@@ -2220,7 +2228,6 @@
     updateSwapPreview();
   }
 
-  // 修正：在「所有輪次」模式下完整預覽各輪次的互換配對
   function updateSwapPreview() {
     const aId = document.getElementById("swap-a-idx").value;
     const bId = document.getElementById("swap-b-idx").value;
@@ -2285,7 +2292,6 @@
         resA['assign' + rNum] = seatB || "";
         resB['assign' + rNum] = seatA || "";
 
-        descDetails.append ? null : null;
         descDetails.push(`${r}(${seatA||'無'}⇄${seatB||'無'})`);
       });
     } else {
@@ -2494,7 +2500,6 @@
       return;
     }
 
-    // 防呆檢查：檢查縮減總車位數或作廢車位時，是否有任何大於新總車位數的車位已經被住戶中籤
     let outOfRangeWinners = [];
     residents.forEach(r => {
       ["1", "2", "3"].forEach(rn => {
@@ -2518,7 +2523,6 @@
     const arr = voidVal.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x > 0 && x <= tSeats);
     const uniqueInputSeats = [...new Set(arr)];
 
-    // 檢查作廢車位衝突
     let conflictedSeats = [];
     uniqueInputSeats.forEach(sNum => {
       let occupant = getSeatOccupant(sNum);
