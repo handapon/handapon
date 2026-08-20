@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.82</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.83</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -21,78 +21,78 @@
   
   /* 導覽列 */
   .nav{background:var(--card-bg);border-bottom:1px solid var(--border-color);display:flex;align-items:center;padding:0 1.25rem;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
-  .nav-title{font-size:14px;font-weight:700;color:var(--primary);padding:1rem 0;margin-right:1.5rem;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .nav-title{font-size:15px;font-weight:700;color:var(--primary);padding:1rem 0;margin-right:1.5rem;white-space:nowrap;display:flex;align-items:center;gap:6px}
   .nav-tabs{display:flex;gap:4px;flex:1;overflow-x:auto}
-  .nav-tab{padding:.75rem 1rem;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500;transition:all .2s}
+  .nav-tab{padding:.85rem 1.1rem;font-size:13.5px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;white-space:nowrap;font-weight:600;transition:all .2s}
   .nav-tab.active{color:var(--primary);border-bottom-color:var(--primary);background:#f1f5f9}
   .nav-tab:hover:not(.active){color:var(--text-main);background:#f8fafc}
   .nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;padding:6px;cursor:pointer;border:none;background:transparent;margin-left:auto}
   .nav-hamburger span{display:block;height:2px;background:var(--text-muted);border-radius:2px;transition:all .2s}
-  .nav-menu-mobile{display:none;position:fixed;top:53px;left:0;right:0;background:var(--card-bg);border-bottom:1px solid var(--border-color);z-index:99;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)}
+  .nav-menu-mobile{display:none;position:fixed;top:55px;left:0;right:0;background:var(--card-bg);border-bottom:1px solid var(--border-color);z-index:99;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)}
   .nav-menu-mobile.open{display:block}
-  .nav-menu-mobile .nav-tab{display:block;width:100%;text-align:left;padding:.85rem 1.25rem;border-bottom:1px solid var(--border-color);border-left:3px solid transparent}
+  .nav-menu-mobile .nav-tab{display:block;width:100%;text-align:left;padding:1rem 1.25rem;border-bottom:1px solid var(--border-color);border-left:3px solid transparent}
   .nav-menu-mobile .nav-tab.active{border-left-color:var(--primary);background:#f8fafc;color:var(--primary)}
 
   /* 使用者資訊列 */
   .user-bar{background:#0f172a;color:#f8fafc;padding:.4rem 1.25rem;font-size:12px;display:flex;justify-content:space-between;align-items:center}
-  .user-bar-btn{background:transparent;border:1px solid #475569;color:#cbd5e1;padding:2px 10px;border-radius:4px;cursor:pointer;font-size:11px;transition:all .15s}
+  .user-bar-btn{background:transparent;border:1px solid #475569;color:#cbd5e1;padding:3px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s}
   .user-bar-btn:hover{background:#334155;color:#fff}
 
   /* 版面配置 */
-  .page{display:none;padding:1.5rem;max-width:1280px;margin:0 auto}
+  .page{display:none;padding:1.75rem;max-width:1280px;margin:0 auto}
   .page.active{display:block}
 
   /* 卡片元件 */
-  .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 4px 6px -1px rgba(0,0,0,0.02),0 2px 4px -1px rgba(0,0,0,0.02)}
-  .card-title{font-size:15px;font-weight:600;margin-bottom:1.25rem;color:var(--text-main);border-left:4px solid var(--primary);padding-left:10px;display:flex;align-items:center;justify-content:space-between}
+  .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;padding:1.75rem;margin-bottom:1.5rem;box-shadow:0 4px 6px -1px rgba(0,0,0,0.03),0 10px 15px -3px rgba(0,0,0,0.02)}
+  .card-title{font-size:16px;font-weight:700;margin-bottom:1.25rem;color:var(--text-main);border-left:4px solid var(--primary);padding-left:12px;display:flex;align-items:center;justify-content:space-between}
 
   /* 統計卡片 */
-  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem}
-  .stat{background:linear-gradient(135deg,#fff 0%,#f8fafc 100%);border:1px solid var(--border-color);border-radius:10px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
-  .stat-label{font-size:12px;color:var(--text-muted);margin-bottom:6px;font-weight:500}
-  .stat-value{font-size:26px;font-weight:700;color:var(--text-main)}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1.25rem;margin-bottom:1.75rem}
+  .stat{background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
+  .stat-label{font-size:13px;color:var(--text-muted);margin-bottom:8px;font-weight:600}
+  .stat-value{font-size:28px;font-weight:800;color:var(--text-main)}
   .stat-value.blue{color:var(--primary)}
   .stat-value.green{color:#16a34a}
   .stat-value.orange{color:#ea580c}
 
   /* 網格佈局 */
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
-  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem}
 
   /* 按鈕樣式 */
-  .btn{padding:.5rem 1.1rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;color:var(--text-main);box-shadow:0 1px 2px rgba(0,0,0,0.02)}
-  .btn:hover{background:#f1f5f9;border-color:#cbd5e1}
+  .btn{padding:.55rem 1.25rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;color:var(--text-main);box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+  .btn:hover{background:#f1f5f9;border-color:#cbd5e1;box-shadow:0 2px 4px rgba(0,0,0,0.05)}
   .btn:active{transform:scale(.98)}
-  .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 4px rgba(37,99,235,0.2)}
+  .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(37,99,235,0.25)}
   .btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover)}
   .btn-danger{background:#dc2626;color:#fff;border-color:#dc2626}
   .btn-danger:hover{background:#b91c1c}
   .btn-success{background:#16a34a;color:#fff;border-color:#16a34a}
   .btn-success:hover{background:#15803d}
-  .btn-sm{padding:.3rem .75rem;font-size:12px;border-radius:6px}
-  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem}
+  .btn-sm{padding:.35rem .85rem;font-size:12px;border-radius:6px}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem}
 
-  .yn-btn { padding:3px 10px; font-size:12px; border-radius:6px; border:1px solid transparent; cursor:pointer; font-weight:600; transition:all .15s; }
+  .yn-btn { padding:4px 12px; font-size:12px; border-radius:6px; border:1px solid transparent; cursor:pointer; font-weight:700; transition:all .15s; }
   .yn-btn.yes { background:#dcfce7; color:#15803d; border-color:#bbf7d0; }
   .yn-btn.no { background:#f1f5f9; color:#64748b; border-color:#e2e8f0; }
 
   /* 表單樣式 */
-  input[type=text],input[type=number],input[type=password],select,textarea{width:100%;padding:.6rem .8rem;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:#fff;color:var(--text-main);font-family:inherit;transition:all .15s}
+  input[type=text],input[type=number],input[type=password],select,textarea{width:100%;padding:.65rem .85rem;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:#fff;color:var(--text-main);font-family:inherit;transition:all .15s}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.15)}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-  .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
-  label{font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:6px;display:block}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+  label{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;display:block}
 
   /* 表格樣式 */
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border-color)}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;padding:.75rem 1rem;background:#f8fafc;border-bottom:1px solid var(--border-color);font-weight:600;color:var(--text-muted);white-space:nowrap}
-  td{padding:.75rem 1rem;border-bottom:1px solid var(--border-color);vertical-align:middle;color:var(--text-main)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;padding:.85rem 1rem;background:#f8fafc;border-bottom:1px solid var(--border-color);font-weight:700;color:var(--text-muted);white-space:nowrap}
+  td{padding:.85rem 1rem;border-bottom:1px solid var(--border-color);vertical-align:middle;color:var(--text-main)}
   tr:last-child td{border-bottom:none}
-  tr:hover td{background:#f8fafc}
+  tr:hover td{background:#f1f5f9}
 
   /* 標籤 Badge */
-  .badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600}
+  .badge{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700}
   .badge-blue{background:#eff6ff;color:var(--primary)}
   .badge-green{background:#f0fdf4;color:#16a34a}
   .badge-orange{background:#fff7ed;color:#c2410c}
@@ -100,15 +100,15 @@
   .badge-gray{background:#f1f5f9;color:#64748b}
   .badge-purple{background:#f5f3ff;color:#7c3aed}
   
-  .round-tabs{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
-  .round-tab{padding:.5rem 1.2rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:13px;color:var(--text-muted);font-weight:500;transition:all .15s}
-  .round-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 4px rgba(37,99,235,0.2)}
+  .round-tabs{display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap}
+  .round-tab{padding:.6rem 1.4rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:13.5px;color:var(--text-muted);font-weight:600;transition:all .15s}
+  .round-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 6px rgba(37,99,235,0.25)}
   
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center}
   .modal-overlay.show{display:flex}
-  .modal{background:var(--card-bg);border-radius:16px;padding:2rem;max-width:640px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04)}
-  .modal-title{font-size:18px;font-weight:700;margin-bottom:1.5rem;color:var(--text-main)}
-  .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:1.5rem}
+  .modal{background:var(--card-bg);border-radius:20px;padding:2.5rem;max-width:640px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)}
+  .modal-title{font-size:20px;font-weight:800;margin-bottom:1.5rem;color:var(--text-main)}
+  .modal-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:1.75rem}
   
   /* 抽籤美化版面 */
   .lottery-hero{background:linear-gradient(135deg,#ffffff 0%,#f0fdf4 50%,#eff6ff 100%);border:1px solid #cbd5e1;border-radius:20px;padding:2.25rem;margin-bottom:1.5rem;box-shadow:0 10px 25px -5px rgba(37,99,235,0.08)}
@@ -116,7 +116,10 @@
   .lrs-card{border:2px solid var(--border-color);border-radius:16px;padding:1.5rem;cursor:pointer;transition:all .25s ease;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.03);position:relative;overflow:hidden}
   .lrs-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.06);border-color:#93c5fd}
   .lrs-card.active{border-color:var(--primary);box-shadow:0 12px 24px -6px rgba(37,99,235,0.22);background:linear-gradient(180deg,#ffffff 0%,#eff6ff 100%)}
-  .lrs-card.active::before{content:"absolute;top:0;left:0;right:0;height:4px;background:var(--primary)}
+  
+  /* 💡 修復破圖的關鍵 CSS 語法 */
+  .lrs-card.active::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--primary)}
+  
   .lrs-arrow-col{display:flex;align-items:center;justify-content:center;font-size:22px;color:#94a3b8;font-weight:bold}
   .lrs-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:1.25rem;text-align:center;background:rgba(255,255,255,0.85);padding:10px;border-radius:12px;border:1px solid #e2e8f0;backdrop-filter:blur(4px)}
   .lrs-stat-val{font-size:20px;font-weight:800;color:var(--text-main);display:block}
@@ -132,20 +135,22 @@
   .lm-progress-wrap{background:#e2e8f0;border-radius:100px;height:10px;overflow:hidden;margin-bottom:1.25rem}
   .lm-progress-bar{height:100%;background:linear-gradient(90deg,#3b82f6,#16a34a);width:0;transition:width .25s ease}
 
-  .seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-top:1rem}
-  .seat{min-height:50px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:1px solid transparent;padding:4px;text-align:center}
+  /* 💡 美化車位網格，防止變回純文字 */
+  .seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));gap:10px;margin-top:1.25rem}
+  .seat{min-height:55px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:1px solid transparent;padding:6px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.03);transition:all 0.2s}
+  .seat:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,0.08);z-index:2}
   .seat-free{background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
   .seat-used{background:#eff6ff;color:var(--primary);border-color:#bfdbfe}
-  .seat-void{background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;text-decoration:line-through}
+  .seat-void{background:#f8fafc;color:#94a3b8;border:1px dashed #cbd5e1;text-decoration:line-through;opacity:0.8}
   
-  .section-title{font-size:18px;font-weight:700;margin-bottom:1.25rem;color:var(--text-main);letter-spacing:-0.025em}
+  .section-title{font-size:19px;font-weight:800;margin-bottom:1.25rem;color:var(--text-main);letter-spacing:-0.025em}
   .empty{text-align:center;color:var(--text-muted);padding:3rem;font-size:14px}
   .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
 
   .log-tl-item{display:flex;gap:0;position:relative;padding-bottom:1.25rem}
   .log-tl-line{position:absolute;left:7px;top:20px;bottom:0;width:2px;background:var(--border-color)}
   .log-tl-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-top:3px;border:3px solid #fff;box-shadow:0 0 0 2px var(--primary);z-index:1;background:var(--primary)}
-  .log-tl-content{flex:1;margin-left:14px;background:#f8fafc;padding:.75rem 1rem;border-radius:8px;border:1px solid var(--border-color)}
+  .log-tl-content{flex:1;margin-left:14px;background:#f8fafc;padding:.85rem 1.25rem;border-radius:8px;border:1px solid var(--border-color)}
 
   #sync-status-indicator { font-size:11px; padding:2px 8px; border-radius:4px; transition:all .3s; }
   .sync-online { background:#dcfce7; color:#15803d; }
@@ -172,7 +177,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.82</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.83</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -206,7 +211,7 @@
 <!-- ===== 登入對話框 ===== -->
 <div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(3px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
   <div style="background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-radius:20px;padding:2.5rem;width:90%;max-width:400px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3)">
-    <h3 id="login-modal-title" style="margin-bottom:1.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:700">稙村秀社區機車位電腦抽籤系統</h3>
+    <h3 id="login-modal-title" style="margin-bottom:1.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:800">稙村秀社區機車位電腦抽籤系統</h3>
     <div style="margin-bottom:1.25rem">
       <label>帳號</label>
       <input type="text" id="login-user" placeholder="請輸入帳號" value="admin">
@@ -216,8 +221,8 @@
       <input type="password" id="login-pw" placeholder="請輸入密碼" value="1234">
     </div>
     <div id="login-error" style="color:#dc2626;font-size:12px;margin-bottom:1.25rem;display:none;text-align:center">帳號或密碼錯誤！</div>
-    <button class="btn btn-primary" style="width:100%;padding:.75rem;margin-bottom:.75rem;font-size:15px" onclick="doLogin()">登入系統</button>
-    <button class="btn" style="width:100%;padding:.75rem;color:var(--primary);border-color:#bfdbfe;background:#eff6ff" onclick="guestLogin()">社區住戶快速查詢入口</button>
+    <button class="btn btn-primary" style="width:100%;padding:.85rem;margin-bottom:.75rem;font-size:15px;font-weight:700" onclick="doLogin()">登入系統</button>
+    <button class="btn" style="width:100%;padding:.85rem;color:var(--primary);border-color:#bfdbfe;background:#eff6ff;font-weight:700" onclick="guestLogin()">社區住戶快速查詢入口</button>
   </div>
 </div>
 
@@ -233,9 +238,9 @@
       <div class="card-title">各輪抽籤狀態</div>
       <div id="dash-rounds"></div>
     </div>
-    <div class="card">
-      <div class="card-title">系統快速導覽</div>
-      <p id="dash-quick-guide" style="font-size:13px;color:var(--text-muted);line-height:1.7"></p>
+    <div class="card" style="background: linear-gradient(to bottom right, #f8fafc, #eff6ff); border-color: #bfdbfe;">
+      <div class="card-title" style="border-left-color: #3b82f6;">系統快速導覽</div>
+      <div id="dash-quick-guide" style="font-size:14px;color:#334155;line-height:1.75;padding:0.25rem"></div>
     </div>
   </div>
   <div class="card">
@@ -315,7 +320,7 @@
   <div class="lrs-grid">
     <div class="lrs-card active" data-round="第一輪" onclick="selectLotteryRound('第一輪')">
       <div class="flex-between">
-        <div style="font-weight:700;font-size:15px">第一輪抽籤</div>
+        <div style="font-weight:800;font-size:16px">第一輪抽籤</div>
         <span class="lrs-badge badge-gray" id="lrs-badge-1">待執行</span>
       </div>
       <div class="lrs-stats">
@@ -327,7 +332,7 @@
     <div class="lrs-arrow-col">➔</div>
     <div class="lrs-card" data-round="第二輪" onclick="selectLotteryRound('第二輪')">
       <div class="flex-between">
-        <div style="font-weight:700;font-size:15px">第二輪抽籤</div>
+        <div style="font-weight:800;font-size:16px">第二輪抽籤</div>
         <span class="lrs-badge badge-gray" id="lrs-badge-2">待執行</span>
       </div>
       <div class="lrs-stats">
@@ -339,7 +344,7 @@
     <div class="lrs-arrow-col">➔</div>
     <div class="lrs-card" data-round="第三輪" onclick="selectLotteryRound('第三輪')">
       <div class="flex-between">
-        <div style="font-weight:700;font-size:15px">第三輪抽籤</div>
+        <div style="font-weight:800;font-size:16px">第三輪抽籤</div>
         <span class="lrs-badge badge-gray" id="lrs-badge-3">待執行</span>
       </div>
       <div class="lrs-stats">
@@ -353,8 +358,8 @@
   <div class="lottery-hero">
     <div class="flex-between">
       <div>
-        <h3 id="lottery-round-label" style="font-size:22px;color:var(--primary);margin-bottom:6px;font-weight:800">第一輪抽籤控制台</h3>
-        <p id="lottery-round-status" style="font-size:13px;color:var(--text-muted)">系統將依據住戶勾選參加狀況與 A/B 棟優先區間設定（19~56號）進行亂數與指定車位智慧配置。</p>
+        <h3 id="lottery-round-label" style="font-size:24px;color:var(--primary);margin-bottom:8px;font-weight:800">第一輪抽籤控制台</h3>
+        <p id="lottery-round-status" style="font-size:14px;color:var(--text-muted)">系統將依據住戶勾選參加狀況與 A/B 棟優先區間設定進行嚴密且公平的亂數配置。</p>
       </div>
       <button class="btn-run-lottery" onclick="runLottery()">🎲 開始執行電腦抽籤</button>
     </div>
@@ -363,7 +368,7 @@
       <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">重置全部輪次結果</button>
       <button class="btn btn-sm" onclick="toggleLotteryPreview()">展開中籤預覽資訊 <span id="preview-toggle-icon">▼</span></button>
     </div>
-    <div id="lottery-preview" style="display:none;margin-top:1rem;padding:1.25rem;background:#fff;border-radius:12px;border:1px solid #bbf7d0;box-shadow:0 4px 6px -1px rgba(0,0,0,0.03)"></div>
+    <div id="lottery-preview" style="display:none;margin-top:1rem;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #bbf7d0;box-shadow:0 4px 6px -1px rgba(0,0,0,0.03);max-height:300px;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -371,6 +376,7 @@
 <div id="page-results" class="page">
   <div class="flex-between" style="margin-bottom:1.25rem">
     <div class="section-title" style="margin:0">抽籤結果與彙整總表</div>
+    <!-- 一般住戶隱藏匯出按鈕區塊 -->
     <div class="btn-row" style="margin:0" id="results-export-btns">
       <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
       <button class="btn" id="btn-export-csv" onclick="exportRoundResult()">匯出目前表格 CSV</button>
@@ -444,7 +450,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.82 權限完全隔離版) ===== -->
+<!-- ===== 7. 車位互換 (v1.83 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -467,14 +473,12 @@
       </div>
     </div>
 
-    <!-- 進階跨輪互換介面 -->
     <div class="card">
       <div class="card-title" style="border-left-color:#7c3aed">進階車位互換 (支援單一車位跨輪次對調)</div>
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">請搜尋欲互換的兩位住戶，並分別「指定要換出的車位輪次」，系統將精準對調雙方選擇的單一車位。</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.5rem">請搜尋欲互換的兩位住戶，並分別「指定要換出的車位輪次」，系統將精準對調雙方選擇的單一車位。</p>
 
       <div class="grid-2">
-        <!-- 住戶 A -->
-        <div style="background:#f8fafc;padding:1.25rem;border-radius:10px;border:1px solid var(--border-color)">
+        <div style="background:#f8fafc;padding:1.5rem;border-radius:12px;border:1px solid var(--border-color)">
           <div style="position:relative;margin-bottom:12px">
             <label>住戶 A</label>
             <input type="hidden" id="swap-a-idx">
@@ -484,16 +488,15 @@
             </div>
             <div id="swap-a-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--border-color);border-radius:8px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);z-index:10;max-height:200px;overflow-y:auto"></div>
             
-            <div id="swap-a-info" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed #cbd5e1">
-              <span id="swap-a-detail" style="font-size:13px;font-weight:700;color:var(--primary)"></span>
-              <label style="margin-top:10px;color:#334155">請選擇住戶 A 欲換出的車位：</label>
-              <select id="swap-a-seat-select" onchange="updateSwapPreview()" style="margin-top:4px"></select>
+            <div id="swap-a-info" style="display:none;margin-top:16px;padding-top:16px;border-top:1px dashed #cbd5e1">
+              <span id="swap-a-detail" style="font-size:14px;font-weight:800;color:var(--primary)"></span>
+              <label style="margin-top:12px;color:#334155">請選擇住戶 A 欲換出的車位：</label>
+              <select id="swap-a-seat-select" onchange="updateSwapPreview()" style="margin-top:6px"></select>
             </div>
           </div>
         </div>
 
-        <!-- 住戶 B -->
-        <div style="background:#f8fafc;padding:1.25rem;border-radius:10px;border:1px solid var(--border-color)">
+        <div style="background:#f8fafc;padding:1.5rem;border-radius:12px;border:1px solid var(--border-color)">
           <div style="position:relative;margin-bottom:12px">
             <label>住戶 B</label>
             <input type="hidden" id="swap-b-idx">
@@ -503,19 +506,19 @@
             </div>
             <div id="swap-b-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--border-color);border-radius:8px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);z-index:10;max-height:200px;overflow-y:auto"></div>
             
-            <div id="swap-b-info" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed #cbd5e1">
-              <span id="swap-b-detail" style="font-size:13px;font-weight:700;color:#16a34a"></span>
-              <label style="margin-top:10px;color:#334155">請選擇住戶 B 欲換出的車位：</label>
-              <select id="swap-b-seat-select" onchange="updateSwapPreview()" style="margin-top:4px"></select>
+            <div id="swap-b-info" style="display:none;margin-top:16px;padding-top:16px;border-top:1px dashed #cbd5e1">
+              <span id="swap-b-detail" style="font-size:14px;font-weight:800;color:#16a34a"></span>
+              <label style="margin-top:12px;color:#334155">請選擇住戶 B 欲換出的車位：</label>
+              <select id="swap-b-seat-select" onchange="updateSwapPreview()" style="margin-top:6px"></select>
             </div>
           </div>
         </div>
       </div>
 
-      <div id="swap-preview" style="font-size:13px;padding:1.25rem;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;margin-top:1.25rem;margin-bottom:1.25rem;color:#1e3a8a">
+      <div id="swap-preview" style="font-size:14px;padding:1.5rem;background:#eff6ff;border-radius:10px;border:1px solid #bfdbfe;margin-top:1.5rem;margin-bottom:1.5rem;color:#1e3a8a;line-height:1.7">
         請先搜尋並選擇兩位住戶，以檢視進階互換預覽。
       </div>
-      <button class="btn btn-primary" style="width:100%;padding:1rem;font-size:15px;font-weight:700" onclick="confirmSwap()">🔄 確認執行進階交換</button>
+      <button class="btn btn-primary" style="width:100%;padding:1.1rem;font-size:16px;font-weight:800;letter-spacing:0.5px" onclick="confirmSwap()">🔄 確認執行進階交換</button>
     </div>
 
     <div class="card">
@@ -560,19 +563,19 @@
     <div class="round-tab" id="fp-tab-2" onclick="switchFloorplan(2)">B2 區車位圖</div>
   </div>
 
-  <div class="card" style="overflow:auto;text-align:center;padding:1.5rem">
-    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top left;">
+  <div class="card" style="overflow:auto;text-align:center;padding:2rem">
+    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center;">
       <div id="fp-content-1" style="max-width:100%">
-        <img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:1rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-        <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:12px">
-          <h4 style="color:#334155;margin-bottom:1rem">B1 機車位配置平面圖</h4>
+        <img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:1.5rem;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1)">
+        <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:16px">
+          <h4 style="color:#334155;margin-bottom:1rem;font-size:18px">B1 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b1-grid"></div>
         </div>
       </div>
       <div id="fp-content-2" style="max-width:100%; display:none">
-        <img id="custom-fp-img-2" src="" style="display:none;max-width:100%;margin-bottom:1rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-        <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:12px">
-          <h4 style="color:#334155;margin-bottom:1rem">B2 機車位配置平面圖</h4>
+        <img id="custom-fp-img-2" src="" style="display:none;max-width:100%;margin-bottom:1.5rem;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1)">
+        <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:16px">
+          <h4 style="color:#334155;margin-bottom:1rem;font-size:18px">B2 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b2-grid"></div>
         </div>
       </div>
@@ -585,19 +588,19 @@
   <div class="section-title">系統操作說明指南</div>
   <div class="card">
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 1. 住戶名單與車牌管理</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
     
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 2. 執行抽籤與跨輪多次中籤支援</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配，且各輪卡片上的「可用車位」會即時精確扣除先前輪次已抽出去的車位數。</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配，且各輪卡片上的「可用車位」會即時精確扣除先前輪次已抽出去的車位數。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 3. 抽籤結果與彙整總表</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。一般住戶僅供線上檢視。</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。一般住戶僅供線上檢視。</p>
 
-    <h3 style="font-size:15px;color:var(--primary);margin-bottom:1rem">📌 4. 車位互換管理 (進階版)</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">系統提供<b>進階個別車位互換模式</b>，搜尋住戶後，您可以針對每一位住戶各自擁有的多個車位，精準指定要拿「第幾輪的車位」與對方互換（例如用 A 的第一輪換 B 的第三輪），系統將無縫處理資料移轉與邏輯防呆檢查。</p>
+    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 4. 車位互換管理 (進階版)</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">系統提供<b>進階個別車位互換模式</b>，搜尋住戶後，您可以針對每一位住戶各自擁有的多個車位，精準指定要拿「第幾輪的車位」與對方互換（例如用 A 的第一輪換 B 的第三輪），系統將無縫處理資料移轉與邏輯防呆檢查。</p>
 
     <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 5. 權限與帳號管理</h3>
-    <p style="font-size:13px;color:var(--text-muted)"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供線上檢視個人中籤與總表（隱匿鄰居姓名且無法下載檔案）。</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:0;line-height:1.7"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供線上檢視個人中籤與總表（隱匿鄰居姓名且無法下載檔案）。</p>
   </div>
 </div>
 
@@ -614,10 +617,10 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.82">
+        <input type="text" id="set-app-version" value="v1.83">
       </div>
     </div>
-    <div style="margin-top:12px">
+    <div style="margin-top:14px">
       <label>「系統快速導覽」說明文字 (支援換行)</label>
       <textarea id="set-quick-guide" rows="8"></textarea>
     </div>
@@ -837,7 +840,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.82",
+    appVersion: "v1.83",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1156,10 +1159,10 @@
     const lotTabs = ['nav-tab-lottery', 'nav-tab-lottery-mob'];
     lotTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
 
-    // 💡 [修正核心 1] 徹底拔除一般住戶檢視「車位互換」的權限按鈕
     const swapTabs = ['nav-tab-swap', 'nav-tab-swap-mob'];
     swapTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
 
+    // 💡 [安全隔離] 操作紀錄僅限 admin 觀看，主任（director）也無權存取
     const logsTabs = ['nav-tab-logs', 'nav-tab-logs-mob'];
     logsTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none'; });
 
@@ -1206,11 +1209,11 @@
       alert("權限不足！一般住戶無法執行抽籤。");
       return;
     }
-    // 💡 [修正核心 1] 在底層攔截一般住戶存取車位互換頁面
     if (pageId === 'swap' && currentUser.role === 'guest') {
       alert("權限不足！一般住戶無法檢視與執行車位互換。");
       return;
     }
+    // 💡 [安全隔離] 路徑攔截：主任若試圖開啟操作紀錄，直接擋下
     if (pageId === 'logs' && currentUser.role !== 'admin') {
       alert("權限不足！操作紀錄僅限系統管理員檢視。");
       return;
@@ -1237,7 +1240,7 @@
     if(pageId === 'logs') renderLogs();
     if(pageId === 'swap') renderSwap();
     if(pageId === 'lottery') { updateLotteryCards(); checkPlateWarnings(); }
-    if(pageId === 'floorplan') { initFloorplanSeats(); }
+    if(pageId === 'floorplan') { initFloorplanSeats(); } // 每次進入平面圖強制刷新網格資料
     if(pageId === 'settings' && currentUser.role === 'admin') {
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
       document.getElementById("set-total-seats").value = systemSettings.totalSeats;
@@ -2907,6 +2910,8 @@
       renderLogs();
     }
   }
+
+  function exportLogs() { exportCSV(); }
 
   // ================= 11. 匯出工具 =================
   function exportCSV() {
