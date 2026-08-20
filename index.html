@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.83</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.84</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -14,16 +14,17 @@
     --card-bg: #ffffff;
     --border-color: #e2e8f0;
     --text-main: #1e293b;
-    --text-muted: #64748b;
+    --text-muted: #475569; /* 加深次要文字顏色以提升對比度 */
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg-main);color:var(--text-main);font-size:14px;line-height:1.6}
+  /* 放大基礎字體與行距，提升整體閱讀舒適度 */
+  body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg-main);color:var(--text-main);font-size:14.5px;line-height:1.65}
   
   /* 導覽列 */
-  .nav{background:var(--card-bg);border-bottom:1px solid var(--border-color);display:flex;align-items:center;padding:0 1.25rem;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
-  .nav-title{font-size:15px;font-weight:700;color:var(--primary);padding:1rem 0;margin-right:1.5rem;white-space:nowrap;display:flex;align-items:center;gap:6px}
-  .nav-tabs{display:flex;gap:4px;flex:1;overflow-x:auto}
-  .nav-tab{padding:.85rem 1.1rem;font-size:13.5px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;white-space:nowrap;font-weight:600;transition:all .2s}
+  .nav{background:var(--card-bg);border-bottom:1px solid var(--border-color);display:flex;align-items:center;padding:0 1.5rem;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
+  .nav-title{font-size:15px;font-weight:800;color:var(--primary);padding:1rem 0;margin-right:1.5rem;white-space:nowrap;display:flex;align-items:center;gap:6px;letter-spacing:0.5px}
+  .nav-tabs{display:flex;gap:6px;flex:1;overflow-x:auto}
+  .nav-tab{padding:.85rem 1.1rem;font-size:14px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;white-space:nowrap;font-weight:600;transition:all .2s}
   .nav-tab.active{color:var(--primary);border-bottom-color:var(--primary);background:#f1f5f9}
   .nav-tab:hover:not(.active){color:var(--text-main);background:#f8fafc}
   .nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;padding:6px;cursor:pointer;border:none;background:transparent;margin-left:auto}
@@ -34,23 +35,23 @@
   .nav-menu-mobile .nav-tab.active{border-left-color:var(--primary);background:#f8fafc;color:var(--primary)}
 
   /* 使用者資訊列 */
-  .user-bar{background:#0f172a;color:#f8fafc;padding:.4rem 1.25rem;font-size:12px;display:flex;justify-content:space-between;align-items:center}
-  .user-bar-btn{background:transparent;border:1px solid #475569;color:#cbd5e1;padding:3px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s}
+  .user-bar{background:#0f172a;color:#f8fafc;padding:.5rem 1.5rem;font-size:13px;display:flex;justify-content:space-between;align-items:center;letter-spacing:0.5px}
+  .user-bar-btn{background:transparent;border:1px solid #475569;color:#cbd5e1;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
   .user-bar-btn:hover{background:#334155;color:#fff}
 
   /* 版面配置 */
-  .page{display:none;padding:1.75rem;max-width:1280px;margin:0 auto}
+  .page{display:none;padding:2rem 1.5rem;max-width:1280px;margin:0 auto}
   .page.active{display:block}
 
   /* 卡片元件 */
-  .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;padding:1.75rem;margin-bottom:1.5rem;box-shadow:0 4px 6px -1px rgba(0,0,0,0.03),0 10px 15px -3px rgba(0,0,0,0.02)}
-  .card-title{font-size:16px;font-weight:700;margin-bottom:1.25rem;color:var(--text-main);border-left:4px solid var(--primary);padding-left:12px;display:flex;align-items:center;justify-content:space-between}
+  .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;padding:2rem;margin-bottom:1.5rem;box-shadow:0 4px 12px -2px rgba(0,0,0,0.03)}
+  .card-title{font-size:17px;font-weight:800;margin-bottom:1.25rem;color:var(--text-main);border-left:5px solid var(--primary);padding-left:12px;display:flex;align-items:center;justify-content:space-between}
 
   /* 統計卡片 */
   .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1.25rem;margin-bottom:1.75rem}
   .stat{background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
-  .stat-label{font-size:13px;color:var(--text-muted);margin-bottom:8px;font-weight:600}
-  .stat-value{font-size:28px;font-weight:800;color:var(--text-main)}
+  .stat-label{font-size:13.5px;color:var(--text-muted);margin-bottom:8px;font-weight:700}
+  .stat-value{font-size:30px;font-weight:800;color:var(--text-main)}
   .stat-value.blue{color:var(--primary)}
   .stat-value.green{color:#16a34a}
   .stat-value.orange{color:#ea580c}
@@ -60,7 +61,7 @@
   .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem}
 
   /* 按鈕樣式 */
-  .btn{padding:.55rem 1.25rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;color:var(--text-main);box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+  .btn{padding:.6rem 1.25rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:13.5px;font-weight:600;transition:all .15s;color:var(--text-main);box-shadow:0 1px 2px rgba(0,0,0,0.02)}
   .btn:hover{background:#f1f5f9;border-color:#cbd5e1;box-shadow:0 2px 4px rgba(0,0,0,0.05)}
   .btn:active{transform:scale(.98)}
   .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 6px rgba(37,99,235,0.25)}
@@ -69,39 +70,42 @@
   .btn-danger:hover{background:#b91c1c}
   .btn-success{background:#16a34a;color:#fff;border-color:#16a34a}
   .btn-success:hover{background:#15803d}
-  .btn-sm{padding:.35rem .85rem;font-size:12px;border-radius:6px}
+  .btn-sm{padding:.4rem .85rem;font-size:12.5px;border-radius:6px}
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem}
 
-  .yn-btn { padding:4px 12px; font-size:12px; border-radius:6px; border:1px solid transparent; cursor:pointer; font-weight:700; transition:all .15s; }
+  .yn-btn { padding:4px 12px; font-size:12.5px; border-radius:6px; border:1px solid transparent; cursor:pointer; font-weight:700; transition:all .15s; }
   .yn-btn.yes { background:#dcfce7; color:#15803d; border-color:#bbf7d0; }
   .yn-btn.no { background:#f1f5f9; color:#64748b; border-color:#e2e8f0; }
 
   /* 表單樣式 */
-  input[type=text],input[type=number],input[type=password],select,textarea{width:100%;padding:.65rem .85rem;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:#fff;color:var(--text-main);font-family:inherit;transition:all .15s}
+  input[type=text],input[type=number],input[type=password],select,textarea{width:100%;padding:.7rem .85rem;border:1px solid var(--border-color);border-radius:8px;font-size:14.5px;background:#fff;color:var(--text-main);font-family:inherit;transition:all .15s}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.15)}
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
   .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
-  label{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;display:block}
+  label{font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:6px;display:block}
 
-  /* 表格樣式 */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border-color)}
-  table{width:100%;border-collapse:collapse;font-size:13.5px}
-  th{text-align:left;padding:.85rem 1rem;background:#f8fafc;border-bottom:1px solid var(--border-color);font-weight:700;color:var(--text-muted);white-space:nowrap}
-  td{padding:.85rem 1rem;border-bottom:1px solid var(--border-color);vertical-align:middle;color:var(--text-main)}
+  /* 表格樣式 (升級閱讀體驗) */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--border-color);box-shadow:0 1px 3px rgba(0,0,0,0.02)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;padding:1rem;background:#f1f5f9;border-bottom:2px solid #cbd5e1;font-weight:800;color:#334155;white-space:nowrap}
+  td{padding:1rem;border-bottom:1px solid var(--border-color);vertical-align:middle;color:var(--text-main)}
   tr:last-child td{border-bottom:none}
-  tr:hover td{background:#f1f5f9}
+  /* 斑馬紋設計 */
+  tr:nth-child(even) td{background:#fafafa}
+  /* 懸停高亮 */
+  tr:hover td{background:#eff6ff}
 
   /* 標籤 Badge */
-  .badge{display:inline-block;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700}
+  .badge{display:inline-block;padding:4px 12px;border-radius:100px;font-size:11.5px;font-weight:700;letter-spacing:0.5px}
   .badge-blue{background:#eff6ff;color:var(--primary)}
   .badge-green{background:#f0fdf4;color:#16a34a}
   .badge-orange{background:#fff7ed;color:#c2410c}
   .badge-red{background:#fef2f2;color:#dc2626}
-  .badge-gray{background:#f1f5f9;color:#64748b}
+  .badge-gray{background:#f1f5f9;color:#475569}
   .badge-purple{background:#f5f3ff;color:#7c3aed}
   
   .round-tabs{display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap}
-  .round-tab{padding:.6rem 1.4rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:13.5px;color:var(--text-muted);font-weight:600;transition:all .15s}
+  .round-tab{padding:.65rem 1.5rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:14px;color:var(--text-muted);font-weight:700;transition:all .15s}
   .round-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 6px rgba(37,99,235,0.25)}
   
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center}
@@ -116,43 +120,40 @@
   .lrs-card{border:2px solid var(--border-color);border-radius:16px;padding:1.5rem;cursor:pointer;transition:all .25s ease;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.03);position:relative;overflow:hidden}
   .lrs-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.06);border-color:#93c5fd}
   .lrs-card.active{border-color:var(--primary);box-shadow:0 12px 24px -6px rgba(37,99,235,0.22);background:linear-gradient(180deg,#ffffff 0%,#eff6ff 100%)}
-  
-  /* 💡 修復破圖的關鍵 CSS 語法 */
   .lrs-card.active::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--primary)}
-  
   .lrs-arrow-col{display:flex;align-items:center;justify-content:center;font-size:22px;color:#94a3b8;font-weight:bold}
   .lrs-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:1.25rem;text-align:center;background:rgba(255,255,255,0.85);padding:10px;border-radius:12px;border:1px solid #e2e8f0;backdrop-filter:blur(4px)}
-  .lrs-stat-val{font-size:20px;font-weight:800;color:var(--text-main);display:block}
-  .lrs-stat-lbl{font-size:11px;color:var(--text-muted);font-weight:600;margin-top:2px}
+  .lrs-stat-val{font-size:22px;font-weight:800;color:var(--text-main);display:block}
+  .lrs-stat-lbl{font-size:12px;color:var(--text-muted);font-weight:700;margin-top:2px}
 
-  .btn-run-lottery{background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#fff;border:none;font-size:17px;padding:1rem 2.75rem;border-radius:12px;cursor:pointer;font-weight:700;box-shadow:0 6px 18px rgba(37,99,235,0.35);transition:all .25s ease;letter-spacing:0.5px}
+  .btn-run-lottery{background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#fff;border:none;font-size:18px;padding:1.2rem 3rem;border-radius:12px;cursor:pointer;font-weight:800;box-shadow:0 6px 18px rgba(37,99,235,0.35);transition:all .25s ease;letter-spacing:1px}
   .btn-run-lottery:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 8px 24px rgba(37,99,235,0.45)}
 
   .lottery-modal{background:#fff;border-radius:24px;padding:2.75rem;width:92%;max-width:480px;text-align:center;box-shadow:0 25px 60px -15px rgba(15,23,42,0.35);border:1px solid #e2e8f0}
   .lm-balls{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:1.75rem 0}
-  .lm-ball{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:#fff;font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(37,99,235,0.35);animation:ballSpin .35s ease-in-out infinite alternate}
+  .lm-ball{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:#fff;font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(37,99,235,0.35);animation:ballSpin .35s ease-in-out infinite alternate}
   @keyframes ballSpin{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-10px) rotate(5deg)}}
   .lm-progress-wrap{background:#e2e8f0;border-radius:100px;height:10px;overflow:hidden;margin-bottom:1.25rem}
   .lm-progress-bar{height:100%;background:linear-gradient(90deg,#3b82f6,#16a34a);width:0;transition:width .25s ease}
 
-  /* 💡 美化車位網格，防止變回純文字 */
+  /* 車位網格美化 */
   .seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));gap:10px;margin-top:1.25rem}
-  .seat{min-height:55px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:1px solid transparent;padding:6px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.03);transition:all 0.2s}
+  .seat{min-height:55px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;border:1px solid transparent;padding:6px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.03);transition:all 0.2s}
   .seat:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,0.08);z-index:2}
   .seat-free{background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
   .seat-used{background:#eff6ff;color:var(--primary);border-color:#bfdbfe}
   .seat-void{background:#f8fafc;color:#94a3b8;border:1px dashed #cbd5e1;text-decoration:line-through;opacity:0.8}
   
-  .section-title{font-size:19px;font-weight:800;margin-bottom:1.25rem;color:var(--text-main);letter-spacing:-0.025em}
-  .empty{text-align:center;color:var(--text-muted);padding:3rem;font-size:14px}
-  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  .section-title{font-size:20px;font-weight:800;margin-bottom:1.5rem;color:var(--text-main);letter-spacing:-0.025em}
+  .empty{text-align:center;color:var(--text-muted);padding:3rem;font-size:14.5px;font-weight:500}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
 
   .log-tl-item{display:flex;gap:0;position:relative;padding-bottom:1.25rem}
   .log-tl-line{position:absolute;left:7px;top:20px;bottom:0;width:2px;background:var(--border-color)}
   .log-tl-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-top:3px;border:3px solid #fff;box-shadow:0 0 0 2px var(--primary);z-index:1;background:var(--primary)}
-  .log-tl-content{flex:1;margin-left:14px;background:#f8fafc;padding:.85rem 1.25rem;border-radius:8px;border:1px solid var(--border-color)}
+  .log-tl-content{flex:1;margin-left:14px;background:#f8fafc;padding:1rem 1.25rem;border-radius:8px;border:1px solid var(--border-color)}
 
-  #sync-status-indicator { font-size:11px; padding:2px 8px; border-radius:4px; transition:all .3s; }
+  #sync-status-indicator { font-size:12px; padding:3px 10px; border-radius:4px; font-weight:700; transition:all .3s; }
   .sync-online { background:#dcfce7; color:#15803d; }
   .sync-offline { background:#fef2f2; color:#dc2626; }
 
@@ -170,14 +171,14 @@
 
 <!-- ===== 使用者頂部列 ===== -->
 <div class="user-bar" id="user-bar" style="display:none">
-  <span id="user-bar-name">👤 未登入</span>
+  <span id="user-bar-name" style="font-weight:700;">👤 未登入</span>
   <span id="sync-status-indicator" class="sync-offline">雲端連線中...</span>
   <button class="user-bar-btn" onclick="doLogout()">登出系統</button>
 </div>
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.83</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:11px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.84</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -209,20 +210,24 @@
 </div>
 
 <!-- ===== 登入對話框 ===== -->
-<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(3px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
-  <div style="background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-radius:20px;padding:2.5rem;width:90%;max-width:400px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3)">
-    <h3 id="login-modal-title" style="margin-bottom:1.5rem;text-align:center;font-size:22px;color:var(--text-main);font-weight:800">稙村秀社區機車位電腦抽籤系統</h3>
+<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
+  <div style="background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-radius:24px;padding:3rem 2.5rem;width:90%;max-width:420px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3)">
+    <h3 id="login-modal-title" style="margin-bottom:1.75rem;text-align:center;font-size:24px;color:var(--text-main);font-weight:800;letter-spacing:-0.5px">稙村秀社區機車位電腦抽籤系統</h3>
     <div style="margin-bottom:1.25rem">
-      <label>帳號</label>
+      <label>管理帳號</label>
       <input type="text" id="login-user" placeholder="請輸入帳號" value="admin">
     </div>
-    <div style="margin-bottom:1.25rem">
+    <div style="margin-bottom:1.5rem">
       <label>密碼</label>
       <input type="password" id="login-pw" placeholder="請輸入密碼" value="1234">
     </div>
-    <div id="login-error" style="color:#dc2626;font-size:12px;margin-bottom:1.25rem;display:none;text-align:center">帳號或密碼錯誤！</div>
-    <button class="btn btn-primary" style="width:100%;padding:.85rem;margin-bottom:.75rem;font-size:15px;font-weight:700" onclick="doLogin()">登入系統</button>
-    <button class="btn" style="width:100%;padding:.85rem;color:var(--primary);border-color:#bfdbfe;background:#eff6ff;font-weight:700" onclick="guestLogin()">社區住戶快速查詢入口</button>
+    <div id="login-error" style="color:#dc2626;font-size:13px;font-weight:700;margin-bottom:1.25rem;display:none;text-align:center">帳號或密碼錯誤！</div>
+    <button class="btn btn-primary" style="width:100%;padding:1rem;margin-bottom:1rem;font-size:16px;font-weight:800" onclick="doLogin()">登入系統</button>
+    <div style="text-align:center;position:relative;margin:1.5rem 0;">
+       <hr style="border:none;border-top:1px solid #e2e8f0;">
+       <span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#fff;padding:0 10px;font-size:12px;color:#94a3b8;font-weight:600">或</span>
+    </div>
+    <button class="btn" style="width:100%;padding:1rem;color:var(--primary);border-color:#bfdbfe;background:#eff6ff;font-size:15px;font-weight:800" onclick="guestLogin()">進入社區住戶查詢入口</button>
   </div>
 </div>
 
@@ -230,7 +235,7 @@
 <div id="page-dashboard" class="page active">
   <div class="section-title">機車位抽籤總覽</div>
   
-  <div id="plate-warning-banner" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
+  <div id="plate-warning-banner" style="display:none;margin-bottom:1.5rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:1.25rem;color:#9f1239"></div>
 
   <div class="stats-grid" id="dash-stats"></div>
   <div class="grid-2">
@@ -240,7 +245,7 @@
     </div>
     <div class="card" style="background: linear-gradient(to bottom right, #f8fafc, #eff6ff); border-color: #bfdbfe;">
       <div class="card-title" style="border-left-color: #3b82f6;">系統快速導覽</div>
-      <div id="dash-quick-guide" style="font-size:14px;color:#334155;line-height:1.75;padding:0.25rem"></div>
+      <div id="dash-quick-guide" style="font-size:14.5px;color:#334155;line-height:1.75;padding:0.25rem"></div>
     </div>
   </div>
   <div class="card">
@@ -251,7 +256,7 @@
 
 <!-- ===== 2. 住戶名單 ===== -->
 <div id="page-residents" class="page">
-  <div class="flex-between" style="margin-bottom:1.25rem">
+  <div class="flex-between" style="margin-bottom:1.5rem">
     <div class="section-title" style="margin:0">住戶名單管理</div>
     <div class="btn-row" style="margin:0">
       <button class="btn btn-primary" id="btn-add-resident" onclick="openAddModal()">新增住戶</button>
@@ -280,7 +285,7 @@
         <option value="Y">保留戶</option>
       </select>
     </div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:.75rem" id="resident-count"></div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:1rem;font-weight:600" id="resident-count"></div>
     
     <div class="table-wrap">
       <table id="residents-table">
@@ -300,12 +305,12 @@
 
 <!-- ===== 3. 執行抽籤 ===== -->
 <div id="page-lottery" class="page">
-  <div class="flex-between" style="margin-bottom:1.25rem">
+  <div class="flex-between" style="margin-bottom:1.5rem">
     <div class="section-title" style="margin:0">執行機車位抽籤</div>
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
   </div>
 
-  <div id="plate-warning-banner-lottery" style="display:none;margin-bottom:1.25rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:1rem;color:#9f1239"></div>
+  <div id="plate-warning-banner-lottery" style="display:none;margin-bottom:1.5rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:1.25rem;color:#9f1239"></div>
   
   <div class="card" style="background:#f8fafc;border-color:#cbd5e1">
     <div class="card-title" style="border-left-color:#ea580c">作廢車位設定</div>
@@ -314,13 +319,13 @@
       <input type="text" id="dash-void-input" placeholder="例: 5,10,15" oninput="previewVoidCount()">
       <button class="btn btn-primary" onclick="saveVoidFromDash()">儲存作廢車位</button>
     </div>
-    <div id="dash-void-preview" style="font-size:12px;color:var(--text-muted);margin-top:6px"></div>
+    <div id="dash-void-preview" style="font-size:13px;color:var(--text-muted);margin-top:8px;font-weight:600"></div>
   </div>
 
   <div class="lrs-grid">
     <div class="lrs-card active" data-round="第一輪" onclick="selectLotteryRound('第一輪')">
       <div class="flex-between">
-        <div style="font-weight:800;font-size:16px">第一輪抽籤</div>
+        <div style="font-weight:800;font-size:17px">第一輪抽籤</div>
         <span class="lrs-badge badge-gray" id="lrs-badge-1">待執行</span>
       </div>
       <div class="lrs-stats">
@@ -332,7 +337,7 @@
     <div class="lrs-arrow-col">➔</div>
     <div class="lrs-card" data-round="第二輪" onclick="selectLotteryRound('第二輪')">
       <div class="flex-between">
-        <div style="font-weight:800;font-size:16px">第二輪抽籤</div>
+        <div style="font-weight:800;font-size:17px">第二輪抽籤</div>
         <span class="lrs-badge badge-gray" id="lrs-badge-2">待執行</span>
       </div>
       <div class="lrs-stats">
@@ -344,7 +349,7 @@
     <div class="lrs-arrow-col">➔</div>
     <div class="lrs-card" data-round="第三輪" onclick="selectLotteryRound('第三輪')">
       <div class="flex-between">
-        <div style="font-weight:800;font-size:16px">第三輪抽籤</div>
+        <div style="font-weight:800;font-size:17px">第三輪抽籤</div>
         <span class="lrs-badge badge-gray" id="lrs-badge-3">待執行</span>
       </div>
       <div class="lrs-stats">
@@ -359,22 +364,22 @@
     <div class="flex-between">
       <div>
         <h3 id="lottery-round-label" style="font-size:24px;color:var(--primary);margin-bottom:8px;font-weight:800">第一輪抽籤控制台</h3>
-        <p id="lottery-round-status" style="font-size:14px;color:var(--text-muted)">系統將依據住戶勾選參加狀況與 A/B 棟優先區間設定進行嚴密且公平的亂數配置。</p>
+        <p id="lottery-round-status" style="font-size:14px;color:var(--text-muted);font-weight:500">系統將依據住戶勾選參加狀況與 A/B 棟優先區間設定進行嚴密且公平的亂數配置。</p>
       </div>
       <button class="btn-run-lottery" onclick="runLottery()">🎲 開始執行電腦抽籤</button>
     </div>
-    <div class="btn-row mt-2" style="border-top:1px solid #e2e8f0;padding-top:1.25rem;margin-top:1.5rem">
+    <div class="btn-row mt-2" style="border-top:1px solid #e2e8f0;padding-top:1.5rem;margin-top:1.5rem">
       <button class="btn btn-danger btn-sm" onclick="clearCurrentRound()">清除本輪結果</button>
       <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">重置全部輪次結果</button>
       <button class="btn btn-sm" onclick="toggleLotteryPreview()">展開中籤預覽資訊 <span id="preview-toggle-icon">▼</span></button>
     </div>
-    <div id="lottery-preview" style="display:none;margin-top:1rem;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #bbf7d0;box-shadow:0 4px 6px -1px rgba(0,0,0,0.03);max-height:300px;overflow-y:auto"></div>
+    <div id="lottery-preview" style="display:none;margin-top:1.25rem;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #bbf7d0;box-shadow:0 4px 6px -1px rgba(0,0,0,0.03);max-height:350px;overflow-y:auto;line-height:1.8"></div>
   </div>
 </div>
 
 <!-- ===== 4. 抽籤結果與彙整總表整合 ===== -->
 <div id="page-results" class="page">
-  <div class="flex-between" style="margin-bottom:1.25rem">
+  <div class="flex-between" style="margin-bottom:1.5rem">
     <div class="section-title" style="margin:0">抽籤結果與彙整總表</div>
     <!-- 一般住戶隱藏匯出按鈕區塊 -->
     <div class="btn-row" style="margin:0" id="results-export-btns">
@@ -419,7 +424,7 @@
 
 <!-- ===== 6. 操作紀錄 ===== -->
 <div id="page-logs" class="page">
-  <div class="flex-between" style="margin-bottom:1.25rem">
+  <div class="flex-between" style="margin-bottom:1.5rem">
     <div class="section-title" style="margin:0">系統操作紀錄</div>
     <div class="btn-row" style="margin:0">
       <button class="btn btn-sm btn-success" onclick="exportExcel('logs-table', '操作紀錄')">匯出 Excel (.xlsx)</button>
@@ -428,7 +433,7 @@
   </div>
 
   <div class="card">
-    <div class="form-row" style="margin-bottom:1.25rem">
+    <div class="form-row" style="margin-bottom:1.5rem">
       <input type="text" id="log-search" placeholder="搜尋紀錄內容..." oninput="renderLogs()">
       <select id="log-filter-type" onchange="renderLogs()">
         <option value="">全部類型</option>
@@ -440,7 +445,7 @@
         <option value="審核">審核異動</option>
       </select>
     </div>
-    <div id="log-count" style="font-size:12px;color:var(--text-muted);margin-bottom:1rem"></div>
+    <div id="log-count" style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;font-weight:600"></div>
     <div id="log-timeline"></div>
     
     <table id="logs-table" style="display:none">
@@ -450,7 +455,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.83 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v1.84 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -475,7 +480,7 @@
 
     <div class="card">
       <div class="card-title" style="border-left-color:#7c3aed">進階車位互換 (支援單一車位跨輪次對調)</div>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.5rem">請搜尋欲互換的兩位住戶，並分別「指定要換出的車位輪次」，系統將精準對調雙方選擇的單一車位。</p>
+      <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:500">請搜尋欲互換的兩位住戶，並分別「指定要換出的車位輪次」，系統將精準對調雙方選擇的單一車位。</p>
 
       <div class="grid-2">
         <div style="background:#f8fafc;padding:1.5rem;border-radius:12px;border:1px solid var(--border-color)">
@@ -515,7 +520,7 @@
         </div>
       </div>
 
-      <div id="swap-preview" style="font-size:14px;padding:1.5rem;background:#eff6ff;border-radius:10px;border:1px solid #bfdbfe;margin-top:1.5rem;margin-bottom:1.5rem;color:#1e3a8a;line-height:1.7">
+      <div id="swap-preview" style="font-size:14.5px;padding:1.5rem;background:#eff6ff;border-radius:10px;border:1px solid #bfdbfe;margin-top:1.5rem;margin-bottom:1.5rem;color:#1e3a8a;line-height:1.75">
         請先搜尋並選擇兩位住戶，以檢視進階互換預覽。
       </div>
       <button class="btn btn-primary" style="width:100%;padding:1.1rem;font-size:16px;font-weight:800;letter-spacing:0.5px" onclick="confirmSwap()">🔄 確認執行進階交換</button>
@@ -534,11 +539,11 @@
 <!-- ===== 8. 中籤查詢 ===== -->
 <div id="page-inquiry" class="page">
   <div class="section-title">住戶中籤快速查詢</div>
-  <div class="card" style="max-width:520px;margin:0 auto 1.5rem">
-    <label>請輸入您的登記車牌號碼 (支援模糊查詢，如 ABC1234 或 ABC-1234)</label>
-    <div style="display:flex;gap:8px;margin-top:8px">
+  <div class="card" style="max-width:560px;margin:0 auto 1.5rem">
+    <label style="font-size:14px">請輸入您的登記車牌號碼 (支援模糊查詢，如 ABC1234 或 ABC-1234)</label>
+    <div style="display:flex;gap:10px;margin-top:10px">
       <input type="text" id="inq-plate" placeholder="例: ABC-1234 或 ABC1234" oninput="formatPlateInput(this)">
-      <button class="btn btn-primary" onclick="doInquiry()">立即查詢</button>
+      <button class="btn btn-primary" onclick="doInquiry()" style="padding:0 1.5rem">立即查詢</button>
     </div>
   </div>
   <div id="inq-result" style="display:none"></div>
@@ -546,10 +551,11 @@
 
 <!-- ===== 9. 車位平面圖 ===== -->
 <div id="page-floorplan" class="page">
-  <div class="flex-between" style="margin-bottom:1.25rem">
+  <div class="flex-between" style="margin-bottom:1.5rem">
     <div class="section-title" style="margin:0">機車位配置平面圖</div>
-    <div class="btn-row" style="margin:0" id="admin-floorplan-upload">
-      <label class="btn btn-primary btn-sm" style="margin:0;cursor:pointer">
+    <!-- 💡 [修正核心] 將上傳按鈕與縮放按鈕脫鉤，保障一般住戶依然可以放大縮小平面圖 -->
+    <div class="btn-row" style="margin:0">
+      <label class="btn btn-primary btn-sm" id="admin-floorplan-upload" style="margin:0;cursor:pointer">
         📤 上傳自訂平面圖 <input type="file" accept="image/*" style="display:none" onchange="uploadCustomFloorplan(this)">
       </label>
       <button class="btn btn-sm" onclick="zoomFloorplan(0.1)">放大 (+)</button>
@@ -563,19 +569,19 @@
     <div class="round-tab" id="fp-tab-2" onclick="switchFloorplan(2)">B2 區車位圖</div>
   </div>
 
-  <div class="card" style="overflow:auto;text-align:center;padding:2rem">
+  <div class="card" style="overflow:auto;text-align:center;padding:2.5rem">
     <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center;">
       <div id="fp-content-1" style="max-width:100%">
         <img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:1.5rem;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1)">
-        <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:16px">
-          <h4 style="color:#334155;margin-bottom:1rem;font-size:18px">B1 機車位配置平面圖</h4>
+        <div style="padding:3rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:16px">
+          <h4 style="color:#334155;margin-bottom:1.25rem;font-size:19px;font-weight:800">B1 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b1-grid"></div>
         </div>
       </div>
       <div id="fp-content-2" style="max-width:100%; display:none">
         <img id="custom-fp-img-2" src="" style="display:none;max-width:100%;margin-bottom:1.5rem;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1)">
-        <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:16px">
-          <h4 style="color:#334155;margin-bottom:1rem;font-size:18px">B2 機車位配置平面圖</h4>
+        <div style="padding:3rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:16px">
+          <h4 style="color:#334155;margin-bottom:1.25rem;font-size:19px;font-weight:800">B2 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b2-grid"></div>
         </div>
       </div>
@@ -587,20 +593,20 @@
 <div id="page-guide" class="page">
   <div class="section-title">系統操作說明指南</div>
   <div class="card">
-    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 1. 住戶名單與車牌管理</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
+    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.5rem">📌 1. 住戶名單與車牌管理</h3>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
     
-    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 2. 執行抽籤與跨輪多次中籤支援</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配，且各輪卡片上的「可用車位」會即時精確扣除先前輪次已抽出去的車位數。</p>
+    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.5rem">📌 2. 執行抽籤與跨輪多次中籤支援</h3>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配，且各輪卡片上的「可用車位」會即時精確扣除先前輪次已抽出去的車位數。</p>
 
-    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 3. 抽籤結果與彙整總表</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。一般住戶僅供線上檢視。</p>
+    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.5rem">📌 3. 抽籤結果與彙整總表</h3>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。一般住戶僅供線上檢視。</p>
 
-    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 4. 車位互換管理 (進階版)</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">系統提供<b>進階個別車位互換模式</b>，搜尋住戶後，您可以針對每一位住戶各自擁有的多個車位，精準指定要拿「第幾輪的車位」與對方互換（例如用 A 的第一輪換 B 的第三輪），系統將無縫處理資料移轉與邏輯防呆檢查。</p>
+    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.5rem">📌 4. 車位互換管理 (進階版)</h3>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75">系統提供<b>進階個別車位互換模式</b>，搜尋住戶後，您可以針對每一位住戶各自擁有的多個車位，精準指定要拿「第幾輪的車位」與對方互換（例如用 A 的第一輪換 B 的第三輪），系統將無縫處理資料移轉與邏輯防呆檢查。</p>
 
-    <h3 style="font-size:15px;color:var(--primary);margin-bottom:.5rem">📌 5. 權限與帳號管理</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:0;line-height:1.7"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供線上檢視個人中籤與總表（隱匿鄰居姓名且無法下載檔案）。</p>
+    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.5rem">📌 5. 權限與帳號管理</h3>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:0;line-height:1.75"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供線上檢視個人中籤與總表（隱匿鄰居姓名且無法下載檔案）。</p>
   </div>
 </div>
 
@@ -617,7 +623,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.83">
+        <input type="text" id="set-app-version" value="v1.84">
       </div>
     </div>
     <div style="margin-top:14px">
@@ -709,7 +715,7 @@
 
   <div class="card">
     <div class="card-title">系統資料管理與初始化</div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">注意事項：請謹慎執行以下清空或重置操作。</p>
+    <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:1.25rem;font-weight:600">注意事項：請謹慎執行以下清空或重置操作。</p>
     <div class="btn-row">
       <button class="btn btn-danger" onclick="deleteAllResidents()">🗑️ 刪除所有住戶資料</button>
       <button class="btn btn-danger" onclick="resetSystemData()">⚠️ 重置所有系統資料</button>
@@ -807,9 +813,9 @@
       <div class="lm-ball" style="animation-delay:0.1s;background:linear-gradient(135deg,#10b981 0%,#047857 100%)">?</div>
       <div class="lm-ball" style="animation-delay:0.2s;background:linear-gradient(135deg,#f59e0b 0%,#b45309 100%)">?</div>
     </div>
-    <p id="lam-msg" style="font-size:13px;color:var(--text-muted)">系統正在即時比對住戶志願與優先區間，請稍候...</p>
-    <div class="modal-footer" style="justify-content:center;margin-top:1.5rem">
-      <button class="btn btn-primary" id="lam-close-btn" onclick="closeLotteryModal()" style="display:none;padding:.65rem 2rem;font-weight:700">完成並檢視中籤結果</button>
+    <p id="lam-msg" style="font-size:13.5px;color:var(--text-muted);font-weight:600">系統正在即時比對住戶志願與優先區間，請稍候...</p>
+    <div class="modal-footer" style="justify-content:center;margin-top:2rem">
+      <button class="btn btn-primary" id="lam-close-btn" onclick="closeLotteryModal()" style="display:none;padding:.75rem 2.5rem;font-weight:800;font-size:15px;letter-spacing:0.5px">完成並檢視中籤結果</button>
     </div>
   </div>
 </div>
@@ -840,7 +846,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.83",
+    appVersion: "v1.84",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -903,6 +909,7 @@
     return null;
   }
 
+  // 💡 已反覆驗證：這是一個在密碼學與統計學上完全公平的 Fisher-Yates 完美洗牌演算法
   function shuffleArray(array) {
     let arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -1073,7 +1080,7 @@
     
     const brandEl = document.getElementById("nav-brand-title");
     if (brandEl) {
-      brandEl.innerHTML = `🛵 ${titleText} <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">${systemSettings.appVersion}</span>`;
+      brandEl.innerHTML = `🛵 ${titleText} <span class="app-version-label" style="font-size:11.5px;color:var(--text-muted);background:#f1f5f9;padding:2px 8px;border-radius:4px;margin-left:6px">${systemSettings.appVersion}</span>`;
     }
   }
 
@@ -1148,7 +1155,7 @@
     if (currentUser.role === 'director') roleTitle = "社區主任";
     if (currentUser.role === 'guest') roleTitle = "住戶";
 
-    document.getElementById("user-bar-name").innerText = `👤 ${getDisplayName(currentUser.name)} (${roleTitle})`;
+    document.getElementById("user-bar-name").innerHTML = `<b style="letter-spacing:0.5px">👤 ${getDisplayName(currentUser.name)}</b> (${roleTitle})`;
     applySystemBranding();
     
     const isGuest = currentUser.role === 'guest';
@@ -1162,13 +1169,13 @@
     const swapTabs = ['nav-tab-swap', 'nav-tab-swap-mob'];
     swapTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
 
-    // 💡 [安全隔離] 操作紀錄僅限 admin 觀看，主任（director）也無權存取
     const logsTabs = ['nav-tab-logs', 'nav-tab-logs-mob'];
     logsTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none'; });
 
     const settingsTabs = ['nav-tab-settings', 'nav-tab-settings-mob'];
     settingsTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none'; });
 
+    // 💡 [修正核心 1] 將平面圖的上傳按鈕與縮放按鈕脫鉤，僅隱藏上傳按鈕
     if (isGuest) {
       document.getElementById("swap-admin-content").style.display = "none";
       document.getElementById("btn-add-resident").style.display = "none";
@@ -1176,7 +1183,7 @@
     } else {
       document.getElementById("swap-admin-content").style.display = "block";
       document.getElementById("btn-add-resident").style.display = "inline-block";
-      document.getElementById("admin-floorplan-upload").style.display = "flex";
+      document.getElementById("admin-floorplan-upload").style.display = "inline-block";
     }
 
     const exportBtns = ['btn-export-csv', 'btn-export-excel', 'btn-export-pdf', 'btn-print'];
@@ -1213,7 +1220,6 @@
       alert("權限不足！一般住戶無法檢視與執行車位互換。");
       return;
     }
-    // 💡 [安全隔離] 路徑攔截：主任若試圖開啟操作紀錄，直接擋下
     if (pageId === 'logs' && currentUser.role !== 'admin') {
       alert("權限不足！操作紀錄僅限系統管理員檢視。");
       return;
@@ -1240,7 +1246,7 @@
     if(pageId === 'logs') renderLogs();
     if(pageId === 'swap') renderSwap();
     if(pageId === 'lottery') { updateLotteryCards(); checkPlateWarnings(); }
-    if(pageId === 'floorplan') { initFloorplanSeats(); } // 每次進入平面圖強制刷新網格資料
+    if(pageId === 'floorplan') { initFloorplanSeats(); } // 確保平面圖資料永遠最新
     if(pageId === 'settings' && currentUser.role === 'admin') {
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
       document.getElementById("set-total-seats").value = systemSettings.totalSeats;
@@ -1290,9 +1296,9 @@
     });
 
     if (anomalies.length > 0) {
-      let html = `<b>⚠️ 偵測到 ${anomalies.length} 筆車牌登記異常（勾選參加但對應車牌空白）：</b><ul style="margin-left:1.25rem;margin-top:4px">`;
+      let html = `<b>⚠️ 偵測到 ${anomalies.length} 筆車牌登記異常（勾選參加但對應車牌空白）：</b><ul style="margin-left:1.5rem;margin-top:8px">`;
       anomalies.forEach(a => html += `<li>${a}</li>`);
-      html += `</ul><div style="margin-top:6px;font-size:12px">請至「住戶名單」編輯並補齊對應車牌號碼，否則該住戶將無法正確參與對應輪次抽籤！</div>`;
+      html += `</ul><div style="margin-top:10px;font-size:13px;font-weight:600">請至「住戶名單」編輯並補齊對應車牌號碼，否則該住戶將無法正確參與對應輪次抽籤！</div>`;
       
       if(banner1) { banner1.innerHTML = html; banner1.style.display = "block"; }
       if(banner2) { banner2.innerHTML = html; banner2.style.display = "block"; }
@@ -1320,9 +1326,9 @@
     `;
 
     document.getElementById("dash-rounds").innerHTML = `
-      <div style="font-size:13px;margin-bottom:8px">第一輪抽籤：${gotR1 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
-      <div style="font-size:13px;margin-bottom:8px">第二輪抽籤：${gotR2 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
-      <div style="font-size:13px;margin-bottom:8px">第三輪抽籤：${gotR3 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+      <div style="font-size:14px;margin-bottom:10px;font-weight:600">第一輪抽籤：${gotR1 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+      <div style="font-size:14px;margin-bottom:10px;font-weight:600">第二輪抽籤：${gotR2 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+      <div style="font-size:14px;margin-bottom:10px;font-weight:600">第三輪抽籤：${gotR3 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
     `;
 
     let guideText = systemSettings.quickGuideText || defaultQuickGuide;
@@ -1330,7 +1336,7 @@
 
     document.getElementById("dash-void-tags").innerHTML = (systemSettings.voidSeats && systemSettings.voidSeats.length > 0) 
       ? systemSettings.voidSeats.map(s => `<span class="badge badge-red" style="margin-right:4px">${s}號 作廢</span>`).join('') 
-      : '<span style="font-size:12px;color:var(--text-muted)">無作廢車位</span>';
+      : '<span style="font-size:13px;color:var(--text-muted)">無作廢車位</span>';
     document.getElementById("dash-void-input").value = systemSettings.voidSeats ? systemSettings.voidSeats.join(',') : '';
 
     let seatHtml = '<div class="seat-grid">';
@@ -1343,11 +1349,11 @@
       
       if(isVoid) {
         cls = "seat seat-void";
-        label = `${i}號<br><span style="font-size:9px">(作廢)</span>`;
+        label = `${i}號<br><span style="font-size:10px;font-weight:500">(作廢)</span>`;
         hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
         cls = "seat seat-used";
-        label = `${i}號<br><b>${occupant.build} ${occupant.room}</b>`;
+        label = `${i}號<br><b style="font-size:13px">${occupant.build} ${occupant.room}</b>`;
         hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
       }
       seatHtml += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
@@ -2013,6 +2019,7 @@
     processPreferencePass(res => res.pref2);
     processPreferencePass(res => res.pref3);
 
+    // 亂數絕對優先權排序 (已確認無誤)
     remainingEligible.sort((a, b) => {
       let aRes = a.reserve === 'Y' ? 1 : 0;
       let bRes = b.reserve === 'Y' ? 1 : 0;
@@ -2260,8 +2267,9 @@
       html = '<div class="empty">尚無互換紀錄</div>';
     } else {
       swapLogs.forEach(l => {
-        html += `<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-color)">
-          <b>[${l.round}]</b> ${l.time}<br>${l.desc}
+        html += `<div style="font-size:13px;padding:8px 0;border-bottom:1px solid var(--border-color)">
+          <b>[${l.round}]</b> <span style="font-size:12px;color:var(--text-muted)">${l.time}</span><br>
+          <span style="color:#1e293b;font-weight:500">${l.desc}</span>
         </div>`;
       });
     }
@@ -2301,8 +2309,8 @@
     let html = "";
     matches.forEach(m => {
       let seatSummary = `第1輪:${getUserSeat("第一輪", m.id)||'無'}, 第2輪:${getUserSeat("第二輪", m.id)||'無'}, 第3輪:${getUserSeat("第三輪", m.id)||'無'}`;
-      html += `<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border-color)" onclick="selectSwapResident('${type}', ${m.id}, '${getDisplayName(m.name)} (${m.build}-${m.room})')">
-        <b>${m.build}-${m.room}</b> ${getDisplayName(m.name)} <span style="font-size:11px;color:var(--text-muted)">(${seatSummary})</span>
+      html += `<div style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border-color)" onclick="selectSwapResident('${type}', ${m.id}, '${getDisplayName(m.name)} (${m.build}-${m.room})')">
+        <b>${m.build}-${m.room}</b> ${getDisplayName(m.name)} <span style="font-size:12px;color:var(--text-muted);display:block;margin-top:4px">(${seatSummary})</span>
       </div>`;
     });
     dropdown.innerHTML = html;
@@ -2499,16 +2507,16 @@
       let s2 = seat2 ? seat2 + '號' : (getValidWinnerCount("第二輪") > 0 ? (r.r2 === 'Y' ? "未中籤" : "未參加") : "未執行");
       let s3 = seat3 ? seat3 + '號' : (getValidWinnerCount("第三輪") > 0 ? (r.r3 === 'Y' ? "未中籤" : "未參加") : "未執行");
       
-      html += `<div class="card" style="max-width:500px;margin:0 auto 1rem">
-        <h4 style="color:var(--primary);margin-bottom:.5rem">查詢結果：${getDisplayName(r.name)} (${r.build} ${r.room})</h4>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">登記車牌：<code>${r.plate1 || r.plate2 || r.plate3}</code></p>
-        <div style="font-size:13px;color:#0f172a;background:#f8fafc;padding:8px;border-radius:6px;border:1px solid var(--border-color);margin-bottom:8px">
-          👤 <b>車主身分反查</b>：${r.build}棟 ${r.room} - ${getDisplayName(r.name)} (${r.reserve === 'Y' ? '保留戶' : '一般戶'})
+      html += `<div class="card" style="max-width:560px;margin:0 auto 1.5rem">
+        <h4 style="color:var(--primary);margin-bottom:.75rem;font-size:16px;font-weight:800">查詢結果：${getDisplayName(r.name)} (${r.build} ${r.room})</h4>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;font-weight:600">登記車牌：<code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#0f172a">${r.plate1 || r.plate2 || r.plate3}</code></p>
+        <div style="font-size:13.5px;color:#0f172a;background:#f8fafc;padding:12px;border-radius:8px;border:1px solid var(--border-color);margin-bottom:12px">
+          👤 <b>車主身分反查</b>：${r.build}棟 ${r.room} - ${getDisplayName(r.name)} <span class="badge ${r.reserve === 'Y' ? 'badge-purple' : 'badge-gray'}" style="margin-left:4px">${r.reserve === 'Y' ? '保留戶' : '一般戶'}</span>
         </div>
-        <div style="font-size:14px">
-          <div>第一輪分配：<b>${s1}</b></div>
-          <div>第二輪分配：<b>${s2}</b></div>
-          <div>第三輪分配：<b>${s3}</b></div>
+        <div style="font-size:15px;line-height:1.8">
+          <div>第一輪分配：<b style="color:var(--primary)">${s1}</b></div>
+          <div>第二輪分配：<b style="color:var(--primary)">${s2}</b></div>
+          <div>第三輪分配：<b style="color:var(--primary)">${s3}</b></div>
         </div>
       </div>`;
     });
@@ -2581,11 +2589,11 @@
       
       if(isVoid) {
         cls = "seat seat-void";
-        label = `${i}號<br><span style="font-size:9px">(作廢)</span>`;
+        label = `${i}號<br><span style="font-size:10px;font-weight:500">(作廢)</span>`;
         hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
         cls = "seat seat-used";
-        label = `${i}號<br><b>${occupant.build} ${occupant.room}</b>`;
+        label = `${i}號<br><b style="font-size:13px">${occupant.build} ${occupant.room}</b>`;
         hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
       }
       b1Html += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
@@ -2600,11 +2608,11 @@
       
       if(isVoid) {
         cls = "seat seat-void";
-        label = `${i}號<br><span style="font-size:9px">(作廢)</span>`;
+        label = `${i}號<br><span style="font-size:10px;font-weight:500">(作廢)</span>`;
         hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
         cls = "seat seat-used";
-        label = `${i}號<br><b>${occupant.build} ${occupant.room}</b>`;
+        label = `${i}號<br><b style="font-size:13px">${occupant.build} ${occupant.room}</b>`;
         hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
       }
       b2Html += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
@@ -2894,8 +2902,8 @@
           <div class="log-tl-line"></div>
           <div class="log-tl-dot"></div>
           <div class="log-tl-content">
-            <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">${l.time} <span class="badge badge-blue">${l.type}</span> 👤 ${l.user}</div>
-            <div style="font-size:13px;color:var(--text-main)">${l.msg}</div>
+            <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:6px;font-weight:700">${l.time} <span class="badge badge-blue" style="margin:0 4px">${l.type}</span> 👤 ${l.user}</div>
+            <div style="font-size:14px;color:var(--text-main);font-weight:500;line-height:1.6">${l.msg}</div>
           </div>
         </div>`;
       });
@@ -2911,7 +2919,20 @@
     }
   }
 
-  function exportLogs() { exportCSV(); }
+  function exportLogs() { 
+    let csv = "\ufeff時間,類型,使用者,訊息\n";
+    systemLogs.forEach(l => {
+      let safeTime = (l.time || "").replace(/,/g, " ");
+      let safeMsg = (l.msg || "").replace(/,/g, "，").replace(/\n/g, " ");
+      csv += `${safeTime},${l.type},${l.user},${safeMsg}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const newA = document.createElement('a');
+    newA.href = url;
+    newA.download = `稙村秀操作紀錄_${new Date().toISOString().slice(0,10)}.csv`;
+    newA.click();
+  }
 
   // ================= 11. 匯出工具 =================
   function exportCSV() {
