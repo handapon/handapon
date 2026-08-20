@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.81</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.82</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -116,7 +116,7 @@
   .lrs-card{border:2px solid var(--border-color);border-radius:16px;padding:1.5rem;cursor:pointer;transition:all .25s ease;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.03);position:relative;overflow:hidden}
   .lrs-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.06);border-color:#93c5fd}
   .lrs-card.active{border-color:var(--primary);box-shadow:0 12px 24px -6px rgba(37,99,235,0.22);background:linear-gradient(180deg,#ffffff 0%,#eff6ff 100%)}
-  .lrs-card.active::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--primary)}
+  .lrs-card.active::before{content:"absolute;top:0;left:0;right:0;height:4px;background:var(--primary)}
   .lrs-arrow-col{display:flex;align-items:center;justify-content:center;font-size:22px;color:#94a3b8;font-weight:bold}
   .lrs-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:1.25rem;text-align:center;background:rgba(255,255,255,0.85);padding:10px;border-radius:12px;border:1px solid #e2e8f0;backdrop-filter:blur(4px)}
   .lrs-stat-val{font-size:20px;font-weight:800;color:var(--text-main);display:block}
@@ -172,7 +172,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.81</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:10px;color:var(--text-muted);background:#f1f5f9;padding:2px 6px;border-radius:4px">v1.82</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -444,7 +444,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.81 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v1.82 權限完全隔離版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -467,11 +467,13 @@
       </div>
     </div>
 
+    <!-- 進階跨輪互換介面 -->
     <div class="card">
       <div class="card-title" style="border-left-color:#7c3aed">進階車位互換 (支援單一車位跨輪次對調)</div>
       <p style="font-size:12px;color:var(--text-muted);margin-bottom:1.5rem">請搜尋欲互換的兩位住戶，並分別「指定要換出的車位輪次」，系統將精準對調雙方選擇的單一車位。</p>
 
       <div class="grid-2">
+        <!-- 住戶 A -->
         <div style="background:#f8fafc;padding:1.25rem;border-radius:10px;border:1px solid var(--border-color)">
           <div style="position:relative;margin-bottom:12px">
             <label>住戶 A</label>
@@ -481,6 +483,7 @@
               <button class="btn btn-sm" onclick="clearSwapInput('A')" title="清除">清除</button>
             </div>
             <div id="swap-a-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--border-color);border-radius:8px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);z-index:10;max-height:200px;overflow-y:auto"></div>
+            
             <div id="swap-a-info" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed #cbd5e1">
               <span id="swap-a-detail" style="font-size:13px;font-weight:700;color:var(--primary)"></span>
               <label style="margin-top:10px;color:#334155">請選擇住戶 A 欲換出的車位：</label>
@@ -489,6 +492,7 @@
           </div>
         </div>
 
+        <!-- 住戶 B -->
         <div style="background:#f8fafc;padding:1.25rem;border-radius:10px;border:1px solid var(--border-color)">
           <div style="position:relative;margin-bottom:12px">
             <label>住戶 B</label>
@@ -498,6 +502,7 @@
               <button class="btn btn-sm" onclick="clearSwapInput('B')" title="清除">清除</button>
             </div>
             <div id="swap-b-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--border-color);border-radius:8px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);z-index:10;max-height:200px;overflow-y:auto"></div>
+            
             <div id="swap-b-info" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed #cbd5e1">
               <span id="swap-b-detail" style="font-size:13px;font-weight:700;color:#16a34a"></span>
               <label style="margin-top:10px;color:#334155">請選擇住戶 B 欲換出的車位：</label>
@@ -556,7 +561,7 @@
   </div>
 
   <div class="card" style="overflow:auto;text-align:center;padding:1.5rem">
-    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center;">
+    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top left;">
       <div id="fp-content-1" style="max-width:100%">
         <img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:1rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
         <div style="padding:2.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:12px">
@@ -609,7 +614,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.81">
+        <input type="text" id="set-app-version" value="v1.82">
       </div>
     </div>
     <div style="margin-top:12px">
@@ -817,7 +822,7 @@
     { name: "逄錦麟", username: "director2", password: "1234", role: "director" }
   ];
 
-  const defaultQuickGuide = "歡迎使用稙村秀社區機車位電腦抽籤系統。\n\n【電腦亂數抽籤邏輯說明】\n1. 保留戶絕對優先：若保留戶未能於志願階段中籤，系統將於亂數配置階段賦予其「第一順位優先配置權」，確保百分之百有車位。\n2. 棟別區間優先：同等身分下，A/B 棟住戶將優先取得 A/B 棟專屬優先區間（預設 19~56 號）。\n3. 多車位獨立分發：每位住戶可依據登記車牌數量，獨立參與第一、二、三輪抽籤。\n4. 嚴密防衝突：系統於各輪次皆會自動扣除「前輪已分配」與「管理員作廢」之車位，絕對不會發生一車位多配。\n\n本系統具備嚴格的防衝突保護與防呆機制，可安心執行各項配置與車位互換作業。";
+  const defaultQuickGuide = "歡迎使用稙村秀社區機車位電腦抽籤系統。\n\n【電腦亂數抽籤邏輯說明】\n1. 絕對公平的亂數引擎：本系統採用密碼學與統計學標準的「Fisher-Yates 洗牌演算法」，在數學上確保每位住戶抽中任一空車位的機率皆絕對均等，徹底排除傳統簡單亂數可能產生的機率偏誤。\n2. 棟別區間優先：為便利住戶停放，系統具備智慧就近派位機制，A/B 棟住戶將優先取得靠近 A/B 棟的車位區間（預設為 19~56 號）。\n3. 多車位獨立分發：每位住戶可依據登記的車牌數量，獨立參與第一、二、三輪抽籤。系統以「保障一戶至少取得一個車位」為首要原則（不參與抽籤者除外），再依序進行後續輪次分配。\n4. 嚴密防衝突機制：系統於各輪次執行時，皆會自動全域掃描並扣除「前輪已分配出去」與「管理員設定作廢」之車位，絕對不會發生「一車位多配」的重複佔用情形。";
 
   let pendingAudits = [];
   let currentRound = "第一輪";
@@ -832,7 +837,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.81",
+    appVersion: "v1.82",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1151,7 +1156,10 @@
     const lotTabs = ['nav-tab-lottery', 'nav-tab-lottery-mob'];
     lotTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
 
-    // 💡 嚴格限制：操作紀錄僅限管理員檢視 (主任與訪客皆隱藏)
+    // 💡 [修正核心 1] 徹底拔除一般住戶檢視「車位互換」的權限按鈕
+    const swapTabs = ['nav-tab-swap', 'nav-tab-swap-mob'];
+    swapTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
+
     const logsTabs = ['nav-tab-logs', 'nav-tab-logs-mob'];
     logsTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none'; });
 
@@ -1159,12 +1167,10 @@
     settingsTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none'; });
 
     if (isGuest) {
-      document.getElementById("swap-no-admin").style.display = "block";
       document.getElementById("swap-admin-content").style.display = "none";
       document.getElementById("btn-add-resident").style.display = "none";
       document.getElementById("admin-floorplan-upload").style.display = "none";
     } else {
-      document.getElementById("swap-no-admin").style.display = "none";
       document.getElementById("swap-admin-content").style.display = "block";
       document.getElementById("btn-add-resident").style.display = "inline-block";
       document.getElementById("admin-floorplan-upload").style.display = "flex";
@@ -1200,6 +1206,11 @@
       alert("權限不足！一般住戶無法執行抽籤。");
       return;
     }
+    // 💡 [修正核心 1] 在底層攔截一般住戶存取車位互換頁面
+    if (pageId === 'swap' && currentUser.role === 'guest') {
+      alert("權限不足！一般住戶無法檢視與執行車位互換。");
+      return;
+    }
     if (pageId === 'logs' && currentUser.role !== 'admin') {
       alert("權限不足！操作紀錄僅限系統管理員檢視。");
       return;
@@ -1226,7 +1237,6 @@
     if(pageId === 'logs') renderLogs();
     if(pageId === 'swap') renderSwap();
     if(pageId === 'lottery') { updateLotteryCards(); checkPlateWarnings(); }
-    // 💡 確保每次切換到平面圖時都會重新繪製最新資料
     if(pageId === 'floorplan') { initFloorplanSeats(); }
     if(pageId === 'settings' && currentUser.role === 'admin') {
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
@@ -1312,7 +1322,6 @@
       <div style="font-size:13px;margin-bottom:8px">第三輪抽籤：${gotR3 > 0 ? '<span class="badge badge-green">已完成</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
     `;
 
-    // 💡 匯入並顯示可編輯的系統快速導覽
     let guideText = systemSettings.quickGuideText || defaultQuickGuide;
     document.getElementById("dash-quick-guide").innerHTML = guideText.replace(/\n/g, '<br>');
 
@@ -1327,14 +1336,18 @@
       let occupant = getSeatOccupant(i);
       let cls = "seat seat-free";
       let label = `${i}號`;
+      let hoverTitle = `車位 ${i}號 (空位)`;
+      
       if(isVoid) {
         cls = "seat seat-void";
         label = `${i}號<br><span style="font-size:9px">(作廢)</span>`;
+        hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
         cls = "seat seat-used";
         label = `${i}號<br><b>${occupant.build} ${occupant.room}</b>`;
+        hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
       }
-      seatHtml += `<div class="${cls}" title="車位 ${i}號">${label}</div>`;
+      seatHtml += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
     }
     seatHtml += '</div>';
     document.getElementById("dash-seatmap").innerHTML = seatHtml;
@@ -2894,8 +2907,6 @@
       renderLogs();
     }
   }
-
-  function exportLogs() { exportCSV(); }
 
   // ================= 11. 匯出工具 =================
   function exportCSV() {
