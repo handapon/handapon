@@ -920,6 +920,9 @@
   let bgCarouselTimer = null; 
   let cloudSyncReady = false; // 💡 新增：是否已成功從雲端完整下載過一次資料
   let autoSyncTimer = null; // 💡 新增：背景自動同步計時器
+  let lastKnownServerModified = 0; // 💡 新增：目前已知的雲端資料版本時間戳，用於推送前的衝突偵測
+  let lastKnownServerModifiedBy = ""; // 💡 新增：目前已知最後一次寫入雲端資料的操作者
+  let lastLocalPullTime = null; // 💡 新增：本裝置最後一次成功從雲端拉取資料的時間
 
   let systemSettings = {
     appTitle: "稙村秀社區機車位電腦抽籤系統",
@@ -1020,6 +1023,36 @@
       return false;
     }
 
+    // 💡💡 重要架構修正（衝突偵測）：這是先前反覆回報「舊資料覆蓋新結果」的真正根本原因 ——
+    // 本系統過去的寫入方式是「整包覆蓋」，完全沒有版本檢查。只要任何一個「不知情」的舊分頁／
+    // 舊裝置／背景中還開著的登入階段（例如另一位主任的裝置、或很早之前就打開沒關的分頁），
+    // 在別人剛跑完新一輪抽籤「之後」做了任何寫入動作（哪怕只是切換一個小勾選），就會用它記憶體
+    // 裡舊的資料整包覆蓋掉雲端剛寫入的新結果 —— 這與登入/登出的時機、或分頁有沒有背景休眠完全無關，
+    // 純粹是因為「寫入前沒有檢查雲端資料是否已經被別人更新過」。
+    // 修正方式：每次真正寫入前，先輕量檢查一次雲端目前的資料版本時間戳，
+    // 如果雲端版本比這個工作階段「上次已知」的版本還新，代表別人已經寫入過更新的資料，
+    // 此時直接中止這次寫入（絕不覆蓋！），改為自動同步最新資料，並清楚告知使用者發生了什麼事。
+    try {
+      const checkRes = await fetch(`${FIREBASE_DB_URL}parkingData/_meta/lastModified.json?_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      });
+      if (checkRes.ok) {
+        const serverModified = await checkRes.json();
+        if (serverModified && Number(serverModified) > lastKnownServerModified) {
+          console.warn(`偵測到雲端資料版本衝突（雲端:${serverModified} > 本機已知:${lastKnownServerModified}），已取消本次寫入以避免覆蓋他人更新的資料，改為自動同步最新資料。`);
+          await cloudSyncPull();
+          updateSyncStatusUI(false, "偵測到他人已更新，已同步最新");
+          alert("⚠️ 偵測到雲端資料已被其他裝置或使用者更新過（可能是另一個分頁、另一位管理員/主任，或您自己稍早開著的舊分頁）。\n\n為了避免覆蓋掉別人剛寫入的最新資料，這次的變更已「取消寫入」，畫面已自動更新為雲端目前最新的內容。\n\n請確認畫面上的資料，如果您的變更仍需要，請重新操作一次。");
+          return false;
+        }
+      }
+    } catch (e) {
+      // 這個輕量版本檢查若本身失敗（例如離線），不因此完全卡住整個寫入流程，仍嘗試正常寫入，
+      // 寫入本身若也失敗，會在下方 catch 區塊統一處理。
+      console.warn("推送前的雲端版本檢查失敗，仍繼續嘗試寫入：", e);
+    }
+
     let formattedResults = {};
     for (let r in lotteryResults) {
       formattedResults[r] = {};
@@ -1034,6 +1067,7 @@
       }
     }
 
+    const newModifiedTs = Date.now();
     const payload = {
       residents,
       lotteryResults: formattedResults,
@@ -1041,7 +1075,8 @@
       accountsList,
       pendingAudits,
       swapLogs,
-      systemLogs
+      systemLogs,
+      _meta: { lastModified: newModifiedTs, lastModifiedBy: (currentUser && currentUser.name) || "" }
     };
 
     try {
@@ -1051,6 +1086,8 @@
         body: JSON.stringify(payload)
       });
       if (!pushRes.ok) throw new Error("HTTP " + pushRes.status);
+      lastKnownServerModified = newModifiedTs; // 💡 寫入成功後，更新本機記住的最新版本時間戳
+      lastKnownServerModifiedBy = (currentUser && currentUser.name) || "";
       updateSyncStatusUI(true, "雲端已同步");
       return true;
     } catch (e) {
@@ -1119,6 +1156,9 @@
           pendingAudits = data.pendingAudits || [];
           swapLogs = data.swapLogs || [];
           systemLogs = data.systemLogs || [];
+          // 💡 記錄這次拉取到的雲端資料版本時間戳，供之後推送時比對是否有版本衝突
+          lastKnownServerModified = (data._meta && data._meta.lastModified) ? Number(data._meta.lastModified) : 0;
+          lastKnownServerModifiedBy = (data._meta && data._meta.lastModifiedBy) ? data._meta.lastModifiedBy : "";
         } else {
           // 雲端「確實回應」資料庫是空的（非連線失敗），才清空本機資料
           residents = [];
@@ -1126,11 +1166,14 @@
           swapLogs = [];
           systemLogs = [];
           pendingAudits = [];
+          lastKnownServerModified = 0;
+          lastKnownServerModifiedBy = "";
         }
 
         // 💡 只有真正成功取得雲端回應，才允許之後的寫入(cloudSyncPush)動作，
         // 避免連線失敗導致本機資料是空的，卻反過來覆蓋雲端造成資料遺失。
         cloudSyncReady = true;
+        lastLocalPullTime = new Date();
         updateSyncStatusUI(true, "雲端已同步");
         return true;
       } catch (e) {
@@ -1632,10 +1675,17 @@
       <div class="stat"><div class="stat-label">第三輪已中籤</div><div class="stat-value orange">${gotR3}</div></div>
     `;
 
+    let lastModText = "尚無紀錄";
+    if (lastKnownServerModified > 0) {
+      const dt = new Date(lastKnownServerModified);
+      lastModText = `${dt.toLocaleString('zh-TW')}${lastKnownServerModifiedBy ? '（由 ' + getDisplayName(lastKnownServerModifiedBy) + ' 更新）' : ''}`;
+    }
     document.getElementById("dash-rounds").innerHTML = `
       <div style="font-size:15px;margin-bottom:14px;font-weight:800">第一輪抽籤進度：${gotR1 > 0 ? '<span class="badge badge-green">已完成分配</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
       <div style="font-size:15px;margin-bottom:14px;font-weight:800">第二輪抽籤進度：${gotR2 > 0 ? '<span class="badge badge-green">已完成分配</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
       <div style="font-size:15px;margin-bottom:14px;font-weight:800">第三輪抽籤進度：${gotR3 > 0 ? '<span class="badge badge-green">已完成分配</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+      <div style="font-size:13px;color:var(--text-muted);font-weight:700;margin-top:8px;padding-top:12px;border-top:1px dashed #cbd5e1">📌 雲端資料最後更新：${lastModText}</div>
+      <div style="font-size:13px;color:var(--text-muted);font-weight:700;margin-top:4px">📌 本裝置最後同步時間：${lastLocalPullTime ? lastLocalPullTime.toLocaleTimeString('zh-TW') : '尚未同步'}</div>
     `;
 
     let guideText = systemSettings.quickGuideText || defaultQuickGuide;
