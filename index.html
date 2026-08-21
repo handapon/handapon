@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.00</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.01</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -200,7 +200,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.00</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.01</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -503,7 +503,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.00 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.01 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -700,7 +700,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.00">
+        <input type="text" id="set-app-version" value="v2.01">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -933,6 +933,7 @@
   let lastKnownServerModifiedBy = ""; // 💡 新增：目前已知最後一次寫入雲端資料的操作者
   let lastLocalPullTime = null; // 💡 新增：本裝置最後一次成功從雲端拉取資料的時間
   let pendingPushCount = 0; // 💡 新增：目前正在進行中的雲端寫入數量（不論由哪個函式觸發），供登出等流程等待所有寫入真正完成
+  let pendingMediaMigration = false; // 💡 新增：是否偵測到需要把舊格式的圖片/PDF資料搬移到新的獨立路徑
 
   async function waitForPendingPushes(maxWaitMs = 8000) {
     // 💡 等待「所有」還在進行中的雲端寫入完成（不只是自己剛觸發的那一次），
@@ -952,7 +953,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.00",
+    appVersion: "v2.01",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1084,11 +1085,23 @@
         }
       }
 
+      // 💡💡 重要修正：把體積可能高達數MB的圖片/PDF（登入背景圖、平面圖、操作手冊）
+      // 從「例行同步」payload 中完全排除，避免每次執行抽籤、編輯住戶這類小操作，
+      // 都要重新整包傳送這些大型檔案，導致寫入時間大幅拉長、在網路較慢/不穩時更容易逾時失敗
+      // ——這極可能是先前「明明測試小資料寫入正常，但正式抽籤資料卻寫不進去」的真正原因。
+      // 這些大型檔案改成只有在真正上傳/刪除時，才透過 cloudSyncPushMedia() 單獨同步到另一個路徑。
+      const systemSettingsCore = { ...systemSettings };
+      delete systemSettingsCore.loginBgs;
+      delete systemSettingsCore.customFp1;
+      delete systemSettingsCore.customFp2;
+      delete systemSettingsCore.directorManualPdf;
+      delete systemSettingsCore.residentManualPdf;
+
       const newModifiedTs = Date.now();
       const payload = {
         residents,
         lotteryResults: formattedResults,
-        systemSettings,
+        systemSettings: systemSettingsCore,
         accountsList,
         pendingAudits,
         swapLogs,
@@ -1096,8 +1109,10 @@
         _meta: { lastModified: newModifiedTs, lastModifiedBy: (currentUser && currentUser.name) || "" }
       };
 
+      // 💡 改用 PATCH（而非 PUT）：只更新上面列出的這幾個欄位，完全不會動到
+      // 另外存放在 parkingData/media 的大型檔案，兩者互不影響、互不拖累。
       const pushRes = await fetch(`${FIREBASE_DB_URL}parkingData.json`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
@@ -1109,6 +1124,47 @@
     } catch (e) {
       console.error("雲端資料同步失敗：", e);
       updateSyncStatusUI(false, "同步失敗");
+      return false;
+    } finally {
+      pendingPushCount--;
+    }
+  }
+
+  async function cloudSyncPushMedia() {
+    // 💡 專門用來同步大型檔案（登入背景圖、平面圖、操作手冊PDF）的獨立函式，
+    // 只在真正上傳/刪除這些檔案時才會被呼叫，不會影響一般資料（例如抽籤結果）的同步速度。
+    if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
+      updateSyncStatusUI(false, "僅本機");
+      return false;
+    }
+    if (!cloudSyncReady) {
+      updateSyncStatusUI(false, "同步中，寫入已暫緩");
+      return false;
+    }
+    if (currentUser && currentUser.role === 'guest') {
+      return false;
+    }
+
+    pendingPushCount++;
+    try {
+      const mediaPayload = {
+        loginBgs: systemSettings.loginBgs || [],
+        customFp1: systemSettings.customFp1 || "",
+        customFp2: systemSettings.customFp2 || "",
+        directorManualPdf: systemSettings.directorManualPdf || "",
+        residentManualPdf: systemSettings.residentManualPdf || ""
+      };
+      const pushRes = await fetch(`${FIREBASE_DB_URL}parkingData/media.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(mediaPayload)
+      });
+      if (!pushRes.ok) throw new Error("HTTP " + pushRes.status);
+      updateSyncStatusUI(true, "雲端已同步");
+      return true;
+    } catch (e) {
+      console.error("大型檔案（圖片/PDF）同步失敗：", e);
+      updateSyncStatusUI(false, "檔案同步失敗");
       return false;
     } finally {
       pendingPushCount--;
@@ -1163,12 +1219,36 @@
             systemSettings.appVersion = codeVer;
             if (!systemSettings.b1Limit) systemSettings.b1Limit = Math.floor(systemSettings.totalSeats / 2);
             if (!systemSettings.quickGuideText) systemSettings.quickGuideText = defaultQuickGuide;
+          }
+          // 💡 大型檔案（登入背景圖、平面圖、操作手冊PDF）現在存放於獨立的 parkingData/media 節點，
+          // 拉取後需要合併回 systemSettings，讓既有的顯示/上傳邏輯不用修改就能繼續使用。
+          // 若雲端還沒有 media 節點（例如尚未有人用新版本上傳過任何檔案），
+          // 則相容退回讀取舊版直接存在 systemSettings 裡的資料，確保不會遺失既有已上傳的檔案。
+          if (data.media) {
+            systemSettings.loginBgs = data.media.loginBgs || [];
+            systemSettings.customFp1 = data.media.customFp1 || "";
+            systemSettings.customFp2 = data.media.customFp2 || "";
+            systemSettings.directorManualPdf = data.media.directorManualPdf || "";
+            systemSettings.residentManualPdf = data.media.residentManualPdf || "";
+          } else {
             if (!systemSettings.loginBgs) {
               systemSettings.loginBgs = [];
-              if (data.systemSettings.loginBg) systemSettings.loginBgs.push(data.systemSettings.loginBg);
+              if (data.systemSettings && data.systemSettings.loginBg) systemSettings.loginBgs.push(data.systemSettings.loginBg);
             }
+            if (typeof systemSettings.customFp1 === "undefined") systemSettings.customFp1 = "";
+            if (typeof systemSettings.customFp2 === "undefined") systemSettings.customFp2 = "";
             if (typeof systemSettings.directorManualPdf === "undefined") systemSettings.directorManualPdf = "";
             if (typeof systemSettings.residentManualPdf === "undefined") systemSettings.residentManualPdf = "";
+            // 💡 一次性資料遷移偵測：發現有舊格式（直接存在 systemSettings 裡）的檔案資料，
+            // 但雲端還沒有新的獨立 media 節點 —— 標記需要遷移，避免之後的一般資料同步
+            // （新格式已不含這些欄位）意外把這些已上傳的檔案從雲端清空。實際搬移動作會在
+            // cloudSyncReady 設為 true、且確認取得寫入權限之後才執行（見下方與 window.onload）。
+            const hasLegacyMedia = (systemSettings.loginBgs && systemSettings.loginBgs.length > 0) ||
+                                    systemSettings.customFp1 || systemSettings.customFp2 ||
+                                    systemSettings.directorManualPdf || systemSettings.residentManualPdf;
+            if (hasLegacyMedia) {
+              pendingMediaMigration = true;
+            }
           }
           accountsList = data.accountsList || accountsList;
           pendingAudits = data.pendingAudits || [];
@@ -1193,6 +1273,14 @@
         cloudSyncReady = true;
         lastLocalPullTime = new Date();
         updateSyncStatusUI(true, "雲端已同步");
+
+        // 💡 若剛剛偵測到需要把舊格式的圖片/PDF資料搬移到新的獨立路徑，且目前使用者不是訪客
+        // （訪客沒有寫入權限），現在 cloudSyncReady 已經是 true，可以安全地執行這次遷移寫入。
+        if (pendingMediaMigration && currentUser && currentUser.role !== 'guest') {
+          pendingMediaMigration = false;
+          cloudSyncPushMedia();
+        }
+
         return true;
       } catch (e) {
         console.error(`雲端資料讀取失敗（第 ${attempt}/${maxAttempts} 次嘗試）：`, e);
@@ -1389,7 +1477,7 @@
     reader.onload = function(e) {
       if (!systemSettings.loginBgs) systemSettings.loginBgs = [];
       systemSettings.loginBgs.push(e.target.result);
-      cloudSyncPush();
+      cloudSyncPushMedia();
       applyLoginBackground();
       renderLoginBgList();
       alert("登入頁面背景圖已成功新增並全域同步！");
@@ -1401,7 +1489,7 @@
   function deleteLoginBg(index) {
     if(confirm("確定要刪除這張背景圖片嗎？")) {
       systemSettings.loginBgs.splice(index, 1);
-      cloudSyncPush();
+      cloudSyncPushMedia();
       applyLoginBackground();
       renderLoginBgList();
     }
@@ -1428,7 +1516,7 @@
   function resetLoginBackground() {
     if(confirm("確定要清空所有背景圖並恢復預設嗎？")) {
       systemSettings.loginBgs = [];
-      cloudSyncPush();
+      cloudSyncPushMedia();
       applyLoginBackground();
       renderLoginBgList();
       alert("已恢復預設登入背景！");
@@ -3010,7 +3098,7 @@
       if(currentFloorplan === 1) systemSettings.customFp1 = imgData;
       else systemSettings.customFp2 = imgData;
 
-      cloudSyncPush();
+      cloudSyncPushMedia();
       alert(`已成功上傳更新 B${currentFloorplan} 區配置平面圖並全域同步至所有使用者！`);
       addLog("設定", `管理員上傳更新 B${currentFloorplan} 區平面圖`);
     };
@@ -3334,7 +3422,9 @@
       systemSettings.customFp2 = "";
       systemSettings.directorManualPdf = "";
       systemSettings.residentManualPdf = "";
+      systemSettings.loginBgs = [];
       cloudSyncPush();
+      cloudSyncPushMedia(); // 💡 這些欄位現在存放於獨立路徑，需另外同步清空，否則雲端會留下舊檔案
       initApp();
       checkPlateWarnings();
       addLog("設定", "重置所有系統資料").then(ok => {
@@ -3412,6 +3502,25 @@
     } else {
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
+
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.01 起已排除大型圖片/PDF），
+    // 以及目前雲端 media 節點（圖片/PDF）的大小，方便日後判斷是否又有異常肥大的資料。
+    try {
+      const coreCopy = { ...systemSettings };
+      delete coreCopy.loginBgs; delete coreCopy.customFp1; delete coreCopy.customFp2;
+      delete coreCopy.directorManualPdf; delete coreCopy.residentManualPdf;
+      const coreSize = JSON.stringify({ residents, lotteryResults, systemSettings: coreCopy, accountsList, pendingAudits, swapLogs, systemLogs }).length;
+      const mediaSize = JSON.stringify({
+        loginBgs: systemSettings.loginBgs || [],
+        customFp1: systemSettings.customFp1 || "",
+        customFp2: systemSettings.customFp2 || "",
+        directorManualPdf: systemSettings.directorManualPdf || "",
+        residentManualPdf: systemSettings.residentManualPdf || ""
+      }).length;
+      log.push("");
+      log.push(`【附加資訊】目前「一般同步」(抽籤/住戶等) 資料大小：約 ${(coreSize/1024).toFixed(1)} KB`);
+      log.push(`【附加資訊】目前「圖片/PDF」獨立資料大小：約 ${(mediaSize/1024).toFixed(1)} KB（v2.01 起已不會影響一般同步速度）`);
+    } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
   }
@@ -3582,7 +3691,7 @@
       } else {
         systemSettings.residentManualPdf = base64Str;
       }
-      cloudSyncPush();
+      cloudSyncPushMedia();
       renderGuide();
       alert(`已成功上傳並更新 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊！`);
       addLog("設定", `管理員上傳更新 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊`);
@@ -3594,7 +3703,7 @@
     if (confirm(`確定要刪除 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊嗎？`)) {
       if (type === 'director') systemSettings.directorManualPdf = "";
       else systemSettings.residentManualPdf = "";
-      cloudSyncPush();
+      cloudSyncPushMedia();
       renderGuide();
       addLog("設定", `管理員刪除 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊`);
     }
