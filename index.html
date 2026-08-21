@@ -3,55 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.85</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.86</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root {
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
-    --bg-main: #f1f5f9; /* 加深背景，讓白色卡片更具立體感 */
+    --bg-main: #f1f5f9; 
     --card-bg: #ffffff;
     --border-color: #e2e8f0;
-    --text-main: #0f172a; /* 更深的字體顏色，提升閱讀對比度 */
+    --text-main: #0f172a; 
     --text-muted: #475569;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg-main);color:var(--text-main);font-size:14.5px;line-height:1.65}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg-main);color:var(--text-main);font-size:15px;line-height:1.7}
   
   /* 導覽列 */
-  .nav{background:var(--card-bg);border-bottom:1px solid #cbd5e1;display:flex;align-items:center;padding:0 1.5rem;position:sticky;top:0;z-index:900;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)}
-  .nav-title{font-size:16px;font-weight:800;color:var(--primary);padding:1rem 0;margin-right:1.5rem;white-space:nowrap;display:flex;align-items:center;gap:8px;letter-spacing:0.5px}
+  .nav{background:var(--card-bg);border-bottom:1px solid #cbd5e1;display:flex;align-items:center;padding:0 1.5rem;position:sticky;top:0;z-index:900;box-shadow:0 4px 10px -2px rgba(0,0,0,0.05)}
+  .nav-title{font-size:16px;font-weight:800;color:var(--primary);padding:1.1rem 0;margin-right:1.5rem;white-space:nowrap;display:flex;align-items:center;gap:8px;letter-spacing:0.5px}
   .nav-tabs{display:flex;gap:6px;flex:1;overflow-x:auto}
-  .nav-tab{padding:.85rem 1.1rem;font-size:14px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:3px solid transparent;white-space:nowrap;font-weight:700;transition:all .2s}
+  .nav-tab{padding:.9rem 1.1rem;font-size:14.5px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:3px solid transparent;white-space:nowrap;font-weight:700;transition:all .2s}
   .nav-tab.active{color:var(--primary);border-bottom-color:var(--primary);background:#f8fafc}
   .nav-tab:hover:not(.active){color:var(--text-main);background:#f1f5f9}
-  .nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;padding:6px;cursor:pointer;border:none;background:transparent;margin-left:auto}
-  .nav-hamburger span{display:block;height:2px;background:var(--text-muted);border-radius:2px;transition:all .2s}
-  .nav-menu-mobile{display:none;position:fixed;top:55px;left:0;right:0;background:var(--card-bg);border-bottom:1px solid var(--border-color);z-index:800;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)}
+  .nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:40px;height:40px;padding:6px;cursor:pointer;border:none;background:transparent;margin-left:auto}
+  .nav-hamburger span{display:block;height:2.5px;background:var(--text-muted);border-radius:2px;transition:all .2s}
+  .nav-menu-mobile{display:none;position:fixed;top:58px;left:0;right:0;background:var(--card-bg);border-bottom:1px solid var(--border-color);z-index:800;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)}
   .nav-menu-mobile.open{display:block}
-  .nav-menu-mobile .nav-tab{display:block;width:100%;text-align:left;padding:1rem 1.25rem;border-bottom:1px solid var(--border-color);border-left:4px solid transparent}
+  .nav-menu-mobile .nav-tab{display:block;width:100%;text-align:left;padding:1.1rem 1.25rem;border-bottom:1px solid var(--border-color);border-left:4px solid transparent}
   .nav-menu-mobile .nav-tab.active{border-left-color:var(--primary);background:#f8fafc;color:var(--primary)}
 
   /* 使用者資訊列 */
-  .user-bar{background:#0f172a;color:#f8fafc;padding:.6rem 1.5rem;font-size:13px;display:flex;justify-content:space-between;align-items:center;letter-spacing:0.5px}
-  .user-bar-btn{background:transparent;border:1px solid #475569;color:#cbd5e1;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:600;transition:all .15s}
+  .user-bar{background:#0f172a;color:#f8fafc;padding:.6rem 1.5rem;font-size:13.5px;display:flex;justify-content:space-between;align-items:center;letter-spacing:0.5px}
+  .user-bar-btn{background:transparent;border:1px solid #475569;color:#cbd5e1;padding:5px 14px;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:600;transition:all .15s}
   .user-bar-btn:hover{background:#334155;color:#fff;border-color:#64748b}
 
   /* 版面配置 */
-  .page{display:none;padding:2rem 1.5rem;max-width:1380px;margin:0 auto}
+  .page{display:none;padding:2.5rem 1.5rem;max-width:1380px;margin:0 auto}
   .page.active{display:block;animation:fadeIn 0.3s ease}
   @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
 
   /* 卡片元件 */
-  .card{background:var(--card-bg);border:1px solid #e2e8f0;border-radius:16px;padding:2rem;margin-bottom:1.5rem;box-shadow:0 10px 15px -3px rgba(0,0,0,0.03), 0 4px 6px -4px rgba(0,0,0,0.02)}
+  .card{background:var(--card-bg);border:1px solid #e2e8f0;border-radius:16px;padding:2rem;margin-bottom:1.75rem;box-shadow:0 10px 15px -3px rgba(0,0,0,0.03), 0 4px 6px -4px rgba(0,0,0,0.02)}
   .card-title{font-size:18px;font-weight:800;margin-bottom:1.5rem;color:var(--text-main);border-left:5px solid var(--primary);padding-left:14px;display:flex;align-items:center;justify-content:space-between}
 
   /* 統計卡片 */
   .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.25rem;margin-bottom:2rem}
   .stat{background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);border:1px solid #e2e8f0;border-radius:14px;padding:1.5rem;box-shadow:0 4px 6px -1px rgba(0,0,0,0.02);transition:transform 0.2s}
   .stat:hover{transform:translateY(-2px);box-shadow:0 10px 15px -3px rgba(0,0,0,0.05)}
-  .stat-label{font-size:14px;color:var(--text-muted);margin-bottom:8px;font-weight:700}
+  .stat-label{font-size:14.5px;color:var(--text-muted);margin-bottom:8px;font-weight:700}
   .stat-value{font-size:32px;font-weight:900;color:var(--text-main)}
   .stat-value.blue{color:var(--primary)}
   .stat-value.green{color:#16a34a}
@@ -62,7 +62,7 @@
   .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem}
 
   /* 按鈕樣式 */
-  .btn{padding:.6rem 1.25rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s;color:var(--text-main);box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+  .btn{padding:.7rem 1.4rem;border-radius:8px;border:1px solid var(--border-color);background:#fff;cursor:pointer;font-size:14.5px;font-weight:700;transition:all .2s;color:var(--text-main);box-shadow:0 1px 2px rgba(0,0,0,0.03)}
   .btn:hover:not(:disabled){background:#f8fafc;border-color:#cbd5e1;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)}
   .btn:active:not(:disabled){transform:scale(.98)}
   .btn:disabled{opacity:0.6;cursor:not-allowed}
@@ -72,7 +72,7 @@
   .btn-danger:hover:not(:disabled){background:#dc2626}
   .btn-success{background:#10b981;color:#fff;border-color:#10b981}
   .btn-success:hover:not(:disabled){background:#059669}
-  .btn-sm{padding:.4rem .85rem;font-size:13px;border-radius:6px}
+  .btn-sm{padding:.45rem .95rem;font-size:13px;border-radius:6px}
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem}
 
   .yn-btn { padding:5px 12px; font-size:13px; border-radius:6px; border:1px solid transparent; cursor:pointer; font-weight:800; transition:all .15s; width: 100%; max-width: 60px; margin: 0 auto; display: block; }
@@ -81,26 +81,26 @@
   .yn-btn:hover { filter: brightness(0.95); }
 
   /* 表單樣式 */
-  input[type=text],input[type=number],input[type=password],select,textarea{width:100%;padding:.75rem 1rem;border:1px solid #cbd5e1;border-radius:8px;font-size:14.5px;background:#fff;color:var(--text-main);font-family:inherit;transition:all .2s;font-weight:500}
+  input[type=text],input[type=number],input[type=password],select,textarea{width:100%;padding:.8rem 1rem;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;background:#fff;color:var(--text-main);font-family:inherit;transition:all .2s;font-weight:500}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(37,99,235,0.15)}
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
   .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
-  label{font-size:13.5px;font-weight:700;color:var(--text-muted);margin-bottom:8px;display:block}
+  label{font-size:14px;font-weight:700;color:var(--text-muted);margin-bottom:8px;display:block}
 
-  /* 💡 升級：凍結表頭與高讀性表格 */
+  /* 💡 高讀性表格 */
   .table-wrap{max-height:65vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid #e2e8f0;box-shadow:0 4px 6px -1px rgba(0,0,0,0.02)}
-  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:15px}
   th{position:sticky;top:0;z-index:10;text-align:left;padding:1.1rem 1rem;background:#f8fafc;border-bottom:2px solid #cbd5e1;font-weight:800;color:#334155;white-space:nowrap;box-shadow:0 2px 4px -2px rgba(0,0,0,0.1)}
-  td{padding:1rem;border-bottom:1px solid var(--border-color);vertical-align:middle;color:var(--text-main);font-weight:500}
+  td{padding:1.1rem 1rem;border-bottom:1px solid var(--border-color);vertical-align:middle;color:var(--text-main);font-weight:500}
   tr:last-child td{border-bottom:none}
   tr:nth-child(even) td{background:#f8fafc}
   tr:hover td{background:#eff6ff !important}
   
   .text-center { text-align: center !important; }
-  .code-font { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background:#f1f5f9; padding:3px 8px; border-radius:6px; font-size:13.5px; color:#0f172a; font-weight:600; border:1px solid #e2e8f0; }
+  .code-font { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:14px; color:#0f172a; font-weight:700; border:1px solid #cbd5e1; letter-spacing:0.5px }
 
   /* 標籤 Badge */
-  .badge{display:inline-block;padding:5px 12px;border-radius:100px;font-size:12px;font-weight:800;letter-spacing:0.5px}
+  .badge{display:inline-block;padding:5px 12px;border-radius:100px;font-size:12.5px;font-weight:800;letter-spacing:0.5px}
   .badge-blue{background:#eff6ff;color:var(--primary);border:1px solid #bfdbfe}
   .badge-green{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
   .badge-orange{background:#fff7ed;color:#c2410c;border:1px solid #ffedd5}
@@ -109,13 +109,13 @@
   .badge-purple{background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe}
   
   .round-tabs{display:flex;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap}
-  .round-tab{padding:.7rem 1.6rem;border-radius:10px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-size:14.5px;color:var(--text-muted);font-weight:800;transition:all .2s;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+  .round-tab{padding:.75rem 1.75rem;border-radius:10px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-size:15px;color:var(--text-muted);font-weight:800;transition:all .2s;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
   .round-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 10px rgba(37,99,235,0.3)}
   .round-tab:hover:not(.active){background:#f8fafc;transform:translateY(-1px)}
   
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center}
   .modal-overlay.show{display:flex;animation:fadeIn 0.2s ease}
-  .modal{background:var(--card-bg);border-radius:24px;padding:2.5rem;max-width:680px;width:92%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.35)}
+  .modal{background:var(--card-bg);border-radius:24px;padding:2.5rem;max-width:700px;width:92%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.35)}
   .modal-title{font-size:22px;font-weight:900;margin-bottom:1.75rem;color:var(--text-main);letter-spacing:-0.5px}
   .modal-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:2rem}
   
@@ -142,16 +142,20 @@
   .lm-progress-wrap{background:#e2e8f0;border-radius:100px;height:12px;overflow:hidden;margin-bottom:1.5rem}
   .lm-progress-bar{height:100%;background:linear-gradient(90deg,#3b82f6,#10b981);width:0;transition:width .2s ease}
 
-  /* 車位網格美化 */
-  .seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:12px;margin-top:1.5rem}
-  .seat{min-height:60px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:800;border:1px solid transparent;padding:8px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,0.04);transition:all 0.2s}
+  /* 💡 系統圖例與車位網格美化 */
+  .legend-box { display:flex; gap:16px; margin-bottom:16px; font-size:13.5px; font-weight:700; justify-content:center; flex-wrap:wrap }
+  .legend-item { display:flex; align-items:center; gap:6px; color:var(--text-muted) }
+  .legend-color { width:16px; height:16px; border-radius:4px; }
+  
+  .seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:12px;margin-top:1.5rem}
+  .seat{min-height:65px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;border:1px solid transparent;padding:8px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,0.04);transition:all 0.2s}
   .seat:hover{transform:translateY(-3px);box-shadow:0 8px 15px rgba(0,0,0,0.1);z-index:2}
   .seat-free{background:#f0fdf4;color:#15803d;border-color:#bbf7d0}
   .seat-used{background:#eff6ff;color:var(--primary);border-color:#bfdbfe}
   .seat-void{background:#f8fafc;color:#94a3b8;border:1px dashed #cbd5e1;text-decoration:line-through;opacity:0.7}
   
-  .section-title{font-size:22px;font-weight:900;margin-bottom:1.75rem;color:var(--text-main);letter-spacing:-0.5px}
-  .empty{text-align:center;color:var(--text-muted);padding:4rem;font-size:15px;font-weight:600}
+  .section-title{font-size:24px;font-weight:900;margin-bottom:1.75rem;color:var(--text-main);letter-spacing:-0.5px}
+  .empty{text-align:center;color:var(--text-muted);padding:4rem;font-size:15.5px;font-weight:600}
   .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
 
   .log-tl-item{display:flex;gap:0;position:relative;padding-bottom:1.5rem}
@@ -170,7 +174,8 @@
     .form-row,.form-row-3{grid-template-columns:1fr}
     .lrs-grid{grid-template-columns:1fr}
     .lrs-arrow-col{display:none}
-    .card{padding:1.25rem}
+    .card{padding:1.5rem}
+    .table-wrap{max-height:50vh}
   }
 </style>
 </head>
@@ -232,7 +237,7 @@
     <button class="btn btn-primary" style="width:100%;padding:1.1rem;margin-bottom:1rem;font-size:16px;font-weight:800" onclick="doLogin()">登入系統</button>
     <div style="text-align:center;position:relative;margin:1.75rem 0;">
        <hr style="border:none;border-top:1px solid #cbd5e1;">
-       <span style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#fff;padding:0 12px;font-size:13px;color:#64748b;font-weight:700">或</span>
+       <span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#fff;padding:0 12px;font-size:13.5px;color:#64748b;font-weight:700">或</span>
     </div>
     <button class="btn" style="width:100%;padding:1.1rem;color:var(--primary);border-color:#bfdbfe;background:#eff6ff;font-size:15px;font-weight:800" onclick="guestLogin()">進入社區住戶查詢入口</button>
   </div>
@@ -256,7 +261,15 @@
     </div>
   </div>
   <div class="card">
-    <div class="card-title">車位即時分配圖</div>
+    <div class="flex-between" style="margin-bottom:1.25rem">
+      <div class="card-title" style="margin:0">車位即時分配圖</div>
+    </div>
+    <!-- 💡 新增車位顏色圖例 -->
+    <div class="legend-box">
+      <div class="legend-item"><div class="legend-color" style="background:#f0fdf4;border:1px solid #bbf7d0"></div>空車位 (可分配)</div>
+      <div class="legend-item"><div class="legend-color" style="background:#eff6ff;border:1px solid #bfdbfe"></div>已分發車位</div>
+      <div class="legend-item"><div class="legend-color" style="background:#f8fafc;border:1px dashed #cbd5e1"></div>作廢車位</div>
+    </div>
     <div id="dash-seatmap"></div>
   </div>
 </div>
@@ -275,9 +288,9 @@
     </div>
   </div>
   
-  <div class="card" style="padding:1.5rem">
+  <div class="card" style="padding:1.75rem">
     <div class="form-row-3" style="margin-bottom:1.25rem">
-      <input type="text" id="search-resident" placeholder="搜尋姓名/門牌/棟別" oninput="renderResidents()">
+      <input type="text" id="search-resident" placeholder="搜尋姓名 / 門牌 / 棟別" oninput="renderResidents()">
       <select id="filter-build" onchange="renderResidents()">
         <option value="">全部分棟</option>
         <option value="A1">A1</option><option value="A2">A2</option>
@@ -292,7 +305,7 @@
         <option value="Y">保留戶</option>
       </select>
     </div>
-    <div style="font-size:13.5px;color:var(--text-muted);margin-bottom:1rem;font-weight:700" id="resident-count"></div>
+    <div style="font-size:14px;color:var(--text-muted);margin-bottom:1rem;font-weight:700" id="resident-count"></div>
     
     <div class="table-wrap">
       <table id="residents-table">
@@ -416,14 +429,14 @@
     <div class="round-tab" data-round="全部輪次" onclick="selectResultRound('全部輪次')">全部輪次總表</div>
   </div>
 
-  <div class="card" style="padding:1.5rem">
+  <div class="card" style="padding:1.75rem">
     <div class="form-row" style="margin-bottom:1.5rem">
-      <input type="text" id="search-result" placeholder="搜尋姓名/門牌/車位" oninput="renderResults()">
+      <input type="text" id="search-result" placeholder="搜尋姓名 / 門牌 / 車位號碼" oninput="renderResults()">
       <select id="filter-result-type" onchange="renderResults()">
-        <option value="all">全部結果</option>
-        <option value="got">僅顯示中籤者</option>
-        <option value="no">未中籤 (有參加但未抽中)</option>
-        <option value="skip">未參加 (該輪未登記)</option>
+        <option value="all">全部狀態結果</option>
+        <option value="got">僅顯示有抽中車位者</option>
+        <option value="no">未中籤 (有參加該輪但未抽中)</option>
+        <option value="skip">未參加 (未登記該輪車牌)</option>
       </select>
     </div>
     <div class="table-wrap">
@@ -471,7 +484,7 @@
         <option value="審核">審核異動</option>
       </select>
     </div>
-    <div id="log-count" style="font-size:13.5px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:700"></div>
+    <div id="log-count" style="font-size:14px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:700"></div>
     <div id="log-timeline"></div>
     
     <table id="logs-table" style="display:none">
@@ -481,7 +494,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.85 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v1.86 進階版 + 車牌搜尋) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -514,7 +527,7 @@
             <label>住戶 A</label>
             <input type="hidden" id="swap-a-idx">
             <div style="display:flex;gap:8px">
-              <input type="text" id="swap-a-search" placeholder="搜尋棟別/姓名/門牌 (例: A1 張大明)" oninput="searchSwapResident('A')">
+              <input type="text" id="swap-a-search" placeholder="搜尋姓名/門牌/車號 (例: ABC-1234)" oninput="searchSwapResident('A')">
               <button class="btn btn-sm" onclick="clearSwapInput('A')" title="清除">清除</button>
             </div>
             <div id="swap-a-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--border-color);border-radius:8px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);z-index:10;max-height:220px;overflow-y:auto"></div>
@@ -532,7 +545,7 @@
             <label>住戶 B</label>
             <input type="hidden" id="swap-b-idx">
             <div style="display:flex;gap:8px">
-              <input type="text" id="swap-b-search" placeholder="搜尋棟別/姓名/門牌 (例: B1 王美玲)" oninput="searchSwapResident('B')">
+              <input type="text" id="swap-b-search" placeholder="搜尋姓名/門牌/車號 (例: MNO-4321)" oninput="searchSwapResident('B')">
               <button class="btn btn-sm" onclick="clearSwapInput('B')" title="清除">清除</button>
             </div>
             <div id="swap-b-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--border-color);border-radius:8px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);z-index:10;max-height:220px;overflow-y:auto"></div>
@@ -596,17 +609,25 @@
 
   <div class="card" style="overflow:auto;text-align:center;padding:3rem">
     <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center;">
+      
+      <!-- 💡 新增車位顏色圖例 -->
+      <div class="legend-box" style="margin-bottom:2rem;font-size:14.5px;color:#334155">
+        <div class="legend-item"><div class="legend-color" style="background:#f0fdf4;border:1px solid #bbf7d0"></div>空車位</div>
+        <div class="legend-item" style="margin-left:15px"><div class="legend-color" style="background:#eff6ff;border:1px solid #bfdbfe"></div>已分發車位</div>
+        <div class="legend-item" style="margin-left:15px"><div class="legend-color" style="background:#f8fafc;border:1px dashed #cbd5e1"></div>作廢車位</div>
+      </div>
+
       <div id="fp-content-1" style="max-width:100%">
         <img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:2rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
-        <div style="padding:3.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:inset 0 2px 10px rgba(0,0,0,0.02)">
-          <h4 style="color:#334155;margin-bottom:1.5rem;font-size:20px;font-weight:900">B1 機車位配置平面圖</h4>
+        <div style="padding:3.5rem;background:#ffffff;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.02)">
+          <h4 style="color:#1e293b;margin-bottom:1.5rem;font-size:22px;font-weight:900">B1 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b1-grid"></div>
         </div>
       </div>
       <div id="fp-content-2" style="max-width:100%; display:none">
         <img id="custom-fp-img-2" src="" style="display:none;max-width:100%;margin-bottom:2rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
-        <div style="padding:3.5rem;background:#f8f9fa;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:inset 0 2px 10px rgba(0,0,0,0.02)">
-          <h4 style="color:#334155;margin-bottom:1.5rem;font-size:20px;font-weight:900">B2 機車位配置平面圖</h4>
+        <div style="padding:3.5rem;background:#ffffff;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.02)">
+          <h4 style="color:#1e293b;margin-bottom:1.5rem;font-size:22px;font-weight:900">B2 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b2-grid"></div>
         </div>
       </div>
@@ -618,19 +639,19 @@
 <div id="page-guide" class="page">
   <div class="section-title">系統操作說明指南</div>
   <div class="card">
-    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 1. 住戶名單與車牌管理</h3>
-    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.75rem;line-height:1.75">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
+    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 1. 住戶名單與車牌管理</h3>
+    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
     
-    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 2. 執行抽籤與跨輪多次中籤支援</h3>
-    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.75rem;line-height:1.75">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配，且各輪卡片上的「可用車位」會即時精確扣除先前輪次已抽出去的車位數。</p>
+    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 2. 執行抽籤與跨輪多次中籤支援</h3>
+    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配，且各輪卡片上的「可用車位」會即時精確扣除先前輪次已抽出去的車位數。</p>
 
-    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 3. 抽籤結果與彙整總表</h3>
-    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.75rem;line-height:1.75">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。一般住戶僅供線上檢視。</p>
+    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 3. 抽籤結果與彙整總表</h3>
+    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。一般住戶僅供線上檢視。</p>
 
-    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 4. 車位互換管理 (進階版)</h3>
-    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.75rem;line-height:1.75">系統提供<b>進階個別車位互換模式</b>，搜尋住戶後，您可以針對每一位住戶各自擁有的多個車位，精準指定要拿「第幾輪的車位」與對方互換（例如用 A 的第一輪換 B 的第三輪），系統將無縫處理資料移轉與邏輯防呆檢查。</p>
+    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 4. 車位互換管理 (進階版)</h3>
+    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">系統提供<b>進階個別車位互換模式</b>，搜尋住戶後，您可以針對每一位住戶各自擁有的多個車位，精準指定要拿「第幾輪的車位」與對方互換（例如用 A 的第一輪換 B 的第三輪），系統將無縫處理資料移轉與邏輯防呆檢查。</p>
 
-    <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 5. 權限與帳號管理</h3>
+    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 5. 權限與帳號管理</h3>
     <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:0;line-height:1.75"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供線上檢視個人中籤與總表（隱匿鄰居姓名且無法下載檔案）。</p>
   </div>
 </div>
@@ -648,7 +669,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.85">
+        <input type="text" id="set-app-version" value="v1.86">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -710,7 +731,7 @@
   </div>
 
   <div class="card">
-    <div class="flex-between" style="margin-bottom:1.25rem">
+    <div class="flex-between" style="margin-bottom:1.5rem">
       <div class="card-title" style="margin:0;border:none;padding:0">管理員與社區主任帳號清單</div>
       <button class="btn btn-primary btn-sm" onclick="openDirectorModal('add')">＋ 新增社區主任帳號</button>
     </div>
@@ -729,7 +750,7 @@
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>住戶</th><th>門牌</th><th>申請指定車位</th><th>提交人</th><th class="text-center">操作</th></tr>
+          <tr><th>住戶</th><th class="text-center">門牌</th><th class="text-center">申請指定車位</th><th class="text-center">提交人</th><th class="text-center">操作</th></tr>
         </thead>
         <tbody id="pending-audit-tbody">
           <tr><td colspan="5" class="empty">目前無待審核的指定車位申請</td></tr>
@@ -740,7 +761,7 @@
 
   <div class="card">
     <div class="card-title">系統資料管理與初始化</div>
-    <p style="font-size:14px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:700">注意事項：請謹慎執行以下清空或重置操作。</p>
+    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:700">注意事項：請謹慎執行以下清空或重置操作。</p>
     <div class="btn-row">
       <button class="btn btn-danger" onclick="deleteAllResidents()">🗑️ 刪除所有住戶資料</button>
       <button class="btn btn-danger" onclick="resetSystemData()">⚠️ 重置所有系統資料</button>
@@ -871,7 +892,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.85",
+    appVersion: "v1.86",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
@@ -1193,7 +1214,6 @@
     const swapTabs = ['nav-tab-swap', 'nav-tab-swap-mob'];
     swapTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
 
-    // 操作紀錄僅限 admin 觀看
     const logsTabs = ['nav-tab-logs', 'nav-tab-logs-mob'];
     logsTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = (currentUser.role === 'admin') ? 'block' : 'none'; });
 
@@ -1322,7 +1342,7 @@
     if (anomalies.length > 0) {
       let html = `<b>⚠️ 偵測到 ${anomalies.length} 筆車牌登記異常（勾選參加但對應車牌空白）：</b><ul style="margin-left:1.75rem;margin-top:8px;font-weight:600">`;
       anomalies.forEach(a => html += `<li>${a}</li>`);
-      html += `</ul><div style="margin-top:10px;font-size:13.5px;font-weight:700">請至「住戶名單」編輯並補齊對應車牌號碼，否則該住戶將無法被系統納入對應輪次抽籤！</div>`;
+      html += `</ul><div style="margin-top:10px;font-size:14px;font-weight:700">請至「住戶名單」編輯並補齊對應車牌號碼，否則該住戶將無法被系統納入對應輪次抽籤！</div>`;
       
       if(banner1) { banner1.innerHTML = html; banner1.style.display = "block"; }
       if(banner2) { banner2.innerHTML = html; banner2.style.display = "block"; }
@@ -1350,9 +1370,9 @@
     `;
 
     document.getElementById("dash-rounds").innerHTML = `
-      <div style="font-size:14.5px;margin-bottom:12px;font-weight:700">第一輪抽籤進度：${gotR1 > 0 ? '<span class="badge badge-green">已完成分配</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
-      <div style="font-size:14.5px;margin-bottom:12px;font-weight:700">第二輪抽籤進度：${gotR2 > 0 ? '<span class="badge badge-green">已完成分配</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
-      <div style="font-size:14.5px;margin-bottom:12px;font-weight:700">第三輪抽籤進度：${gotR3 > 0 ? '<span class="badge badge-green">已完成分配</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+      <div style="font-size:15px;margin-bottom:12px;font-weight:700">第一輪抽籤進度：${gotR1 > 0 ? '<span class="badge badge-green">已完成分配</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+      <div style="font-size:15px;margin-bottom:12px;font-weight:700">第二輪抽籤進度：${gotR2 > 0 ? '<span class="badge badge-green">已完成分配</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
+      <div style="font-size:15px;margin-bottom:12px;font-weight:700">第三輪抽籤進度：${gotR3 > 0 ? '<span class="badge badge-green">已完成分配</span>' : '<span class="badge badge-gray">待執行</span>'}</div>
     `;
 
     let guideText = systemSettings.quickGuideText || defaultQuickGuide;
@@ -1360,7 +1380,7 @@
 
     document.getElementById("dash-void-tags").innerHTML = (systemSettings.voidSeats && systemSettings.voidSeats.length > 0) 
       ? systemSettings.voidSeats.map(s => `<span class="badge badge-red" style="margin-right:6px">${s}號 作廢</span>`).join('') 
-      : '<span style="font-size:13px;color:var(--text-muted);font-weight:600">目前無作廢車位</span>';
+      : '<span style="font-size:14px;color:var(--text-muted);font-weight:600">目前無作廢車位</span>';
     document.getElementById("dash-void-input").value = systemSettings.voidSeats ? systemSettings.voidSeats.join(',') : '';
 
     let seatHtml = '<div class="seat-grid">';
@@ -1377,7 +1397,7 @@
         hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
         cls = "seat seat-used";
-        label = `${i}號<br><b style="font-size:13.5px">${occupant.build} ${occupant.room}</b>`;
+        label = `${i}號<br><b style="font-size:14.5px">${occupant.build} ${occupant.room}</b>`;
         hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
       }
       seatHtml += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
@@ -1459,7 +1479,7 @@
         <td class="text-center"><code class="code-font">${r.plate2 || '-'}</code></td>
         <td class="text-center"><code class="code-font">${r.plate3 || '-'}</code></td>
         <td class="text-center">
-          <div style="display:flex;gap:6px;justify-content:center">
+          <div style="display:flex;gap:8px;justify-content:center">
             <button class="btn btn-sm" onclick="openEditModal(${r.id})">編輯</button>
             <button class="btn btn-sm btn-danger" onclick="deleteResident(${r.id})">刪除</button>
           </div>
@@ -1496,6 +1516,7 @@
 
     r[roundKey] = r[roundKey] === 'Y' ? 'N' : 'Y';
 
+    // 💡 [修正核心 2] 若資格變更為 N，強制且無條件刪除該輪成績與 p_id
     if (r[roundKey] === 'N') {
       const rNum = roundKey.replace('r', '');
       const roundName = rNum === '1' ? "第一輪" : (rNum === '2' ? "第二輪" : "第三輪");
@@ -1631,22 +1652,23 @@
         let oldRes = residents[idx];
         let releasedSeats = [];
 
-        if (r1 === 'N' && oldRes.assign1) {
-          releasedSeats.push(`第一輪車位 ${oldRes.assign1}號`);
+        // 💡 強制清除邏輯更新
+        if (r1 === 'N') {
+          if (oldRes.assign1) releasedSeats.push(`第一輪車位 ${oldRes.assign1}號`);
           if (lotteryResults["第一輪"]) {
             delete lotteryResults["第一輪"][oldRes.id];
             delete lotteryResults["第一輪"][`p_${oldRes.id}`];
           }
         }
-        if (r2 === 'N' && oldRes.assign2) {
-          releasedSeats.push(`第二輪車位 ${oldRes.assign2}號`);
+        if (r2 === 'N') {
+          if (oldRes.assign2) releasedSeats.push(`第二輪車位 ${oldRes.assign2}號`);
           if (lotteryResults["第二輪"]) {
             delete lotteryResults["第二輪"][oldRes.id];
             delete lotteryResults["第二輪"][`p_${oldRes.id}`];
           }
         }
-        if (r3 === 'N' && oldRes.assign3) {
-          releasedSeats.push(`第三輪車位 ${oldRes.assign3}號`);
+        if (r3 === 'N') {
+          if (oldRes.assign3) releasedSeats.push(`第三輪車位 ${oldRes.assign3}號`);
           if (lotteryResults["第三輪"]) {
             delete lotteryResults["第三輪"][oldRes.id];
             delete lotteryResults["第三輪"][`p_${oldRes.id}`];
@@ -1897,7 +1919,6 @@
       return;
     }
 
-    // 💡 [修正核心 2] 鎖定按鈕，防止連點破壞演算
     const runBtn = document.getElementById("main-run-btn");
     runBtn.disabled = true;
     runBtn.innerHTML = "🔄 搖號演算中...";
@@ -2053,7 +2074,6 @@
     processPreferencePass(res => res.pref2);
     processPreferencePass(res => res.pref3);
 
-    // 💡 [修正核心 1] 在亂數派位階段，強制先進行完美洗牌，再進行權重排序，確保同分者間的「絕對公平」
     remainingEligible = shuffleArray(remainingEligible);
     remainingEligible.sort((a, b) => {
       let aRes = a.reserve === 'Y' ? 1 : 0;
@@ -2064,6 +2084,9 @@
       let bIsAB = (b.build.startsWith("A") || b.build.startsWith("B")) ? 1 : 0;
       return bIsAB - aIsAB; 
     });
+    // 💡 [修正核心 1] 在排序結束後，針對「身分權重完全相同」的區域，強制進行二次完美洗牌
+    // 因為在 JS 引擎中同分的陣列不一定會保留前一次的亂數分佈，這裡必須做二次打散確保 100% 機率均等
+    remainingEligible = shuffleArray(remainingEligible);
 
     remainingEligible.forEach(res => {
       if (freeSeatsSet.size === 0) return;
@@ -2251,7 +2274,7 @@
         <td class="text-center">${r.room}</td>
         <td><b>${getDisplayName(r.name)}</b></td>
         <td class="text-center">${r.reserve==='Y'?'<span class="badge badge-purple">保留戶</span>':'一般戶'}</td>
-        <td class="text-center">${hasSeat ? '<b style="font-size:16px;color:var(--primary)">'+seat+'號</b>' : '-'}</td>
+        <td class="text-center">${hasSeat ? '<b style="font-size:16.5px;color:var(--primary)">'+seat+'號</b>' : '-'}</td>
         <td class="text-center">${statusStr}</td>
       </tr>`;
     });
@@ -2302,9 +2325,9 @@
       html = '<div class="empty">尚無互換紀錄</div>';
     } else {
       swapLogs.forEach(l => {
-        html += `<div style="font-size:13.5px;padding:12px 0;border-bottom:1px solid var(--border-color)">
-          <b>[${l.round}]</b> <span style="font-size:12.5px;color:var(--text-muted);margin-left:6px">${l.time}</span><br>
-          <span style="color:var(--text-main);font-weight:600;display:block;margin-top:6px">${l.desc}</span>
+        html += `<div style="font-size:14px;padding:14px 0;border-bottom:1px solid var(--border-color)">
+          <b>[${l.round}]</b> <span style="font-size:13px;color:var(--text-muted);margin-left:8px;font-weight:600">${l.time}</span><br>
+          <span style="color:var(--text-main);font-weight:700;display:block;margin-top:8px">${l.desc}</span>
         </div>`;
       });
     }
@@ -2327,6 +2350,7 @@
     addLog("設定", en ? "開放車位互換" : "鎖定車位互換");
   }
 
+  // 💡 [修正核心 2] 擴大檢索範圍：允許搜尋車牌號碼 (plate1, plate2, plate3)
   function searchSwapResident(type) {
     const keyword = document.getElementById(`swap-${type.toLowerCase()}-search`).value.toLowerCase();
     const dropdown = document.getElementById(`swap-${type.toLowerCase()}-dropdown`);
@@ -2338,14 +2362,17 @@
       r.name.toLowerCase().includes(keyword) || 
       r.room.toLowerCase().includes(keyword) || 
       r.build.toLowerCase().includes(keyword) || 
-      `${r.build}${r.room}`.toLowerCase().includes(keyword)
+      `${r.build}${r.room}`.toLowerCase().includes(keyword) ||
+      (r.plate1 && r.plate1.toLowerCase().includes(keyword)) ||
+      (r.plate2 && r.plate2.toLowerCase().includes(keyword)) ||
+      (r.plate3 && r.plate3.toLowerCase().includes(keyword))
     );
     
     let html = "";
     matches.forEach(m => {
       let seatSummary = `第1輪:${getUserSeat("第一輪", m.id)||'無'}, 第2輪:${getUserSeat("第二輪", m.id)||'無'}, 第3輪:${getUserSeat("第三輪", m.id)||'無'}`;
       html += `<div style="padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border-color);transition:background 0.15s" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'" onclick="selectSwapResident('${type}', ${m.id}, '${getDisplayName(m.name)} (${m.build}-${m.room})')">
-        <b style="font-size:14.5px">${m.build}-${m.room}</b> ${getDisplayName(m.name)} <span style="font-size:12.5px;color:var(--text-muted);display:block;margin-top:6px;font-weight:600">(${seatSummary})</span>
+        <b style="font-size:15px">${m.build}-${m.room}</b> ${getDisplayName(m.name)} <span style="font-size:13px;color:var(--text-muted);display:block;margin-top:6px;font-weight:700">(${seatSummary})</span>
       </div>`;
     });
     dropdown.innerHTML = html;
@@ -2543,12 +2570,12 @@
       let s3 = seat3 ? seat3 + '號' : (getValidWinnerCount("第三輪") > 0 ? (r.r3 === 'Y' ? "未中籤" : "未參加") : "未執行");
       
       html += `<div class="card" style="max-width:560px;margin:0 auto 1.5rem">
-        <h4 style="color:var(--primary);margin-bottom:.75rem;font-size:16px;font-weight:800">查詢結果：${getDisplayName(r.name)} (${r.build} ${r.room})</h4>
-        <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:12px;font-weight:700">登記車牌：<code class="code-font">${r.plate1 || r.plate2 || r.plate3}</code></p>
-        <div style="font-size:14px;color:#0f172a;background:#f8fafc;padding:12px 16px;border-radius:8px;border:1px solid var(--border-color);margin-bottom:12px;font-weight:600">
+        <h4 style="color:var(--primary);margin-bottom:.75rem;font-size:17px;font-weight:800">查詢結果：${getDisplayName(r.name)} (${r.build} ${r.room})</h4>
+        <p style="font-size:14px;color:var(--text-muted);margin-bottom:14px;font-weight:700">登記車牌：<code class="code-font">${r.plate1 || r.plate2 || r.plate3}</code></p>
+        <div style="font-size:14.5px;color:#0f172a;background:#f8fafc;padding:14px 18px;border-radius:10px;border:1px solid var(--border-color);margin-bottom:14px;font-weight:700">
           👤 車主身分反查：${r.build}棟 ${r.room} - ${getDisplayName(r.name)} <span class="badge ${r.reserve === 'Y' ? 'badge-purple' : 'badge-gray'}" style="margin-left:6px">${r.reserve === 'Y' ? '保留戶' : '一般戶'}</span>
         </div>
-        <div style="font-size:15.5px;line-height:1.8;font-weight:600">
+        <div style="font-size:16px;line-height:2;font-weight:700">
           <div>第一輪分配：<b style="color:var(--primary)">${s1}</b></div>
           <div>第二輪分配：<b style="color:var(--primary)">${s2}</b></div>
           <div>第三輪分配：<b style="color:var(--primary)">${s3}</b></div>
@@ -2624,11 +2651,11 @@
       
       if(isVoid) {
         cls = "seat seat-void";
-        label = `${i}號<br><span style="font-size:10px;font-weight:500;opacity:0.8">(作廢)</span>`;
+        label = `${i}號<br><span style="font-size:11.5px;font-weight:600;opacity:0.8">(作廢)</span>`;
         hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
         cls = "seat seat-used";
-        label = `${i}號<br><b style="font-size:13.5px;color:#1e3a8a">${occupant.build} ${occupant.room}</b>`;
+        label = `${i}號<br><b style="font-size:14.5px;color:#1e3a8a">${occupant.build} ${occupant.room}</b>`;
         hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
       }
       b1Html += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
@@ -2643,11 +2670,11 @@
       
       if(isVoid) {
         cls = "seat seat-void";
-        label = `${i}號<br><span style="font-size:10px;font-weight:500;opacity:0.8">(作廢)</span>`;
+        label = `${i}號<br><span style="font-size:11.5px;font-weight:600;opacity:0.8">(作廢)</span>`;
         hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
         cls = "seat seat-used";
-        label = `${i}號<br><b style="font-size:13.5px;color:#1e3a8a">${occupant.build} ${occupant.room}</b>`;
+        label = `${i}號<br><b style="font-size:14.5px;color:#1e3a8a">${occupant.build} ${occupant.room}</b>`;
         hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
       }
       b2Html += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
@@ -2939,8 +2966,8 @@
           <div class="log-tl-line"></div>
           <div class="log-tl-dot"></div>
           <div class="log-tl-content">
-            <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:6px;font-weight:700">${l.time} <span class="badge badge-blue" style="margin:0 6px">${l.type}</span> 👤 ${l.user}</div>
-            <div style="font-size:14.5px;color:var(--text-main);font-weight:600;line-height:1.6">${l.msg}</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;font-weight:800">${l.time} <span class="badge badge-blue" style="margin:0 8px">${l.type}</span> 👤 ${l.user}</div>
+            <div style="font-size:15px;color:var(--text-main);font-weight:600;line-height:1.6">${l.msg}</div>
           </div>
         </div>`;
       });
