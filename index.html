@@ -194,6 +194,7 @@
 <div class="user-bar" id="user-bar" style="display:none">
   <span id="user-bar-name" style="font-weight:800;">👤 未登入</span>
   <span id="sync-status-indicator" class="sync-offline">雲端連線中...</span>
+  <button class="user-bar-btn" onclick="refreshCloudData()">🔄 重新整理</button>
   <button class="user-bar-btn" onclick="doLogout()">登出系統</button>
 </div>
 
@@ -909,12 +910,15 @@
 
   const defaultQuickGuide = "歡迎使用稙村秀社區機車位電腦抽籤系統。\n\n【電腦亂數抽籤邏輯說明】\n1. 絕對公平的亂數引擎：本系統採用密碼學與統計學標準的「Fisher-Yates 洗牌演算法」，在數學上確保每位住戶抽中任一空車位的機率皆絕對均等，徹底排除傳統簡單亂數可能產生的機率偏誤。\n2. 棟別區間優先：為便利住戶停放，系統具備智慧就近派位機制，A/B 棟住戶將優先取得靠近 A/B 棟的車位區間（預設為 19~56 號）。\n3. 多車位獨立分發：每位住戶可依據登記的車牌數量，獨立參與第一、二、三輪抽籤。系統以「保障一戶至少取得一個車位」為首要原則（不參與抽籤者除外），再依序進行後續輪次分配。\n4. 嚴密防衝突機制：系統於各輪次執行時，皆會自動全域掃描並扣除「前輪已分配出去」與「管理員設定作廢」之車位，絕對不會發生「一車位多配」的重複佔用情形。";
 
+  const CLOUD_SYNC_FAIL_MSG = "⚠️ 警告：此操作雲端同步失敗！本機畫面雖已更新，但尚未成功寫入雲端資料庫，其他裝置（含一般住戶）可能看不到此變更。請確認網路連線後，點擊右上方「🔄 重新整理」按鈕確認狀態，必要時請重新執行此操作。";
+
   let pendingAudits = [];
   let currentRound = "第一輪";
   let currentResultRound = "第一輪";
   let currentFloorplan = 1;
   let fpZoomLevel = 1.0;
   let bgCarouselTimer = null; 
+  let cloudSyncReady = false; // 💡 新增：是否已成功從雲端完整下載過一次資料
 
   let systemSettings = {
     appTitle: "稙村秀社區機車位電腦抽籤系統",
@@ -1001,7 +1005,18 @@
   async function cloudSyncPush() {
     if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
       updateSyncStatusUI(false, "僅本機");
-      return;
+      return false;
+    }
+
+    // 💡 防護1：尚未成功從雲端完整下載過資料前，禁止上傳，避免用空白/舊資料覆蓋雲端正式資料
+    if (!cloudSyncReady) {
+      console.warn("尚未完成雲端資料初始拉取，已阻擋本次寫入以保護雲端資料。");
+      updateSyncStatusUI(false, "同步中，寫入已暫緩");
+      return false;
+    }
+    // 💡 防護2：一般住戶（guest）僅供查詢，不應觸發任何雲端寫入
+    if (currentUser && currentUser.role === 'guest') {
+      return false;
     }
 
     let formattedResults = {};
@@ -1029,15 +1044,18 @@
     };
 
     try {
-      await fetch(`${FIREBASE_DB_URL}parkingData.json`, {
+      const pushRes = await fetch(`${FIREBASE_DB_URL}parkingData.json`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+      if (!pushRes.ok) throw new Error("HTTP " + pushRes.status);
       updateSyncStatusUI(true, "雲端已同步");
+      return true;
     } catch (e) {
       console.error("雲端資料同步失敗：", e);
       updateSyncStatusUI(false, "同步失敗");
+      return false;
     }
   }
 
@@ -1046,72 +1064,84 @@
       updateSyncStatusUI(false, "未設定雲端");
       return false;
     }
-    try {
-      // 💡 [修正核心 1] 加入 timestamp 與 no-store，徹底強制繞過瀏覽器快取，解決舊資料幽靈問題
-      const timestamp = new Date().getTime();
-      const res = await fetch(`${FIREBASE_DB_URL}parkingData.json?_t=${timestamp}`, { 
-        cache: "no-store",
-        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-      });
-      const data = await res.json();
-      
-      // 💡 [修正核心 2] 若雲端完全為空(null)，強制清除本地端所有陣列與物件
-      if (data) {
-        residents = data.residents || [];
-        
-        lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
-        if (data.lotteryResults) {
-          for (let r in data.lotteryResults) {
-            lotteryResults[r] = {};
-            if (data.lotteryResults[r]) {
-              for (let rawKey in data.lotteryResults[r]) {
-                let cleanId = normalizeResId(rawKey);
-                let val = data.lotteryResults[r][rawKey];
-                if (cleanId > 0 && val) {
-                  lotteryResults[r][cleanId] = Number(val);
-                  let rNum = r === "第一輪" ? 1 : (r === "第二輪" ? 2 : 3);
-                  let targetRes = residents.find(x => Number(x.id) === cleanId);
-                  if (targetRes) {
-                    targetRes['assign' + rNum] = Number(val);
+
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // 加入 timestamp 與 no-store，徹底強制繞過瀏覽器快取，解決舊資料幽靈問題
+        const timestamp = new Date().getTime();
+        const res = await fetch(`${FIREBASE_DB_URL}parkingData.json?_t=${timestamp}`, {
+          cache: "no-store",
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        if (data) {
+          residents = data.residents || [];
+
+          lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
+          if (data.lotteryResults) {
+            for (let r in data.lotteryResults) {
+              lotteryResults[r] = {};
+              if (data.lotteryResults[r]) {
+                for (let rawKey in data.lotteryResults[r]) {
+                  let cleanId = normalizeResId(rawKey);
+                  let val = data.lotteryResults[r][rawKey];
+                  if (cleanId > 0 && val) {
+                    lotteryResults[r][cleanId] = Number(val);
+                    let rNum = r === "第一輪" ? 1 : (r === "第二輪" ? 2 : 3);
+                    let targetRes = residents.find(x => Number(x.id) === cleanId);
+                    if (targetRes) {
+                      targetRes['assign' + rNum] = Number(val);
+                    }
                   }
                 }
               }
             }
           }
+
+          if (data.systemSettings) {
+            let codeVer = systemSettings.appVersion;
+            systemSettings = data.systemSettings;
+            systemSettings.appVersion = codeVer;
+            if (!systemSettings.b1Limit) systemSettings.b1Limit = Math.floor(systemSettings.totalSeats / 2);
+            if (!systemSettings.quickGuideText) systemSettings.quickGuideText = defaultQuickGuide;
+            if (!systemSettings.loginBgs) {
+              systemSettings.loginBgs = [];
+              if (data.systemSettings.loginBg) systemSettings.loginBgs.push(data.systemSettings.loginBg);
+            }
+            if (typeof systemSettings.directorManualPdf === "undefined") systemSettings.directorManualPdf = "";
+            if (typeof systemSettings.residentManualPdf === "undefined") systemSettings.residentManualPdf = "";
+          }
+          accountsList = data.accountsList || accountsList;
+          pendingAudits = data.pendingAudits || [];
+          swapLogs = data.swapLogs || [];
+          systemLogs = data.systemLogs || [];
+        } else {
+          // 雲端「確實回應」資料庫是空的（非連線失敗），才清空本機資料
+          residents = [];
+          lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
+          swapLogs = [];
+          systemLogs = [];
+          pendingAudits = [];
         }
 
-        if (data.systemSettings) {
-          let codeVer = systemSettings.appVersion;
-          systemSettings = data.systemSettings;
-          systemSettings.appVersion = codeVer;
-          if (!systemSettings.b1Limit) systemSettings.b1Limit = Math.floor(systemSettings.totalSeats / 2);
-          if (!systemSettings.quickGuideText) systemSettings.quickGuideText = defaultQuickGuide;
-          if (!systemSettings.loginBgs) {
-            systemSettings.loginBgs = [];
-            if (data.systemSettings.loginBg) systemSettings.loginBgs.push(data.systemSettings.loginBg);
-          }
-          if (typeof systemSettings.directorManualPdf === "undefined") systemSettings.directorManualPdf = "";
-          if (typeof systemSettings.residentManualPdf === "undefined") systemSettings.residentManualPdf = "";
+        // 💡 只有真正成功取得雲端回應，才允許之後的寫入(cloudSyncPush)動作，
+        // 避免連線失敗導致本機資料是空的，卻反過來覆蓋雲端造成資料遺失。
+        cloudSyncReady = true;
+        updateSyncStatusUI(true, "雲端已同步");
+        return true;
+      } catch (e) {
+        console.error(`雲端資料讀取失敗（第 ${attempt}/${maxAttempts} 次嘗試）：`, e);
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 800));
         }
-        accountsList = data.accountsList || accountsList;
-        pendingAudits = data.pendingAudits || [];
-        swapLogs = data.swapLogs || [];
-        systemLogs = data.systemLogs || [];
-      } else {
-        // 資料庫被徹底清空的情況
-        residents = [];
-        lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
-        swapLogs = [];
-        systemLogs = [];
-        pendingAudits = [];
       }
-      
-      updateSyncStatusUI(true, "雲端已同步");
-      return true;
-    } catch (e) {
-      console.error("雲端資料讀取失敗：", e);
-      updateSyncStatusUI(false, "離線模式");
     }
+
+    // 三次都失敗，保持 cloudSyncReady = false，封鎖寫入以保護雲端既有資料
+    updateSyncStatusUI(false, "離線模式(僅供檢視)");
     return false;
   }
 
@@ -1142,6 +1172,19 @@
     checkLogin();
     initApp();
   };
+
+  async function refreshCloudData() {
+    updateSyncStatusUI(false, "重新整理中...");
+    const ok = await cloudSyncPull();
+    initApp();
+    checkPlateWarnings();
+    if (currentUser && currentUser.role !== 'guest') initUserBar();
+    if (ok) {
+      alert("已成功重新整理，顯示最新的雲端抽籤結果！");
+    } else {
+      alert("重新整理失敗，請確認網路連線後再試一次（此次操作不會覆蓋雲端資料，可放心重試）。");
+    }
+  }
 
   function checkLogin() {
     const logged = localStorage.getItem("lottery_user");
@@ -1540,8 +1583,11 @@
     initFloorplanSeats();
     renderSwap();
     renderResults();
-    addLog("設定", `更新作廢車位設定：${systemSettings.voidSeats.length > 0 ? systemSettings.voidSeats.join(',') : '無'}`);
-    alert("作廢車位已儲存並全域雲端同步！");
+    updateLotteryCards();
+    addLog("設定", `更新作廢車位設定：${systemSettings.voidSeats.length > 0 ? systemSettings.voidSeats.join(',') : '無'}`).then(ok => {
+      if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
+      alert("作廢車位已儲存並全域雲端同步！");
+    });
   }
 
   // ================= 2. 住戶名單邏輯 =================
@@ -1708,17 +1754,31 @@
       return;
     }
 
-    if (currentUser.role === 'director' && (pref1 !== "" || pref2 !== "" || pref3 !== "")) {
-      pendingAudits.push({
-        id: Date.now(),
-        name,
-        room: `${build} ${room}`,
-        prefs: [pref1, pref2, pref3].map(x => x === "" ? "無" : x).join(','),
-        director: currentUser.name
-      });
-      alert("指定車位已送出，需經系統管理員審核同意後生效！");
-      addLog("審核", `社區主任 ${currentUser.name} 提交住戶 ${name} 之指定車位審核`);
-      pref1 = ""; pref2 = ""; pref3 = "";
+    if (currentUser.role === 'director') {
+      // 💡 修正：比對「本次提交」與「該住戶目前已核准存檔」的指定車位是否真的不同，
+      // 避免社區主任僅編輯姓名/車牌等其他欄位時，被誤判為「變更指定車位」而重複送審，
+      // 更嚴重的是舊版程式碼會在送審的同時，把住戶原本已核准的指定車位直接清空，
+      // 導致在管理員完成審核前，該保留戶會暫時失去指定車位資格！
+      let oldResForAudit = id !== "" ? residents.find(x => Number(x.id) === Number(id)) : null;
+      let oldPref1 = oldResForAudit ? (oldResForAudit.pref1 || "") : "";
+      let oldPref2 = oldResForAudit ? (oldResForAudit.pref2 || "") : "";
+      let oldPref3 = oldResForAudit ? (oldResForAudit.pref3 || "") : "";
+      let prefsChanged = (String(pref1) !== String(oldPref1)) || (String(pref2) !== String(oldPref2)) || (String(pref3) !== String(oldPref3));
+
+      if (prefsChanged && (pref1 !== "" || pref2 !== "" || pref3 !== "")) {
+        pendingAudits.push({
+          id: Date.now(),
+          resId: oldResForAudit ? oldResForAudit.id : null,
+          name,
+          room: `${build} ${room}`,
+          prefs: [pref1, pref2, pref3].map(x => x === "" ? "無" : x).join(','),
+          director: currentUser.name
+        });
+        alert("指定車位變更已送出，需經系統管理員審核同意後生效！在審核通過前，將維持該住戶原本的指定車位設定不變。");
+        addLog("審核", `社區主任 ${currentUser.name} 提交住戶 ${name} 之指定車位變更審核`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
+        // 維持原本已核准的數值，等候管理員審核，不直接清空
+        pref1 = oldPref1; pref2 = oldPref2; pref3 = oldPref3;
+      }
     }
 
     let r1 = document.getElementById("res-r1").value;
@@ -1742,7 +1802,7 @@
       data.id = newId;
       data.assign1 = ""; data.assign2 = ""; data.assign3 = "";
       residents.push(data);
-      addLog("住戶", `新增住戶：${name} (${build} ${room})`);
+      addLog("住戶", `新增住戶：${name} (${build} ${room})`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
     } else {
       const idx = residents.findIndex(x => Number(x.id) === Number(id));
       if(idx !== -1) {
@@ -1779,9 +1839,9 @@
 
         if (releasedSeats.length > 0) {
           alert(`【系統通知】因車牌被清空或取消參加資格，系統已同步釋放該住戶的原有中籤車位：\n• ${releasedSeats.join('\n• ')}\n\n請注意該車位已重新回到可用車位池！`);
-          addLog("住戶", `更新住戶：${name} (${build} ${room}) 並釋放車位`);
+          addLog("住戶", `更新住戶：${name} (${build} ${room}) 並釋放車位`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
         } else {
-          addLog("住戶", `更新住戶：${name} (${build} ${room})`);
+          addLog("住戶", `更新住戶：${name} (${build} ${room})`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
         }
       }
     }
@@ -1816,7 +1876,7 @@
       renderDashboard();
       updateLotteryCards();
       checkPlateWarnings();
-      addLog("住戶", `刪除住戶 ID: ${id} 並釋放其佔用的車位`);
+      addLog("住戶", `刪除住戶 ID: ${id} 並釋放其佔用的車位`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
     }
   }
 
@@ -1835,8 +1895,10 @@
       updateLotteryCards();
       renderPendingAudits();
       checkPlateWarnings();
-      alert("所有住戶資料已成功清空並全域同步！");
-      addLog("住戶", "管理員刪除所有住戶資料");
+      addLog("住戶", "管理員刪除所有住戶資料").then(ok => {
+        if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
+        alert("所有住戶資料已成功清空並全域同步！");
+      });
     }
   }
 
@@ -1923,8 +1985,10 @@
       if (skippedReserve > 0) {
         alertMsg += `\n（提示：有 ${skippedReserve} 筆保留戶資料因未填寫指定車位被系統防呆跳過）`;
       }
-      alert(alertMsg);
-      addLog("住戶", `成功匯入 CSV 檔案 (${count} 筆)`);
+      addLog("住戶", `成功匯入 CSV 檔案 (${count} 筆)`).then(ok => {
+        if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
+        alert(alertMsg);
+      });
       inputElem.value = "";
     };
     reader.readAsText(file, "UTF-8");
@@ -2050,7 +2114,11 @@
         renderDashboard();
         renderResidents();
         initFloorplanSeats();
-        addLog("抽籤", `執行 ${currentRound} 抽籤完成（共抽出 ${winCount} 席）`);
+        addLog("抽籤", `執行 ${currentRound} 抽籤完成（共抽出 ${winCount} 席）`).then(ok => {
+          if (!ok) {
+            alert(`⚠️ 重要警告：${currentRound} 抽籤結果雲端同步失敗！\n\n本機畫面雖已顯示抽籤結果，但尚未成功寫入雲端資料庫，其他裝置（含一般住戶查詢）目前看不到這次的結果，重新整理後也可能遺失！\n\n請務必確認網路連線後，點擊右上方「🔄 重新整理」按鈕重新確認結果是否已同步；如仍失敗，請重新執行本輪抽籤。`);
+          }
+        });
       }
     }, 200);
   }
@@ -2170,9 +2238,6 @@
     processPreferencePass(res => res.pref2);
     processPreferencePass(res => res.pref3);
 
-    // 💡 [修正核心 4] 確保同等身分住戶間 100% 機率均等
-    // 先執行 Fisher-Yates 洗牌打亂全體，再使用穩定排序將「保留戶與AB棟」推至前列
-    // 這樣在「一般戶」的區塊內，就會維持完美的隨機亂數狀態，杜絕建檔順序造成的偏誤。
     remainingEligible = shuffleArray(remainingEligible);
     
     remainingEligible.sort((a, b) => {
@@ -2241,7 +2306,7 @@
       renderDashboard();
       renderResidents();
       initFloorplanSeats();
-      addLog("抽籤", `清除 ${currentRound} 結果`);
+      addLog("抽籤", `清除 ${currentRound} 結果`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
     }
   }
 
@@ -2256,7 +2321,7 @@
       renderResidents();
       renderSwap();
       initFloorplanSeats();
-      addLog("抽籤", "重置全部輪次結果與互換紀錄");
+      addLog("抽籤", "重置全部輪次結果與互換紀錄").then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
     }
   }
 
@@ -2607,8 +2672,10 @@
     selectSwapResident('A', aId, document.getElementById('swap-a-search').value);
     selectSwapResident('B', bId, document.getElementById('swap-b-search').value);
     
-    alert("進階車位互換成功並已全域同步！");
-    addLog("互換", `執行進階跨輪互換：${resA.name} 與 ${resB.name}`);
+    addLog("互換", `執行進階跨輪互換：${resA.name} 與 ${resB.name}`).then(ok => {
+      if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
+      alert("進階車位互換成功並已全域同步！");
+    });
   }
 
   function exportSwapLogs() {
@@ -2866,8 +2933,11 @@
     renderDashboard();
     renderSwap();
     renderResults();
-    alert("車位數量與區間設定已成功儲存並同步！");
-    addLog("設定", `更新車位設定：總數 ${tSeats} 席, B1上限 ${b1Lim}, 作廢車位 [${systemSettings.voidSeats.join(',')}]`);
+    updateLotteryCards();
+    addLog("設定", `更新車位設定：總數 ${tSeats} 席, B1上限 ${b1Lim}, 作廢車位 [${systemSettings.voidSeats.join(',')}]`).then(ok => {
+      if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
+      alert("車位數量與區間設定已成功儲存並同步！");
+    });
   }
 
   function saveVersionSettings() {
@@ -2991,7 +3061,11 @@
 
   function approveAudit(i) {
     let aud = pendingAudits[i];
-    let res = residents.find(x => x.name === aud.name && `${x.build} ${x.room}` === aud.room);
+    // 💡 優先以住戶 id 精準比對（較穩固）；若是舊資料沒有 resId，才退回用姓名+門牌比對相容舊資料
+    let res = aud.resId ? residents.find(x => Number(x.id) === Number(aud.resId)) : null;
+    if (!res) {
+      res = residents.find(x => x.name === aud.name && `${x.build} ${x.room}` === aud.room);
+    }
     if (res) {
       let pArr = aud.prefs.split(',').map(x => x.trim() === "無" ? "" : parseInt(x.trim()));
       res.pref1 = pArr[0] || "";
@@ -2999,12 +3073,14 @@
       res.pref3 = pArr[2] || "";
 
       alert("已同意該指定車位申請並同步！\n(備註：變更志願不會影響該住戶已經抽中的車位。若需重新分發，請至抽籤控制台重抽該輪次。)");
+    } else {
+      alert("⚠️ 找不到對應的住戶資料（該住戶可能已被刪除或門牌/姓名已變更），此審核項目將直接移除，請確認是否需要重新請社區主任提交。");
     }
     pendingAudits.splice(i, 1);
     cloudSyncPush();
     renderPendingAudits();
     renderResidents();
-    addLog("審核", `管理員同意住戶 ${aud.name} 之指定車位變更`);
+    addLog("審核", `管理員同意住戶 ${aud.name} 之指定車位變更`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
   }
 
   function rejectAudit(i) {
@@ -3013,7 +3089,7 @@
     cloudSyncPush();
     renderPendingAudits();
     alert("已拒絕該指定車位申請。");
-    addLog("審核", `管理員拒絕住戶 ${aud.name} 之指定車位`);
+    addLog("審核", `管理員拒絕住戶 ${aud.name} 之指定車位`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
   }
 
   function resetSystemData() {
@@ -3034,20 +3110,24 @@
       cloudSyncPush();
       initApp();
       checkPlateWarnings();
-      alert("系統資料已全部重置並全域同步！");
-      addLog("設定", "重置所有系統資料");
+      addLog("設定", "重置所有系統資料").then(ok => {
+        if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
+        alert("系統資料已全部重置並全域同步！");
+      });
     }
   }
 
   // ================= 10. 操作紀錄邏輯 (即時同步至雲端) =================
-  function addLog(type, msg) {
+  async function addLog(type, msg) {
     systemLogs.unshift({
       time: new Date().toLocaleString(),
       type,
       msg,
       user: currentUser.name
     });
-    cloudSyncPush();
+    // 💡 回傳雲端同步結果 (true/false)，讓關鍵操作（抽籤、互換、車位/名單異動等）可以偵測同步是否真的成功，
+    // 並在失敗時提醒操作者，避免誤以為資料已經安全存到雲端。既有未使用回傳值的呼叫方式仍照常運作（fire-and-forget）。
+    return await cloudSyncPush();
   }
 
   function renderLogs() {
