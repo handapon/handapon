@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.99</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.00</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -200,7 +200,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v1.99</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.00</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -503,7 +503,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.99 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.00 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -700,7 +700,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.99">
+        <input type="text" id="set-app-version" value="v2.00">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -952,7 +952,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.99",
+    appVersion: "v2.00",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1044,47 +1044,65 @@
       return false;
     }
 
-    // 💡 重要修正：先前版本在這裡加了一個「寫入前先檢查衝突」的額外網路請求，
-    // 結果反而讓每次寫入變慢（多一次網路來回），更容易被登出流程的逾時機制中斷、
-    // 導致寫入根本沒完成就被頁面重新整理打斷，這很可能是先前修正沒有生效、
-    // 甚至讓問題變得更容易出現的真正原因。改回單一次網路寫入，把資料版本追蹤
-    // (見下方 pendingPushCount 與 doLogout) 改成用「等待所有寫入真正完成」來防護，
-    // 而不是用「額外的檢查」拖慢每一次寫入。
+    // 💡 重要修正（重新加回衝突偵測，並修正先前拿掉的原因）：
+    // 診斷工具已經證實 Firebase 讀寫本身快速且正常，先前懷疑「衝突檢查拖慢速度導致逾時」的判斷是錯的，
+    // 真正該修正的是「等待寫入完成」的邏輯本身（已於下方以 pendingPushCount 正確涵蓋整個檢查+寫入流程）。
+    // 這裡重新加回「寫入前先確認雲端資料沒有被別人更新過」的檢查，用來防止另一個分頁/裝置/帳號的舊資料，
+    // 在您的新結果寫入「之後」又寫入一次把新結果覆蓋掉——這正是診斷工具檢測到的真正成因。
     pendingPushCount++;
-    let formattedResults = {};
-    for (let r in lotteryResults) {
-      formattedResults[r] = {};
-      if (lotteryResults[r]) {
-        for (let rawKey in lotteryResults[r]) {
-          let cleanId = normalizeResId(rawKey);
-          let val = lotteryResults[r][rawKey];
-          if (cleanId > 0 && val !== null && val !== undefined) {
-            formattedResults[r][`p_${cleanId}`] = Number(val);
+    try {
+      try {
+        const checkRes = await fetch(`${FIREBASE_DB_URL}parkingData/_meta/lastModified.json?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
+        if (checkRes.ok) {
+          const serverModified = await checkRes.json();
+          if (serverModified && Number(serverModified) > lastKnownServerModified) {
+            console.warn(`偵測到雲端資料版本衝突（雲端:${serverModified} > 本機已知:${lastKnownServerModified}），已取消本次寫入以避免覆蓋他人更新的資料，改為自動同步最新資料。`);
+            await cloudSyncPull();
+            updateSyncStatusUI(false, "偵測到他人已更新，已同步最新");
+            alert("⚠️ 偵測到雲端資料已被其他裝置或使用者更新過（可能是另一個分頁、另一位管理員/主任，或您自己稍早開著的舊分頁）。\n\n為了避免覆蓋掉別人剛寫入的最新資料，這次的變更已「取消寫入」，畫面已自動更新為雲端目前最新的內容。\n\n請確認畫面上的資料，如果您的變更仍需要，請重新操作一次。");
+            return false;
+          }
+        }
+      } catch (e) {
+        console.warn("推送前的雲端版本檢查失敗，仍繼續嘗試寫入：", e);
+      }
+
+      let formattedResults = {};
+      for (let r in lotteryResults) {
+        formattedResults[r] = {};
+        if (lotteryResults[r]) {
+          for (let rawKey in lotteryResults[r]) {
+            let cleanId = normalizeResId(rawKey);
+            let val = lotteryResults[r][rawKey];
+            if (cleanId > 0 && val !== null && val !== undefined) {
+              formattedResults[r][`p_${cleanId}`] = Number(val);
+            }
           }
         }
       }
-    }
 
-    const newModifiedTs = Date.now();
-    const payload = {
-      residents,
-      lotteryResults: formattedResults,
-      systemSettings,
-      accountsList,
-      pendingAudits,
-      swapLogs,
-      systemLogs,
-      _meta: { lastModified: newModifiedTs, lastModifiedBy: (currentUser && currentUser.name) || "" }
-    };
+      const newModifiedTs = Date.now();
+      const payload = {
+        residents,
+        lotteryResults: formattedResults,
+        systemSettings,
+        accountsList,
+        pendingAudits,
+        swapLogs,
+        systemLogs,
+        _meta: { lastModified: newModifiedTs, lastModifiedBy: (currentUser && currentUser.name) || "" }
+      };
 
-    try {
       const pushRes = await fetch(`${FIREBASE_DB_URL}parkingData.json`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
       if (!pushRes.ok) throw new Error("HTTP " + pushRes.status);
-      lastKnownServerModified = newModifiedTs; // 💡 寫入成功後，更新本機記住的最新版本時間戳（僅供畫面顯示參考）
+      lastKnownServerModified = newModifiedTs; // 💡 寫入成功後，更新本機記住的最新版本時間戳
       lastKnownServerModifiedBy = (currentUser && currentUser.name) || "";
       updateSyncStatusUI(true, "雲端已同步");
       return true;
@@ -1484,7 +1502,7 @@
     logoutBtns.forEach(b => b.disabled = true);
     updateSyncStatusUI(false, "登出前確認資料同步完成中，請稍候...");
 
-    await waitForPendingPushes(8000); // 最多等待8秒，避免網路異常時卡住無法登出
+    await waitForPendingPushes(12000); // 最多等待12秒（涵蓋衝突檢查+實際寫入兩次網路來回），避免網路異常時卡住無法登出
 
     localStorage.removeItem("lottery_user");
     location.reload();
