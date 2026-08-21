@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.86</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.87</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -87,7 +87,7 @@
   .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
   label{font-size:14px;font-weight:700;color:var(--text-muted);margin-bottom:8px;display:block}
 
-  /* 💡 高讀性表格 */
+  /* 表格樣式 */
   .table-wrap{max-height:65vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid #e2e8f0;box-shadow:0 4px 6px -1px rgba(0,0,0,0.02)}
   table{width:100%;border-collapse:collapse;font-size:15px}
   th{position:sticky;top:0;z-index:10;text-align:left;padding:1.1rem 1rem;background:#f8fafc;border-bottom:2px solid #cbd5e1;font-weight:800;color:#334155;white-space:nowrap;box-shadow:0 2px 4px -2px rgba(0,0,0,0.1)}
@@ -167,6 +167,11 @@
   .sync-online { background:#dcfce7; color:#15803d; border:1px solid #bbf7d0;}
   .sync-offline { background:#fef2f2; color:#dc2626; border:1px solid #fecaca;}
 
+  /* 💡 預覽手冊相關樣式 */
+  .pdf-preview-box { background:#f8fafc; border:2px dashed #cbd5e1; border-radius:12px; height:500px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+  .pdf-preview-box iframe { width:100%; height:100%; border:none; flex:1; background:#fff; z-index:2; }
+  .pdf-placeholder { color:var(--text-muted); font-weight:700; font-size:16px; position:absolute; z-index:1; }
+
   @media(max-width:768px){
     .nav-tabs{display:none}
     .nav-hamburger{display:flex}
@@ -176,6 +181,7 @@
     .lrs-arrow-col{display:none}
     .card{padding:1.5rem}
     .table-wrap{max-height:50vh}
+    .pdf-preview-box { height: 400px; }
   }
 </style>
 </head>
@@ -190,7 +196,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:11.5px;color:var(--text-muted);background:#f1f5f9;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #e2e8f0">v1.85</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:11.5px;color:var(--text-muted);background:#f1f5f9;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #e2e8f0">v1.87</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -264,7 +270,6 @@
     <div class="flex-between" style="margin-bottom:1.25rem">
       <div class="card-title" style="margin:0">車位即時分配圖</div>
     </div>
-    <!-- 💡 新增車位顏色圖例 -->
     <div class="legend-box">
       <div class="legend-item"><div class="legend-color" style="background:#f0fdf4;border:1px solid #bbf7d0"></div>空車位 (可分配)</div>
       <div class="legend-item"><div class="legend-color" style="background:#eff6ff;border:1px solid #bfdbfe"></div>已分發車位</div>
@@ -412,7 +417,6 @@
 <div id="page-results" class="page">
   <div class="flex-between" style="margin-bottom:1.5rem">
     <div class="section-title" style="margin:0">抽籤結果與彙整總表</div>
-    <!-- 一般住戶隱藏匯出按鈕區塊 -->
     <div class="btn-row" style="margin:0" id="results-export-btns">
       <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
       <button class="btn" id="btn-export-csv" onclick="exportRoundResult()">匯出目前表格 CSV</button>
@@ -494,7 +498,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.86 進階版 + 車牌搜尋) ===== -->
+<!-- ===== 7. 車位互換 (v1.86 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -593,7 +597,7 @@
   <div class="flex-between" style="margin-bottom:1.5rem">
     <div class="section-title" style="margin:0">機車位配置平面圖</div>
     <div class="btn-row" style="margin:0">
-      <label class="btn btn-primary btn-sm" id="admin-floorplan-upload" style="margin:0;cursor:pointer">
+      <label class="btn btn-primary btn-sm" id="admin-floorplan-upload" style="margin:0;cursor:pointer;display:none">
         📤 上傳自訂平面圖 <input type="file" accept="image/*" style="display:none" onchange="uploadCustomFloorplan(this)">
       </label>
       <button class="btn btn-sm" onclick="zoomFloorplan(0.1)">放大 (+)</button>
@@ -610,7 +614,6 @@
   <div class="card" style="overflow:auto;text-align:center;padding:3rem">
     <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center;">
       
-      <!-- 💡 新增車位顏色圖例 -->
       <div class="legend-box" style="margin-bottom:2rem;font-size:14.5px;color:#334155">
         <div class="legend-item"><div class="legend-color" style="background:#f0fdf4;border:1px solid #bbf7d0"></div>空車位</div>
         <div class="legend-item" style="margin-left:15px"><div class="legend-color" style="background:#eff6ff;border:1px solid #bfdbfe"></div>已分發車位</div>
@@ -620,14 +623,14 @@
       <div id="fp-content-1" style="max-width:100%">
         <img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:2rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
         <div style="padding:3.5rem;background:#ffffff;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.02)">
-          <h4 style="color:#1e293b;margin-bottom:1.5rem;font-size:22px;font-weight:900">B1 機車位配置平面圖</h4>
+          <h4 style="color:#1e293b;margin-bottom:1.5rem;font-size:20px;font-weight:900">B1 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b1-grid"></div>
         </div>
       </div>
       <div id="fp-content-2" style="max-width:100%; display:none">
         <img id="custom-fp-img-2" src="" style="display:none;max-width:100%;margin-bottom:2rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
         <div style="padding:3.5rem;background:#ffffff;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.02)">
-          <h4 style="color:#1e293b;margin-bottom:1.5rem;font-size:22px;font-weight:900">B2 機車位配置平面圖</h4>
+          <h4 style="color:#1e293b;margin-bottom:1.5rem;font-size:20px;font-weight:900">B2 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b2-grid"></div>
         </div>
       </div>
@@ -635,24 +638,53 @@
   </div>
 </div>
 
-<!-- ===== 10. 說明 ===== -->
+<!-- 💡 ===== 10. 說明 (整合 PDF 預覽) ===== -->
 <div id="page-guide" class="page">
   <div class="section-title">系統操作說明指南</div>
-  <div class="card">
-    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 1. 住戶名單與車牌管理</h3>
-    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">管理員與社區主任可共同維護住戶名單。輸入對應的車牌（車牌1對應第1輪，車牌2對應第2輪，車牌3對應第3輪），系統將自動判定並勾選對應輪次。若設定為保留戶身分，必須填寫至少一個指定車位。</p>
+  
+  <div class="grid-2" id="guide-pdf-container">
+    <!-- 社區主任版手冊區塊 (僅管理員與主任可見) -->
+    <div class="card" id="guide-director-card" style="padding:1.5rem;margin-bottom:1.5rem">
+      <div class="flex-between" style="margin-bottom:1rem">
+        <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin:0">👑 社區主任版操作手冊</h3>
+        <div class="btn-row" style="margin:0;display:none" id="admin-guide-director-btns">
+          <label class="btn btn-primary btn-sm" style="margin:0;cursor:pointer;padding:4px 10px;font-size:12px">
+            📤 上傳更新 <input type="file" accept="application/pdf" style="display:none" onchange="uploadManual('director', this)">
+          </label>
+          <button class="btn btn-danger btn-sm" style="padding:4px 10px;font-size:12px" onclick="deleteManual('director')">🗑️ 刪除</button>
+        </div>
+      </div>
+      <div id="preview-director-manual" class="pdf-preview-box">
+        <!-- JS 動態插入 iframe -->
+      </div>
+    </div>
+
+    <!-- 一般住戶版手冊區塊 -->
+    <div class="card" id="guide-resident-card" style="padding:1.5rem;margin-bottom:1.5rem">
+      <div class="flex-between" style="margin-bottom:1rem">
+        <h3 style="font-size:16px;font-weight:800;color:#16a34a;margin:0">🏠 一般住戶版操作手冊</h3>
+        <div class="btn-row" style="margin:0;display:none" id="admin-guide-resident-btns">
+          <label class="btn btn-primary btn-sm" style="margin:0;cursor:pointer;padding:4px 10px;font-size:12px">
+            📤 上傳更新 <input type="file" accept="application/pdf" style="display:none" onchange="uploadManual('resident', this)">
+          </label>
+          <button class="btn btn-danger btn-sm" style="padding:4px 10px;font-size:12px" onclick="deleteManual('resident')">🗑️ 刪除</button>
+        </div>
+      </div>
+      <div id="preview-resident-manual" class="pdf-preview-box">
+         <!-- JS 動態插入 iframe -->
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="background:#f8fafc">
+    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 1. 系統安全性與權限隔離</h3>
+    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">本系統實施嚴格的資料分流。管理中心可執行名單建立、車位分配與後續互換；一般住戶透過專屬入口登入時，系統將自動隱匿鄰居姓名（部分遮罩），並鎖死所有報表下載功能，以最高標準確保社區個資安全不外洩。</p>
     
-    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 2. 執行抽籤與跨輪多次中籤支援</h3>
-    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">於「執行抽籤」頁面可依序進行各輪抽籤。本系統<b>支援同一住戶在不同輪次登記多車位並獨立抽籤</b>。系統會自動彙整所有先前輪次已分配出去的車位，確保車位絕不重複分配，且各輪卡片上的「可用車位」會即時精確扣除先前輪次已抽出去的車位數。</p>
+    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 2. 多車位獨立抽籤演算法</h3>
+    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">系統完美支援「一戶多車位」需求。住戶登記多台車牌後可分別參與各輪抽籤。系統底層具備智慧防衝突機制，於各輪運算前自動排除「作廢」與「前輪已分發」之車位，絕對不會發生「一車位多配」的錯誤佔用情形。</p>
 
-    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 3. 抽籤結果與彙整總表</h3>
-    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">於「抽籤結果與總表」頁面可隨時切換檢視各輪明細或“全部輪次總表”，支援直接匯出 Excel (.xlsx)、PDF 報表或列印。一般住戶僅供線上檢視。</p>
-
-    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 4. 車位互換管理 (進階版)</h3>
-    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:2rem;line-height:1.75">系統提供<b>進階個別車位互換模式</b>，搜尋住戶後，您可以針對每一位住戶各自擁有的多個車位，精準指定要拿「第幾輪的車位」與對方互換（例如用 A 的第一輪換 B 的第三輪），系統將無縫處理資料移轉與邏輯防呆檢查。</p>
-
-    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:.75rem">📌 5. 權限與帳號管理</h3>
-    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:0;line-height:1.75"><b>系統管理員</b>擁有全部管理與系統設定權限，可自訂系統標題、背景與版次，並能自行編輯或重設所有使用者密碼；<b>社區主任</b>可編輯住戶與執行抽籤（指定車位需管理員審核）；<b>一般住戶</b>僅供線上檢視個人中籤與總表（隱匿鄰居姓名且無法下載檔案）。</p>
+    <h3 style="font-size:16.5px;font-weight:800;color:var(--primary);margin-bottom:0">📌 3. 跨輪次個別車位互換</h3>
+    <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:0;line-height:1.75">系統內建的進階互換引擎，允許管理員針對單一住戶的多個車位，進行跨輪次的精準對調（例：以 A 住戶的第一輪車位換取 B 住戶的第三輪車位）。互換過程具備防呆攔截，杜絕無資格者憑空獲取車位。</p>
   </div>
 </div>
 
@@ -669,7 +701,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.86">
+        <input type="text" id="set-app-version" value="v1.87">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -731,7 +763,7 @@
   </div>
 
   <div class="card">
-    <div class="flex-between" style="margin-bottom:1.5rem">
+    <div class="flex-between" style="margin-bottom:1.25rem">
       <div class="card-title" style="margin:0;border:none;padding:0">管理員與社區主任帳號清單</div>
       <button class="btn btn-primary btn-sm" onclick="openDirectorModal('add')">＋ 新增社區主任帳號</button>
     </div>
@@ -892,13 +924,15 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.86",
+    appVersion: "v1.87",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBg: "",
     customFp1: "",
     customFp2: "",
-    quickGuideText: defaultQuickGuide
+    quickGuideText: defaultQuickGuide,
+    directorManualPdf: "", // 💡 儲存社區主任版 Base64 PDF
+    residentManualPdf: ""  // 💡 儲存一般住戶版 Base64 PDF
   };
 
   let residents = [];
@@ -1047,6 +1081,9 @@
           systemSettings.appVersion = codeVer;
           if (!systemSettings.b1Limit) systemSettings.b1Limit = Math.floor(systemSettings.totalSeats / 2);
           if (!systemSettings.quickGuideText) systemSettings.quickGuideText = defaultQuickGuide;
+          // 防止雲端無此欄位時出錯
+          if (typeof systemSettings.directorManualPdf === "undefined") systemSettings.directorManualPdf = "";
+          if (typeof systemSettings.residentManualPdf === "undefined") systemSettings.residentManualPdf = "";
         }
         if (data.accountsList) accountsList = data.accountsList;
         if (data.pendingAudits) pendingAudits = data.pendingAudits;
@@ -1244,6 +1281,7 @@
     renderSummary();
     renderLogs();
     renderSwap();
+    renderGuide(); // 💡 確保初始化時渲染操作手冊
     renderDirectorsList();
     renderPendingAudits();
     initFloorplanSeats();
@@ -1289,8 +1327,9 @@
     if(pageId === 'summary') renderSummary();
     if(pageId === 'logs') renderLogs();
     if(pageId === 'swap') renderSwap();
+    if(pageId === 'guide') renderGuide(); // 💡 切換至說明頁時更新手冊顯示
     if(pageId === 'lottery') { updateLotteryCards(); checkPlateWarnings(); }
-    if(pageId === 'floorplan') { initFloorplanSeats(); }
+    if(pageId === 'floorplan') { initFloorplanSeats(); } 
     if(pageId === 'settings' && currentUser.role === 'admin') {
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
       document.getElementById("set-total-seats").value = systemSettings.totalSeats;
@@ -1516,7 +1555,6 @@
 
     r[roundKey] = r[roundKey] === 'Y' ? 'N' : 'Y';
 
-    // 💡 [修正核心 2] 若資格變更為 N，強制且無條件刪除該輪成績與 p_id
     if (r[roundKey] === 'N') {
       const rNum = roundKey.replace('r', '');
       const roundName = rNum === '1' ? "第一輪" : (rNum === '2' ? "第二輪" : "第三輪");
@@ -1652,7 +1690,6 @@
         let oldRes = residents[idx];
         let releasedSeats = [];
 
-        // 💡 強制清除邏輯更新
         if (r1 === 'N') {
           if (oldRes.assign1) releasedSeats.push(`第一輪車位 ${oldRes.assign1}號`);
           if (lotteryResults["第一輪"]) {
@@ -2084,8 +2121,6 @@
       let bIsAB = (b.build.startsWith("A") || b.build.startsWith("B")) ? 1 : 0;
       return bIsAB - aIsAB; 
     });
-    // 💡 [修正核心 1] 在排序結束後，針對「身分權重完全相同」的區域，強制進行二次完美洗牌
-    // 因為在 JS 引擎中同分的陣列不一定會保留前一次的亂數分佈，這裡必須做二次打散確保 100% 機率均等
     remainingEligible = shuffleArray(remainingEligible);
 
     remainingEligible.forEach(res => {
@@ -2274,7 +2309,7 @@
         <td class="text-center">${r.room}</td>
         <td><b>${getDisplayName(r.name)}</b></td>
         <td class="text-center">${r.reserve==='Y'?'<span class="badge badge-purple">保留戶</span>':'一般戶'}</td>
-        <td class="text-center">${hasSeat ? '<b style="font-size:16.5px;color:var(--primary)">'+seat+'號</b>' : '-'}</td>
+        <td class="text-center">${hasSeat ? '<b style="font-size:16px;color:var(--primary)">'+seat+'號</b>' : '-'}</td>
         <td class="text-center">${statusStr}</td>
       </tr>`;
     });
@@ -2350,7 +2385,6 @@
     addLog("設定", en ? "開放車位互換" : "鎖定車位互換");
   }
 
-  // 💡 [修正核心 2] 擴大檢索範圍：允許搜尋車牌號碼 (plate1, plate2, plate3)
   function searchSwapResident(type) {
     const keyword = document.getElementById(`swap-${type.toLowerCase()}-search`).value.toLowerCase();
     const dropdown = document.getElementById(`swap-${type.toLowerCase()}-dropdown`);
@@ -2702,6 +2736,7 @@
     applySystemBranding();
     initUserBar();
     renderDashboard();
+    renderGuide(); // 💡 確保設定儲存後，說明頁的手冊顯示邏輯也一併更新
     
     alert("系統標題與導覽設定更新成功並已全域同步！");
     addLog("設定", `更新系統標題與快速導覽設定`);
@@ -2925,6 +2960,8 @@
       pendingAudits = [];
       systemSettings.customFp1 = "";
       systemSettings.customFp2 = "";
+      systemSettings.directorManualPdf = "";
+      systemSettings.residentManualPdf = "";
       cloudSyncPush();
       initApp();
       checkPlateWarnings();
@@ -2966,8 +3003,8 @@
           <div class="log-tl-line"></div>
           <div class="log-tl-dot"></div>
           <div class="log-tl-content">
-            <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;font-weight:800">${l.time} <span class="badge badge-blue" style="margin:0 8px">${l.type}</span> 👤 ${l.user}</div>
-            <div style="font-size:15px;color:var(--text-main);font-weight:600;line-height:1.6">${l.msg}</div>
+            <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:6px;font-weight:700">${l.time} <span class="badge badge-blue" style="margin:0 8px">${l.type}</span> 👤 ${l.user}</div>
+            <div style="font-size:14.5px;color:var(--text-main);font-weight:600;line-height:1.6">${l.msg}</div>
           </div>
         </div>`;
       });
@@ -3034,6 +3071,94 @@
     XLSX.writeFile(wb, `${titleName}_${new Date().toISOString().slice(0,10)}.xlsx`);
     addLog("設定", `匯出 Excel 報表：${titleName}`);
   }
+
+  // 💡 ================= 12. 操作手冊(PDF) 動態預覽與權限管理 =================
+  function renderGuide() {
+    const isGuest = currentUser.role === 'guest';
+    const isAdmin = currentUser.role === 'admin';
+
+    // 權限隔離：一般住戶隱藏主任版手冊
+    document.getElementById("guide-director-card").style.display = isGuest ? 'none' : 'block';
+    
+    // 權限隔離：只有系統管理員能看到上傳/刪除按鈕
+    document.getElementById("admin-guide-director-btns").style.display = isAdmin ? 'flex' : 'none';
+    document.getElementById("admin-guide-resident-btns").style.display = isAdmin ? 'flex' : 'none';
+
+    // 調整排版：若為一般住戶，讓住戶版手冊滿版顯示
+    if (isGuest) {
+      document.getElementById("guide-pdf-container").className = "";
+    } else {
+      document.getElementById("guide-pdf-container").className = "grid-2";
+    }
+
+    // 渲染社區主任版 PDF
+    const dirPreview = document.getElementById("preview-director-manual");
+    if (systemSettings.directorManualPdf && systemSettings.directorManualPdf.length > 50) {
+      dirPreview.innerHTML = `
+        <iframe src="${systemSettings.directorManualPdf}" width="100%" height="100%" style="border:none;z-index:2"></iframe>
+        <div style="position:absolute;bottom:0;width:100%;background:rgba(248,250,252,0.9);padding:8px;text-align:center;border-top:1px solid #e2e8f0;z-index:3">
+           <a href="${systemSettings.directorManualPdf}" download="社區主任版操作手冊.pdf" style="font-size:13px;font-weight:700;color:var(--primary);text-decoration:none">📥 若無法預覽，請點此下載手冊檔案</a>
+        </div>
+      `;
+    } else {
+      dirPreview.innerHTML = `<span class="pdf-placeholder">尚未上傳操作手冊</span>`;
+    }
+
+    // 渲染一般住戶版 PDF
+    const resPreview = document.getElementById("preview-resident-manual");
+    if (systemSettings.residentManualPdf && systemSettings.residentManualPdf.length > 50) {
+      resPreview.innerHTML = `
+        <iframe src="${systemSettings.residentManualPdf}" width="100%" height="100%" style="border:none;z-index:2"></iframe>
+        <div style="position:absolute;bottom:0;width:100%;background:rgba(248,250,252,0.9);padding:8px;text-align:center;border-top:1px solid #e2e8f0;z-index:3">
+           <a href="${systemSettings.residentManualPdf}" download="一般住戶版操作手冊.pdf" style="font-size:13px;font-weight:700;color:var(--primary);text-decoration:none">📥 若無法預覽，請點此下載手冊檔案</a>
+        </div>
+      `;
+    } else {
+      resPreview.innerHTML = `<span class="pdf-placeholder">尚未上傳操作手冊</span>`;
+    }
+  }
+
+  function uploadManual(type, inputElem) {
+    const file = inputElem.files[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      alert("請上傳 PDF 格式的檔案！");
+      inputElem.value = "";
+      return;
+    }
+    // 限制 4MB 以內，避免 Base64 轉換後 Firebase 傳輸超載
+    if (file.size > 4 * 1024 * 1024) { 
+      alert("檔案過大！為確保系統連線順暢，請上傳小於 4MB 的 PDF 檔案。");
+      inputElem.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const base64Str = e.target.result;
+      if (type === 'director') {
+        systemSettings.directorManualPdf = base64Str;
+      } else {
+        systemSettings.residentManualPdf = base64Str;
+      }
+      cloudSyncPush();
+      renderGuide();
+      alert(`已成功上傳並更新 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊！`);
+      addLog("設定", `管理員上傳更新 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊`);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function deleteManual(type) {
+    if (confirm(`確定要刪除 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊嗎？`)) {
+      if (type === 'director') systemSettings.directorManualPdf = "";
+      else systemSettings.residentManualPdf = "";
+      cloudSyncPush();
+      renderGuide();
+      addLog("設定", `管理員刪除 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊`);
+    }
+  }
+
 </script>
 </body>
 </html>
