@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.03</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.05</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -17,7 +17,8 @@
     --text-muted: #334155; /* 加深次要文字顏色 */
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg-main);color:var(--text-main);font-size:15px;line-height:1.7}
+  html{overflow-x:hidden;width:100%}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg-main);color:var(--text-main);font-size:15px;line-height:1.7;overflow-x:hidden;width:100%;max-width:100vw}
   
   /* 導覽列 */
   .nav{background:var(--card-bg);border-bottom:1px solid #94a3b8;display:flex;align-items:center;padding:0 1.5rem;position:sticky;top:0;z-index:900;box-shadow:0 4px 10px -2px rgba(0,0,0,0.08)}
@@ -88,10 +89,10 @@
   label{font-size:14.5px;font-weight:800;color:var(--text-muted);margin-bottom:8px;display:block}
 
   /* 💡 高讀性表格 (大幅提升視覺對比度) */
-  .table-wrap{max-height:65vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid #cbd5e1;box-shadow:0 4px 10px rgba(0,0,0,0.03)}
-  table{width:100%;border-collapse:collapse;font-size:15px}
+  .table-wrap{max-height:65vh;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid #cbd5e1;box-shadow:0 4px 10px rgba(0,0,0,0.03);max-width:100%}
+  table{width:100%;min-width:640px;border-collapse:collapse;font-size:15px}
   th{position:sticky;top:0;z-index:10;text-align:left;padding:1.25rem 1rem;background:#e2e8f0;border-bottom:3px solid #94a3b8;font-weight:900;color:#0f172a;white-space:nowrap;box-shadow:0 2px 4px -2px rgba(0,0,0,0.15)}
-  td{padding:1.25rem 1rem;border-bottom:1px solid #cbd5e1;vertical-align:middle;color:var(--text-main);font-weight:600}
+  td{padding:1.25rem 1rem;border-bottom:1px solid #cbd5e1;vertical-align:middle;color:var(--text-main);font-weight:600;white-space:nowrap}
   tr:last-child td{border-bottom:none}
   tr:nth-child(even) td{background:#f8fafc}
   tr:hover td{background:#dbeafe !important; transition: background 0.15s ease} /* 更明顯的高亮色 */
@@ -182,15 +183,41 @@
     .form-row,.form-row-3{grid-template-columns:1fr}
     .lrs-grid{grid-template-columns:1fr}
     .lrs-arrow-col{display:none}
-    .card{padding:1.5rem}
-    .table-wrap{max-height:50vh}
-    .pdf-preview-box { height: 400px; }
+    .page{padding:1.25rem .85rem}
+    .card{padding:1.25rem}
+    .card-title{font-size:17px}
+    .section-title{font-size:21px}
+    .table-wrap{max-height:55vh;margin:0 -0.1rem}
+    table{min-width:560px;font-size:13.5px}
+    th{padding:.9rem .7rem;font-size:13px}
+    td{padding:.9rem .7rem}
+    .pdf-preview-box { height: 320px; }
+    .seat-grid{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+    .seat{min-height:56px;font-size:12px;padding:5px}
+    .stats-grid{grid-template-columns:repeat(2,1fr);gap:.85rem}
+    .stat{padding:1rem}
+    .stat-value{font-size:26px}
+    .lottery-hero{padding:1.5rem}
+    .lottery-hero .flex-between{flex-direction:column;align-items:stretch}
+    .btn-run-lottery{width:100%;font-size:16px;padding:1rem}
+    #inq-plate{margin-bottom:10px}
+    .page-inquiry-search-row, #page-inquiry div[style*="display:flex"]{flex-direction:column}
+    #page-inquiry div[style*="display:flex"] button{width:100%;padding:.85rem !important}
+    #page-inquiry div[style*="display:flex"] input{width:100%}
+    .modal{padding:1.5rem;width:95%}
+    .lottery-modal{padding:2rem 1.5rem}
+    .round-tabs, .result-round-tabs{gap:8px}
+    .round-tab{padding:.6rem 1.1rem;font-size:13.5px}
+    .nav-menu-mobile .nav-tab{padding:1.15rem 1.25rem;font-size:15.5px}
+    .table-scroll-hint{display:block}
   }
+  .table-scroll-hint{display:none;font-size:12.5px;color:var(--text-muted);font-weight:800;margin-bottom:.5rem;text-align:right}
 </style>
 </head>
 <body>
 
 <!-- ===== 使用者頂部列 ===== -->
+<!-- 說明：表格若欄位較多，手機上請左右滑動查看完整內容 -->
 <div class="user-bar" id="user-bar" style="display:none">
   <span id="user-bar-name" style="font-weight:800;">👤 未登入</span>
   <span id="sync-status-indicator" class="sync-offline">雲端連線中...</span>
@@ -200,7 +227,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.03</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.05</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -316,6 +343,7 @@
     </div>
     <div style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.25rem;font-weight:800" id="resident-count"></div>
     
+    <div class="table-scroll-hint">👉 表格可左右滑動查看更多欄位</div>
     <div class="table-wrap">
       <table id="residents-table">
         <thead>
@@ -448,6 +476,7 @@
         <option value="skip">未參加 (未登記該輪車牌)</option>
       </select>
     </div>
+    <div class="table-scroll-hint">👉 表格可左右滑動查看更多欄位</div>
     <div class="table-wrap">
       <table id="results-table">
         <thead>
@@ -503,7 +532,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.03 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.05 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -700,7 +729,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.03">
+        <input type="text" id="set-app-version" value="v2.05">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -955,7 +984,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.03",
+    appVersion: "v2.05",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1856,7 +1885,6 @@
     }
 
     systemSettings.voidSeats = uniqueInputSeats.sort((a,b)=>a-b);
-    cloudSyncPush();
     renderDashboard();
     initFloorplanSeats();
     renderSwap();
@@ -2127,7 +2155,6 @@
       }
     }
 
-    cloudSyncPush();
     closeModal();
     renderResidents();
     renderDashboard();
@@ -2152,7 +2179,6 @@
 
       residents = residents.filter(x => Number(x.id) !== Number(id));
       
-      cloudSyncPush();
       renderResidents();
       renderDashboard();
       updateLotteryCards();
@@ -2170,7 +2196,6 @@
       residents = [];
       lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
       pendingAudits = [];
-      cloudSyncPush();
       renderResidents();
       renderDashboard();
       updateLotteryCards();
@@ -2257,7 +2282,6 @@
           count++;
         }
       }
-      cloudSyncPush();
       renderResidents();
       renderDashboard();
       updateLotteryCards();
@@ -2557,8 +2581,6 @@
         assignSeatToRes(res.id, assignedSeat);
       }
     });
-
-    cloudSyncPush();
   }
 
   function clearCurrentRound() {
@@ -2582,7 +2604,6 @@
       } else if (currentRound === "第二輪") {
         lotteryResults["第三輪"] = {};
       }
-      cloudSyncPush();
       updateLotteryCards();
       renderDashboard();
       renderResidents();
@@ -2596,7 +2617,6 @@
       lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {} };
       swapLogs = []; 
       residents.forEach(r => { r.assign1 = ""; r.assign2 = ""; r.assign3 = ""; });
-      cloudSyncPush();
       updateLotteryCards();
       renderDashboard();
       renderResidents();
@@ -2779,7 +2799,6 @@
 
   function saveSwapConfig() {
     systemSettings.swapDeadline = document.getElementById("swap-deadline").value;
-    cloudSyncPush();
     renderSwap();
     alert("互換設定已儲存！");
     addLog("設定", `更新互換截止日：${systemSettings.swapDeadline}`);
@@ -2787,7 +2806,6 @@
 
   function setSwapEnabled(en) {
     systemSettings.swapEnabled = en;
-    cloudSyncPush();
     renderSwap();
     alert(en ? "車位互換功能已開放！" : "車位互換功能已鎖定！");
     addLog("設定", en ? "開放車位互換" : "鎖定車位互換");
@@ -2965,7 +2983,6 @@
       swapLogs = swapLogs.slice(0, 200);
     }
 
-    cloudSyncPush();
     renderSwap();
     renderDashboard();
     renderResults();
@@ -3177,7 +3194,6 @@
     systemSettings.appVersion = ver;
     systemSettings.quickGuideText = document.getElementById("set-quick-guide").value.trim();
     
-    cloudSyncPush();
     applySystemBranding();
     initUserBar();
     renderDashboard();
@@ -3237,7 +3253,6 @@
 
     systemSettings.voidSeats = uniqueInputSeats.sort((a,b)=>a-b);
 
-    cloudSyncPush();
     initFloorplanSeats();
     renderDashboard();
     renderSwap();
@@ -3324,7 +3339,6 @@
       addLog("設定", `編輯/重設帳號資料：${name}`);
     }
 
-    cloudSyncPush();
     closeDirectorModal();
     renderDirectorsList();
     initUserBar();
@@ -3338,7 +3352,6 @@
     }
     if (confirm(`確定要刪除帳號 「${accountsList[idx].name}」 嗎？`)) {
       let removed = accountsList.splice(idx, 1);
-      cloudSyncPush();
       renderDirectorsList();
       addLog("設定", `刪除社區主任帳號：${removed[0].name}`);
     }
@@ -3401,7 +3414,6 @@
       alert("⚠️ 找不到對應的住戶資料（該住戶可能已被刪除或門牌/姓名已變更），此審核項目將直接移除，請確認是否需要重新請社區主任提交。");
     }
     pendingAudits.splice(i, 1);
-    cloudSyncPush();
     renderPendingAudits();
     renderResidents();
     addLog("審核", `管理員同意住戶 ${aud.name} 之指定車位變更`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
@@ -3410,7 +3422,6 @@
   function rejectAudit(i) {
     let aud = pendingAudits[i];
     pendingAudits.splice(i, 1);
-    cloudSyncPush();
     renderPendingAudits();
     alert("已拒絕該指定車位申請。");
     addLog("審核", `管理員拒絕住戶 ${aud.name} 之指定車位`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
@@ -3432,7 +3443,6 @@
       systemSettings.directorManualPdf = "";
       systemSettings.residentManualPdf = "";
       systemSettings.loginBgs = [];
-      cloudSyncPush();
       cloudSyncPushMedia(); // 💡 這些欄位現在存放於獨立路徑，需另外同步清空，否則雲端會留下舊檔案
       initApp();
       checkPlateWarnings();
@@ -3456,7 +3466,6 @@
     }
     systemLogs = systemLogs.slice(0, 300);
     swapLogs = swapLogs.slice(0, 200);
-    cloudSyncPush();
     addLog("設定", `管理員手動精簡歷史紀錄（操作紀錄 ${beforeSysLogs}→300筆，互換紀錄 ${beforeSwapLogs}→200筆）`).then(ok => {
       if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
       alert(`已完成精簡！操作紀錄：${beforeSysLogs} → 300 筆，互換紀錄：${beforeSwapLogs} → 200 筆，並已同步至雲端。`);
@@ -3533,7 +3542,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.03 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.05 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -3572,7 +3581,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.03 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.05 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
