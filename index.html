@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.01</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.02</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -200,7 +200,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.01</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.02</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -503,7 +503,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.01 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.02 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -700,7 +700,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.01">
+        <input type="text" id="set-app-version" value="v2.02">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -795,7 +795,9 @@
     <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800">此工具會直接對雲端資料庫做一次「寫入」與「讀回」的獨立測試，完全不涉及住戶或抽籤資料，用來確認寫入雲端的功能本身是否正常運作。若持續發生「資料被舊資料覆蓋」的問題，請點擊下方按鈕測試，並將結果截圖回報。</p>
     <div class="btn-row">
       <button class="btn btn-primary" onclick="runCloudDiagnostic()">▶️ 執行寫入/讀回測試</button>
+      <button class="btn btn-danger" onclick="trimHistoryLogsNow()">🧹 立即精簡歷史操作/互換紀錄</button>
     </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-top:.75rem;font-weight:700">「立即精簡」會只保留最近 300 筆操作紀錄與 200 筆互換紀錄，減少每次同步的資料量（不影響住戶與抽籤結果本身）。若您需要完整歷史紀錄，建議精簡前先使用「操作紀錄」頁面的匯出功能備份。</p>
     <div id="diagnostic-result" style="margin-top:1.25rem;font-size:14px;font-family:ui-monospace,monospace;white-space:pre-wrap;background:#fff;border:1px solid #fde68a;border-radius:10px;padding:1rem;display:none;line-height:1.7"></div>
   </div>
 
@@ -953,7 +955,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.01",
+    appVersion: "v2.02",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -2955,6 +2957,10 @@
       time: new Date().toLocaleString(),
       desc: desc
     });
+    // 💡 同樣限制互換紀錄的累積上限，避免長期使用後拖累每次同步的資料量
+    if (swapLogs.length > 200) {
+      swapLogs = swapLogs.slice(0, 200);
+    }
 
     cloudSyncPush();
     renderSwap();
@@ -3435,6 +3441,27 @@
   }
 
   // ================= 雲端連線診斷工具 =================
+  function trimHistoryLogsNow() {
+    const beforeSysLogs = systemLogs.length;
+    const beforeSwapLogs = swapLogs.length;
+    if (beforeSysLogs <= 300 && beforeSwapLogs <= 200) {
+      alert(`目前操作紀錄 ${beforeSysLogs} 筆、互換紀錄 ${beforeSwapLogs} 筆，尚未超過精簡門檻（300/200筆），不需要精簡。`);
+      return;
+    }
+    if (!confirm(`確定要把操作紀錄從 ${beforeSysLogs} 筆精簡為最近 300 筆、互換紀錄從 ${beforeSwapLogs} 筆精簡為最近 200 筆嗎？\n\n這只會刪除較舊的「歷史紀錄」，不會影響住戶名單、抽籤結果或車位分配！如需保留完整歷史，請先到「操作紀錄」頁面匯出備份再執行。`)) {
+      return;
+    }
+    systemLogs = systemLogs.slice(0, 300);
+    swapLogs = swapLogs.slice(0, 200);
+    cloudSyncPush();
+    addLog("設定", `管理員手動精簡歷史紀錄（操作紀錄 ${beforeSysLogs}→300筆，互換紀錄 ${beforeSwapLogs}→200筆）`).then(ok => {
+      if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
+      alert(`已完成精簡！操作紀錄：${beforeSysLogs} → 300 筆，互換紀錄：${beforeSwapLogs} → 200 筆，並已同步至雲端。`);
+    });
+    renderLogs();
+    renderSwap();
+  }
+
   async function runCloudDiagnostic() {
     const box = document.getElementById("diagnostic-result");
     box.style.display = "block";
@@ -3503,23 +3530,42 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.01 起已排除大型圖片/PDF），
-    // 以及目前雲端 media 節點（圖片/PDF）的大小，方便日後判斷是否又有異常肥大的資料。
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.02 起已排除大型圖片/PDF），
+    // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = { ...systemSettings };
       delete coreCopy.loginBgs; delete coreCopy.customFp1; delete coreCopy.customFp2;
       delete coreCopy.directorManualPdf; delete coreCopy.residentManualPdf;
-      const coreSize = JSON.stringify({ residents, lotteryResults, systemSettings: coreCopy, accountsList, pendingAudits, swapLogs, systemLogs }).length;
-      const mediaSize = JSON.stringify({
+
+      const sizeOf = (obj) => (JSON.stringify(obj) || "").length / 1024;
+
+      const residentsSize = sizeOf(residents);
+      const lotteryResultsSize = sizeOf(lotteryResults);
+      const systemSettingsSize = sizeOf(coreCopy);
+      const accountsListSize = sizeOf(accountsList);
+      const pendingAuditsSize = sizeOf(pendingAudits);
+      const swapLogsSize = sizeOf(swapLogs);
+      const systemLogsSize = sizeOf(systemLogs);
+      const coreSize = residentsSize + lotteryResultsSize + systemSettingsSize + accountsListSize + pendingAuditsSize + swapLogsSize + systemLogsSize;
+
+      const mediaSize = sizeOf({
         loginBgs: systemSettings.loginBgs || [],
         customFp1: systemSettings.customFp1 || "",
         customFp2: systemSettings.customFp2 || "",
         directorManualPdf: systemSettings.directorManualPdf || "",
         residentManualPdf: systemSettings.residentManualPdf || ""
-      }).length;
+      });
+
       log.push("");
-      log.push(`【附加資訊】目前「一般同步」(抽籤/住戶等) 資料大小：約 ${(coreSize/1024).toFixed(1)} KB`);
-      log.push(`【附加資訊】目前「圖片/PDF」獨立資料大小：約 ${(mediaSize/1024).toFixed(1)} KB（v2.01 起已不會影響一般同步速度）`);
+      log.push(`【附加資訊】一般同步資料總大小：約 ${coreSize.toFixed(1)} KB，逐欄位如下：`);
+      log.push(`   - residents（住戶名單，共 ${residents.length} 筆）：約 ${residentsSize.toFixed(1)} KB`);
+      log.push(`   - lotteryResults（抽籤結果）：約 ${lotteryResultsSize.toFixed(1)} KB`);
+      log.push(`   - systemSettings（系統設定，不含圖片/PDF）：約 ${systemSettingsSize.toFixed(1)} KB`);
+      log.push(`   - accountsList（帳號清單，共 ${accountsList.length} 筆）：約 ${accountsListSize.toFixed(1)} KB`);
+      log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
+      log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
+      log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
+      log.push(`【附加資訊】圖片/PDF 獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.02 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
@@ -3533,6 +3579,12 @@
       msg,
       user: currentUser.name
     });
+    // 💡 重要修正：操作紀錄若無限累加，會讓每一次同步的資料量隨著使用時間越來越肥大、越來越慢、
+    // 越容易在網路較差時寫入失敗（這很可能是目前「一般同步資料異常龐大」的主要原因之一）。
+    // 僅保留最近 300 筆，較舊的紀錄不會再佔用同步流量（如需完整歷史，請定期使用匯出功能備份）。
+    if (systemLogs.length > 300) {
+      systemLogs = systemLogs.slice(0, 300);
+    }
     // 💡 回傳雲端同步結果 (true/false)，讓關鍵操作（抽籤、互換、車位/名單異動等）可以偵測同步是否真的成功，
     // 並在失敗時提醒操作者，避免誤以為資料已經安全存到雲端。既有未使用回傳值的呼叫方式仍照常運作（fire-and-forget）。
     return await cloudSyncPush();
