@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.06</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.07</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -145,6 +145,9 @@
 
   /* 💡 系統圖例與車位網格美化 */
   .legend-box { display:flex; gap:20px; margin-bottom:16px; font-size:14.5px; font-weight:800; justify-content:center; flex-wrap:wrap; color:#1e293b }
+  .fp-outer-card{padding:3rem}
+  .fp-inner-box{padding:4rem;background:#ffffff;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.02);max-width:100%}
+  .card-pad-lg{padding:2rem}
   .legend-item { display:flex; align-items:center; gap:8px; }
   .legend-color { width:18px; height:18px; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.1)}
   
@@ -185,6 +188,8 @@
     .lrs-arrow-col{display:none}
     .page{padding:1.25rem .85rem}
     .card{padding:1.25rem}
+    .card-pad-lg{padding:1.25rem}
+    .empty{padding:2.5rem 1rem}
     .card-title{font-size:17px}
     .section-title{font-size:21px}
     .table-wrap{max-height:55vh;margin:0 -0.1rem}
@@ -193,6 +198,11 @@
     td{padding:.9rem .7rem}
     .pdf-preview-box { height: 320px; }
     .seat-grid{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+    .fp-outer-card{padding:.75rem}
+    .fp-inner-box{padding:1rem}
+    .fp-inner-box h4{font-size:16px !important;margin-bottom:1rem !important}
+    .legend-box{gap:10px !important;margin-bottom:1.25rem !important;font-size:12.5px !important}
+    .legend-box .legend-item{margin-left:0 !important}
     .seat{min-height:56px;font-size:12px;padding:5px}
     .stats-grid{grid-template-columns:repeat(2,1fr);gap:.85rem}
     .stat{padding:1rem}
@@ -231,7 +241,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.06</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.07</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -328,7 +338,7 @@
     </div>
   </div>
   
-  <div class="card" style="padding:2rem">
+  <div class="card card-pad-lg">
     <div class="form-row-3" style="margin-bottom:1.25rem">
       <input type="text" id="search-resident" placeholder="搜尋姓名 / 門牌 / 棟別" oninput="renderResidents()">
       <select id="filter-build" onchange="renderResidents()">
@@ -470,7 +480,7 @@
     <div class="round-tab" data-round="全部輪次" onclick="selectResultRound('全部輪次')">全部輪次總表</div>
   </div>
 
-  <div class="card" style="padding:2rem">
+  <div class="card card-pad-lg">
     <div class="form-row" style="margin-bottom:1.5rem">
       <input type="text" id="search-result" placeholder="搜尋姓名 / 門牌 / 車位號碼" oninput="renderResults()">
       <select id="filter-result-type" onchange="renderResults()">
@@ -536,7 +546,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.06 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.07 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -649,8 +659,8 @@
     <div class="round-tab" id="fp-tab-2" onclick="switchFloorplan(2)">B2 區車位圖</div>
   </div>
 
-  <div class="card" style="overflow:auto;text-align:center;padding:3rem">
-    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center;">
+  <div class="card fp-outer-card" style="overflow:auto;text-align:center">
+    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center; max-width:100%">
       
       <div class="legend-box" style="margin-bottom:2.5rem;font-size:15px;color:#0f172a">
         <div class="legend-item"><div class="legend-color" style="background:#f0fdf4;border:1px solid #86efac"></div>空車位</div>
@@ -660,14 +670,14 @@
 
       <div id="fp-content-1" style="max-width:100%">
         <img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:2.5rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
-        <div style="padding:4rem;background:#ffffff;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.02)">
+        <div class="fp-inner-box">
           <h4 style="color:#0f172a;margin-bottom:1.5rem;font-size:22px;font-weight:900">B1 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b1-grid"></div>
         </div>
       </div>
       <div id="fp-content-2" style="max-width:100%; display:none">
         <img id="custom-fp-img-2" src="" style="display:none;max-width:100%;margin-bottom:2.5rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
-        <div style="padding:4rem;background:#ffffff;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.02)">
+        <div class="fp-inner-box">
           <h4 style="color:#0f172a;margin-bottom:1.5rem;font-size:22px;font-weight:900">B2 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b2-grid"></div>
         </div>
@@ -733,7 +743,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.06">
+        <input type="text" id="set-app-version" value="v2.07">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -988,7 +998,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.06",
+    appVersion: "v2.07",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -3560,7 +3570,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.06 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.07 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -3599,7 +3609,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.06 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.07 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
