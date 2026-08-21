@@ -1324,8 +1324,26 @@
     addLog("登入", "以社區住戶身分進入系統");
   }
 
-  function doLogout() {
-    addLog("登入", `${currentUser.name} 登出系統`);
+  async function doLogout() {
+    // 💡 重要修正：先前 addLog() 是「不等待」直接觸發雲端同步後，馬上呼叫 location.reload()，
+    // 但瀏覽器在重新整理/離開頁面時，會直接中斷所有尚未完成的網路請求（包含這筆最終同步）！
+    // 這正是「抽籤完後很快登出，其他人登入卻看到舊資料」的成因：最新資料的同步請求還沒送達雲端，
+    // 頁面就已經重新整理把請求中斷了。修正為：登出前務必等待這筆同步完成（或逾時才強制繼續），
+    // 確保畫面上顯示的最新結果，真的有安全寫入雲端後，才清除登入狀態並重新整理頁面。
+    const logoutBtns = document.querySelectorAll(".user-bar-btn");
+    logoutBtns.forEach(b => b.disabled = true);
+    updateSyncStatusUI(false, "登出前同步中，請稍候...");
+
+    const logMsg = `${currentUser.name} 登出系統`;
+    try {
+      await Promise.race([
+        addLog("登入", logMsg),
+        new Promise(resolve => setTimeout(resolve, 5000)) // 最多等待5秒，避免網路異常時卡住無法登出
+      ]);
+    } catch (e) {
+      console.error("登出前雲端同步發生例外：", e);
+    }
+
     localStorage.removeItem("lottery_user");
     location.reload();
   }
@@ -1772,6 +1790,9 @@
           name,
           room: `${build} ${room}`,
           prefs: [pref1, pref2, pref3].map(x => x === "" ? "無" : x).join(','),
+          // 💡 記錄提交當下的原始指定車位快照，供審核時比對該住戶資料是否已被他人（如管理員）異動過，
+          // 避免核准一筆過期的申請時，把別人後來手動修改的最新資料覆蓋掉。
+          origPref1: oldPref1, origPref2: oldPref2, origPref3: oldPref3,
           director: currentUser.name
         });
         alert("指定車位變更已送出，需經系統管理員審核同意後生效！在審核通過前，將維持該住戶原本的指定車位設定不變。");
@@ -2639,6 +2660,24 @@
       return;
     }
 
+    // 💡 防呆：避免互換後同一位住戶在「自己其他輪次」持有同一個實體車位號碼（等同重複佔用同一格車位）。
+    // 例如：住戶A 第一輪已持有15號、第三輪持有20號，若把B的15號換進A的第三輪，
+    // A 就會同時在第一輪與第三輪都「持有」15號，等於重複佔用同一個實體車位。
+    if (bSeat) {
+      let aOtherSeats = [1, 2, 3].filter(n => String(n) !== String(aRoundNum)).map(n => Number(resA['assign' + n]) || null).filter(Boolean);
+      if (aOtherSeats.includes(bSeat)) {
+        alert(`【防呆攔截】車位 ${bSeat}號 已經是住戶 A（${resA.build}-${resA.room} ${getDisplayName(resA.name)}）在其他輪次持有的車位，無法換入重複的車位號碼！`);
+        return;
+      }
+    }
+    if (aSeat) {
+      let bOtherSeats = [1, 2, 3].filter(n => String(n) !== String(bRoundNum)).map(n => Number(resB['assign' + n]) || null).filter(Boolean);
+      if (bOtherSeats.includes(aSeat)) {
+        alert(`【防呆攔截】車位 ${aSeat}號 已經是住戶 B（${resB.build}-${resB.room} ${getDisplayName(resB.name)}）在其他輪次持有的車位，無法換入重複的車位號碼！`);
+        return;
+      }
+    }
+
     if (!lotteryResults[aRoundName]) lotteryResults[aRoundName] = {};
     if (!lotteryResults[bRoundName]) lotteryResults[bRoundName] = {};
 
@@ -2708,6 +2747,12 @@
     }
 
     const cleanInput = rawInput.replace(/[-\s]/g, "").toUpperCase();
+    if (!cleanInput) {
+      // 💡 安全性修正：避免只輸入符號或空白（去除 - 與空白後變成空字串），
+      // 因為空字串用 .includes("") 比對「任何」字串都會成立，會導致查到全部住戶車位資料外洩！
+      alert("請輸入有效的車牌號碼或車位號碼（不可只輸入符號或空白）！");
+      return;
+    }
 
     let matchRes = residents.filter(r => {
       const p1 = (r.plate1 || "").replace(/[-\s]/g, "").toUpperCase();
@@ -3067,6 +3112,21 @@
       res = residents.find(x => x.name === aud.name && `${x.build} ${x.room}` === aud.room);
     }
     if (res) {
+      // 💡 過期申請防呆：若該住戶目前的指定車位，已經和「本申請提交當下」的快照不同，
+      // 代表送出後有人（例如管理員）直接手動異動過這位住戶的指定車位，
+      // 此時若直接核准舊申請覆蓋，會把後來的異動蓋掉！先跟管理員確認。
+      if (aud.origPref1 !== undefined) {
+        let curPref1 = res.pref1 || "", curPref2 = res.pref2 || "", curPref3 = res.pref3 || "";
+        let origPref1 = aud.origPref1 || "", origPref2 = aud.origPref2 || "", origPref3 = aud.origPref3 || "";
+        let isStale = (String(curPref1) !== String(origPref1)) || (String(curPref2) !== String(origPref2)) || (String(curPref3) !== String(origPref3));
+        if (isStale) {
+          let proceed = confirm(`⚠️ 注意：住戶 ${getDisplayName(res.name)}（${res.build}-${res.room}）的指定車位資料，在這筆申請送出「之後」已經被其他人異動過（目前資料：#${curPref1||'無'},${curPref2||'無'},${curPref3||'無'}），並非申請當下的原始資料。\n\n若繼續核准，將會用本申請的內容（#${aud.prefs}）覆蓋目前的資料。是否仍要繼續核准？`);
+          if (!proceed) {
+            return; // 保留此筆待審核項目，不做任何變更，讓管理員自行決定後續處理
+          }
+        }
+      }
+
       let pArr = aud.prefs.split(',').map(x => x.trim() === "無" ? "" : parseInt(x.trim()));
       res.pref1 = pArr[0] || "";
       res.pref2 = pArr[1] || "";
