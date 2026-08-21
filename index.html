@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.89</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.98</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -200,7 +200,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v1.89</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v1.98</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -503,7 +503,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.89 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v1.98 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -700,7 +700,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.89">
+        <input type="text" id="set-app-version" value="v1.98">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -923,6 +923,18 @@
   let lastKnownServerModified = 0; // 💡 新增：目前已知的雲端資料版本時間戳，用於推送前的衝突偵測
   let lastKnownServerModifiedBy = ""; // 💡 新增：目前已知最後一次寫入雲端資料的操作者
   let lastLocalPullTime = null; // 💡 新增：本裝置最後一次成功從雲端拉取資料的時間
+  let pendingPushCount = 0; // 💡 新增：目前正在進行中的雲端寫入數量（不論由哪個函式觸發），供登出等流程等待所有寫入真正完成
+
+  async function waitForPendingPushes(maxWaitMs = 8000) {
+    // 💡 等待「所有」還在進行中的雲端寫入完成（不只是自己剛觸發的那一次），
+    // 例如剛執行完抽籤觸發的寫入可能還沒完成，使用者就馬上點了登出，
+    // 這裡會確實等到那筆寫入也結束，才允許繼續往下執行（例如重新整理頁面）。
+    // 加上逾時保護，避免網路異常時卡死無法登出。
+    const start = Date.now();
+    while (pendingPushCount > 0 && (Date.now() - start) < maxWaitMs) {
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+  }
 
   let systemSettings = {
     appTitle: "稙村秀社區機車位電腦抽籤系統",
@@ -931,7 +943,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.89",
+    appVersion: "v1.98",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1023,36 +1035,13 @@
       return false;
     }
 
-    // 💡💡 重要架構修正（衝突偵測）：這是先前反覆回報「舊資料覆蓋新結果」的真正根本原因 ——
-    // 本系統過去的寫入方式是「整包覆蓋」，完全沒有版本檢查。只要任何一個「不知情」的舊分頁／
-    // 舊裝置／背景中還開著的登入階段（例如另一位主任的裝置、或很早之前就打開沒關的分頁），
-    // 在別人剛跑完新一輪抽籤「之後」做了任何寫入動作（哪怕只是切換一個小勾選），就會用它記憶體
-    // 裡舊的資料整包覆蓋掉雲端剛寫入的新結果 —— 這與登入/登出的時機、或分頁有沒有背景休眠完全無關，
-    // 純粹是因為「寫入前沒有檢查雲端資料是否已經被別人更新過」。
-    // 修正方式：每次真正寫入前，先輕量檢查一次雲端目前的資料版本時間戳，
-    // 如果雲端版本比這個工作階段「上次已知」的版本還新，代表別人已經寫入過更新的資料，
-    // 此時直接中止這次寫入（絕不覆蓋！），改為自動同步最新資料，並清楚告知使用者發生了什麼事。
-    try {
-      const checkRes = await fetch(`${FIREBASE_DB_URL}parkingData/_meta/lastModified.json?_t=${Date.now()}`, {
-        cache: "no-store",
-        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-      });
-      if (checkRes.ok) {
-        const serverModified = await checkRes.json();
-        if (serverModified && Number(serverModified) > lastKnownServerModified) {
-          console.warn(`偵測到雲端資料版本衝突（雲端:${serverModified} > 本機已知:${lastKnownServerModified}），已取消本次寫入以避免覆蓋他人更新的資料，改為自動同步最新資料。`);
-          await cloudSyncPull();
-          updateSyncStatusUI(false, "偵測到他人已更新，已同步最新");
-          alert("⚠️ 偵測到雲端資料已被其他裝置或使用者更新過（可能是另一個分頁、另一位管理員/主任，或您自己稍早開著的舊分頁）。\n\n為了避免覆蓋掉別人剛寫入的最新資料，這次的變更已「取消寫入」，畫面已自動更新為雲端目前最新的內容。\n\n請確認畫面上的資料，如果您的變更仍需要，請重新操作一次。");
-          return false;
-        }
-      }
-    } catch (e) {
-      // 這個輕量版本檢查若本身失敗（例如離線），不因此完全卡住整個寫入流程，仍嘗試正常寫入，
-      // 寫入本身若也失敗，會在下方 catch 區塊統一處理。
-      console.warn("推送前的雲端版本檢查失敗，仍繼續嘗試寫入：", e);
-    }
-
+    // 💡 重要修正：先前版本在這裡加了一個「寫入前先檢查衝突」的額外網路請求，
+    // 結果反而讓每次寫入變慢（多一次網路來回），更容易被登出流程的逾時機制中斷、
+    // 導致寫入根本沒完成就被頁面重新整理打斷，這很可能是先前修正沒有生效、
+    // 甚至讓問題變得更容易出現的真正原因。改回單一次網路寫入，把資料版本追蹤
+    // (見下方 pendingPushCount 與 doLogout) 改成用「等待所有寫入真正完成」來防護，
+    // 而不是用「額外的檢查」拖慢每一次寫入。
+    pendingPushCount++;
     let formattedResults = {};
     for (let r in lotteryResults) {
       formattedResults[r] = {};
@@ -1086,7 +1075,7 @@
         body: JSON.stringify(payload)
       });
       if (!pushRes.ok) throw new Error("HTTP " + pushRes.status);
-      lastKnownServerModified = newModifiedTs; // 💡 寫入成功後，更新本機記住的最新版本時間戳
+      lastKnownServerModified = newModifiedTs; // 💡 寫入成功後，更新本機記住的最新版本時間戳（僅供畫面顯示參考）
       lastKnownServerModifiedBy = (currentUser && currentUser.name) || "";
       updateSyncStatusUI(true, "雲端已同步");
       return true;
@@ -1094,6 +1083,8 @@
       console.error("雲端資料同步失敗：", e);
       updateSyncStatusUI(false, "同步失敗");
       return false;
+    } finally {
+      pendingPushCount--;
     }
   }
 
@@ -1472,24 +1463,19 @@
 
   async function doLogout() {
     stopAutoSync();
-    // 💡 重要修正：先前 addLog() 是「不等待」直接觸發雲端同步後，馬上呼叫 location.reload()，
-    // 但瀏覽器在重新整理/離開頁面時，會直接中斷所有尚未完成的網路請求（包含這筆最終同步）！
-    // 這正是「抽籤完後很快登出，其他人登入卻看到舊資料」的成因：最新資料的同步請求還沒送達雲端，
-    // 頁面就已經重新整理把請求中斷了。修正為：登出前務必等待這筆同步完成（或逾時才強制繼續），
-    // 確保畫面上顯示的最新結果，真的有安全寫入雲端後，才清除登入狀態並重新整理頁面。
+    // 💡 重要修正：先前的寫法只會等待「登出這個動作自己觸發的那一次寫入」完成，
+    // 但如果使用者是在執行完抽籤後很快就按登出，抽籤結果那次的寫入很可能還在進行中、
+    // 根本是「另一次」獨立的寫入，並不會被登出當下這次的等待涵蓋到！
+    // 加上先前版本額外的檢查機制拖慢了每次寫入速度，兩者疊加後就很容易讓
+    // 「抽籤剛跑完的那次寫入」還沒送達雲端，就被登出流程的重新整理直接中斷。
+    // 修正為：登出時不再另外觸發新的寫入（登出紀錄本身不是關鍵資料，犧牲它換取更高的可靠性），
+    // 而是確實等待「目前所有」還在進行中的雲端寫入（不論是誰、哪個動作觸發的）都真正完成，
+    // 才清除登入狀態並重新整理頁面，確保剛執行的抽籤結果等資料一定有安全送達雲端。
     const logoutBtns = document.querySelectorAll(".user-bar-btn");
     logoutBtns.forEach(b => b.disabled = true);
-    updateSyncStatusUI(false, "登出前同步中，請稍候...");
+    updateSyncStatusUI(false, "登出前確認資料同步完成中，請稍候...");
 
-    const logMsg = `${currentUser.name} 登出系統`;
-    try {
-      await Promise.race([
-        addLog("登入", logMsg),
-        new Promise(resolve => setTimeout(resolve, 5000)) // 最多等待5秒，避免網路異常時卡住無法登出
-      ]);
-    } catch (e) {
-      console.error("登出前雲端同步發生例外：", e);
-    }
+    await waitForPendingPushes(8000); // 最多等待8秒，避免網路異常時卡住無法登出
 
     localStorage.removeItem("lottery_user");
     location.reload();
