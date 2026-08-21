@@ -1298,30 +1298,54 @@
     }
   }
 
-  function doLogin() {
+  async function doLogin() {
     const u = document.getElementById("login-user").value.trim();
     const p = document.getElementById("login-pw").value.trim();
 
     const matchedAcc = accountsList.find(acc => acc.username === u && acc.password === p);
     if (matchedAcc) {
-      currentUser = { ...matchedAcc };
+      const loginBtn = document.querySelector('#login-overlay .btn-primary');
+      if (loginBtn) { loginBtn.disabled = true; loginBtn.innerText = "登入中，同步最新資料..."; }
+
+      // 💡 重要修正：先前登入時直接沿用「這個分頁一開始載入時」的舊資料，
+      // 如果這個分頁在別人剛執行完抽籤「之前」就已經打開，或先前有同步時序問題，
+      // 登入後看到的就會是過期資料，甚至後續操作還會把這份舊資料再寫回雲端、覆蓋掉真正最新的結果。
+      // 修正為：每次登入都強制重新向雲端拉取一次最新資料，確保這個工作階段一開始就是最新狀態。
+      await cloudSyncPull();
+
+      // 用剛拉取回來的最新帳號清單，重新核對一次自己的帳號資料（避免密碼/角色被別處更新過卻沒套用）
+      let freshAcc = accountsList.find(acc => acc.username === u && acc.password === p) || matchedAcc;
+      currentUser = { ...freshAcc };
       localStorage.setItem("lottery_user", JSON.stringify(currentUser));
       document.getElementById("login-overlay").style.display = "none";
       if(bgCarouselTimer) clearInterval(bgCarouselTimer);
       initUserBar();
-      addLog("登入", `${currentUser.name} (${currentUser.role === 'admin' ? '管理員' : '社區主任'}) 登入系統`);
+      initApp();
+      addLog("登入", `${currentUser.name} (${currentUser.role === 'admin' ? '管理員' : '社區主任'}) 登入系統`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
+
+      if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = "登入系統"; }
     } else {
       document.getElementById("login-error").style.display = "block";
     }
   }
 
-  function guestLogin() {
+  async function guestLogin() {
+    const guestBtn = document.querySelector('#login-overlay button[onclick="guestLogin()"]');
+    if (guestBtn) { guestBtn.disabled = true; guestBtn.innerText = "進入中，同步最新資料..."; }
+
+    // 💡 同上修正：訪客進入前也強制重新拉取雲端最新資料，確保一定看到最新的抽籤結果，
+    // 而不是這個分頁很早以前打開時的舊快照。
+    await cloudSyncPull();
+
     currentUser = { name: "社區住戶", role: "guest", username: "guest", password: "" };
     localStorage.setItem("lottery_user", JSON.stringify(currentUser));
     document.getElementById("login-overlay").style.display = "none";
     if(bgCarouselTimer) clearInterval(bgCarouselTimer);
     initUserBar();
+    initApp();
     addLog("登入", "以社區住戶身分進入系統");
+
+    if (guestBtn) { guestBtn.disabled = false; guestBtn.innerText = "進入社區住戶查詢入口"; }
   }
 
   async function doLogout() {
