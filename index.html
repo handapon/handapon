@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.02</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.03</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -200,7 +200,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.02</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.03</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -503,7 +503,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.02 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.03 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -700,7 +700,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.02">
+        <input type="text" id="set-app-version" value="v2.03">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -955,7 +955,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.02",
+    appVersion: "v2.03",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1030,6 +1030,25 @@
   }
 
   // ================= 雲端即時同步核心 REST API 模組 =================
+  // 💡 重要修正：不再只用「寫死的5個已知欄位名稱」去排除大型資料（登入背景圖/平面圖/PDF），
+  // 改成「自動偵測」systemSettings 底下任何一個欄位，只要序列化後超過門檻大小，
+  // 一律視為大型資料自動排除在「一般同步」之外。這樣即使有舊版遺留、目前未知名稱的大型欄位，
+  // 也會被自動抓出來，不會再讓「執行抽籤」這類小操作意外夾帶數MB資料，導致寫入失敗。
+  const LARGE_FIELD_THRESHOLD = 3000; // 序列化後超過約 3000 字元（約3KB）即視為大型欄位
+  function splitSystemSettingsForSync(settings) {
+    const core = {};
+    for (let key in settings) {
+      const val = settings[key];
+      let serializedLen = 0;
+      try { serializedLen = JSON.stringify(val).length; } catch (e) { /* ignore */ }
+      if (serializedLen <= LARGE_FIELD_THRESHOLD) {
+        core[key] = val;
+      }
+      // 超過門檻的欄位（不論名稱為何）一律不放進 core，由 cloudSyncPushMedia() 完整保存
+    }
+    return core;
+  }
+
   async function cloudSyncPush() {
     if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
       updateSyncStatusUI(false, "僅本機");
@@ -1087,17 +1106,12 @@
         }
       }
 
-      // 💡💡 重要修正：把體積可能高達數MB的圖片/PDF（登入背景圖、平面圖、操作手冊）
-      // 從「例行同步」payload 中完全排除，避免每次執行抽籤、編輯住戶這類小操作，
-      // 都要重新整包傳送這些大型檔案，導致寫入時間大幅拉長、在網路較慢/不穩時更容易逾時失敗
-      // ——這極可能是先前「明明測試小資料寫入正常，但正式抽籤資料卻寫不進去」的真正原因。
-      // 這些大型檔案改成只有在真正上傳/刪除時，才透過 cloudSyncPushMedia() 單獨同步到另一個路徑。
-      const systemSettingsCore = { ...systemSettings };
-      delete systemSettingsCore.loginBgs;
-      delete systemSettingsCore.customFp1;
-      delete systemSettingsCore.customFp2;
-      delete systemSettingsCore.directorManualPdf;
-      delete systemSettingsCore.residentManualPdf;
+      // 💡💡 重要修正：把 systemSettings 底下任何體積過大的欄位（不論名稱，含未知的舊版遺留欄位）
+      // 從「例行同步」payload 中自動排除，避免每次執行抽籤、編輯住戶這類小操作，
+      // 都要重新整包傳送可能高達數MB的大型資料，導致寫入時間大幅拉長、在網路較慢/不穩時更容易逾時失敗
+      // ——這正是先前「明明測試小資料寫入正常，但正式抽籤資料卻寫不進去、systemSettings卻仍高達3.6MB」的真正原因。
+      // 這些大型欄位改成只有在真正上傳/變更設定時，才透過 cloudSyncPushMedia() 完整同步到另一個獨立路徑。
+      const systemSettingsCore = splitSystemSettingsForSync(systemSettings);
 
       const newModifiedTs = Date.now();
       const payload = {
@@ -1149,13 +1163,9 @@
 
     pendingPushCount++;
     try {
-      const mediaPayload = {
-        loginBgs: systemSettings.loginBgs || [],
-        customFp1: systemSettings.customFp1 || "",
-        customFp2: systemSettings.customFp2 || "",
-        directorManualPdf: systemSettings.directorManualPdf || "",
-        residentManualPdf: systemSettings.residentManualPdf || ""
-      };
+      // 💡 這裡改成完整送出整個 systemSettings（不論欄位名稱），確保任何大型欄位
+      // （包含目前未知名稱的舊版遺留欄位）都會被完整保存在這個獨立路徑，不會遺失。
+      const mediaPayload = { ...systemSettings };
       const pushRes = await fetch(`${FIREBASE_DB_URL}parkingData/media.json`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -1217,39 +1227,32 @@
 
           if (data.systemSettings) {
             let codeVer = systemSettings.appVersion;
-            systemSettings = data.systemSettings;
+            // 💡 合併邏輯改為「名稱無關」：以 media（完整快照，任何大型欄位都在這裡）為底，
+            // 再疊上 systemSettings（一般同步，永遠是最新的小型欄位）覆蓋在上層，
+            // 這樣不論大型欄位叫什麼名字，都會正確保留；小型欄位則保證是最新值。
+            systemSettings = { ...(data.media || {}), ...data.systemSettings };
             systemSettings.appVersion = codeVer;
             if (!systemSettings.b1Limit) systemSettings.b1Limit = Math.floor(systemSettings.totalSeats / 2);
             if (!systemSettings.quickGuideText) systemSettings.quickGuideText = defaultQuickGuide;
-          }
-          // 💡 大型檔案（登入背景圖、平面圖、操作手冊PDF）現在存放於獨立的 parkingData/media 節點，
-          // 拉取後需要合併回 systemSettings，讓既有的顯示/上傳邏輯不用修改就能繼續使用。
-          // 若雲端還沒有 media 節點（例如尚未有人用新版本上傳過任何檔案），
-          // 則相容退回讀取舊版直接存在 systemSettings 裡的資料，確保不會遺失既有已上傳的檔案。
-          if (data.media) {
-            systemSettings.loginBgs = data.media.loginBgs || [];
-            systemSettings.customFp1 = data.media.customFp1 || "";
-            systemSettings.customFp2 = data.media.customFp2 || "";
-            systemSettings.directorManualPdf = data.media.directorManualPdf || "";
-            systemSettings.residentManualPdf = data.media.residentManualPdf || "";
-          } else {
-            if (!systemSettings.loginBgs) {
-              systemSettings.loginBgs = [];
-              if (data.systemSettings && data.systemSettings.loginBg) systemSettings.loginBgs.push(data.systemSettings.loginBg);
-            }
+            if (!systemSettings.loginBgs) systemSettings.loginBgs = [];
             if (typeof systemSettings.customFp1 === "undefined") systemSettings.customFp1 = "";
             if (typeof systemSettings.customFp2 === "undefined") systemSettings.customFp2 = "";
             if (typeof systemSettings.directorManualPdf === "undefined") systemSettings.directorManualPdf = "";
             if (typeof systemSettings.residentManualPdf === "undefined") systemSettings.residentManualPdf = "";
-            // 💡 一次性資料遷移偵測：發現有舊格式（直接存在 systemSettings 裡）的檔案資料，
-            // 但雲端還沒有新的獨立 media 節點 —— 標記需要遷移，避免之後的一般資料同步
-            // （新格式已不含這些欄位）意外把這些已上傳的檔案從雲端清空。實際搬移動作會在
-            // cloudSyncReady 設為 true、且確認取得寫入權限之後才執行（見下方與 window.onload）。
-            const hasLegacyMedia = (systemSettings.loginBgs && systemSettings.loginBgs.length > 0) ||
-                                    systemSettings.customFp1 || systemSettings.customFp2 ||
-                                    systemSettings.directorManualPdf || systemSettings.residentManualPdf;
-            if (hasLegacyMedia) {
-              pendingMediaMigration = true;
+
+            // 💡 一次性資料遷移偵測（名稱無關版）：檢查「一般同步」的 systemSettings 節點本身
+            // 是否還藏著超過門檻大小的欄位（代表是舊版直接存在這裡、還沒搬到 media 的大型資料）。
+            // 若有，標記需要遷移，避免之後的一般同步（新格式已自動排除大型欄位）意外把它們從雲端清空。
+            if (!data.media) {
+              let hasLegacyLargeField = false;
+              for (let key in data.systemSettings) {
+                let sLen = 0;
+                try { sLen = JSON.stringify(data.systemSettings[key]).length; } catch (e) { /* ignore */ }
+                if (sLen > 3000) { hasLegacyLargeField = true; break; }
+              }
+              if (hasLegacyLargeField) {
+                pendingMediaMigration = true;
+              }
             }
           }
           accountsList = data.accountsList || accountsList;
@@ -3530,12 +3533,10 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.02 起已排除大型圖片/PDF），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.03 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
-      const coreCopy = { ...systemSettings };
-      delete coreCopy.loginBgs; delete coreCopy.customFp1; delete coreCopy.customFp2;
-      delete coreCopy.directorManualPdf; delete coreCopy.residentManualPdf;
+      const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
 
       const sizeOf = (obj) => (JSON.stringify(obj) || "").length / 1024;
 
@@ -3548,24 +3549,30 @@
       const systemLogsSize = sizeOf(systemLogs);
       const coreSize = residentsSize + lotteryResultsSize + systemSettingsSize + accountsListSize + pendingAuditsSize + swapLogsSize + systemLogsSize;
 
-      const mediaSize = sizeOf({
-        loginBgs: systemSettings.loginBgs || [],
-        customFp1: systemSettings.customFp1 || "",
-        customFp2: systemSettings.customFp2 || "",
-        directorManualPdf: systemSettings.directorManualPdf || "",
-        residentManualPdf: systemSettings.residentManualPdf || ""
-      });
+      const mediaSize = sizeOf(systemSettings); // 完整 systemSettings，即 cloudSyncPushMedia() 實際送出的內容
 
       log.push("");
       log.push(`【附加資訊】一般同步資料總大小：約 ${coreSize.toFixed(1)} KB，逐欄位如下：`);
       log.push(`   - residents（住戶名單，共 ${residents.length} 筆）：約 ${residentsSize.toFixed(1)} KB`);
       log.push(`   - lotteryResults（抽籤結果）：約 ${lotteryResultsSize.toFixed(1)} KB`);
       log.push(`   - systemSettings（系統設定，不含圖片/PDF）：約 ${systemSettingsSize.toFixed(1)} KB`);
+      // 💡 逐一列出「一般同步」實際排除掉的大型欄位（不論名稱），這些才是造成同步變慢的真正原因，
+      // 它們會改由 cloudSyncPushMedia() 同步到獨立路徑，不影響一般同步。
+      log.push(`     └─ 一般同步中被自動排除的大型欄位（改存於獨立路徑）：`);
+      let foundLargeField = false;
+      for (let key in systemSettings) {
+        if (typeof coreCopy[key] === "undefined" && typeof systemSettings[key] !== "undefined") {
+          const kSize = sizeOf(systemSettings[key]);
+          log.push(`        • ${key}：約 ${kSize.toFixed(1)} KB`);
+          foundLargeField = true;
+        }
+      }
+      if (!foundLargeField) log.push(`        （目前沒有欄位被排除）`);
       log.push(`   - accountsList（帳號清單，共 ${accountsList.length} 筆）：約 ${accountsListSize.toFixed(1)} KB`);
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF 獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.02 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.03 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
