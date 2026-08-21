@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.05</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.06</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -210,6 +210,10 @@
     .round-tab{padding:.6rem 1.1rem;font-size:13.5px}
     .nav-menu-mobile .nav-tab{padding:1.15rem 1.25rem;font-size:15.5px}
     .table-scroll-hint{display:block}
+    .btn-sm{padding:.6rem 1rem;min-height:38px}
+    .yn-btn{padding:8px 14px;min-height:34px}
+    .btn-row{gap:10px}
+    .badge{padding:6px 12px}
   }
   .table-scroll-hint{display:none;font-size:12.5px;color:var(--text-muted);font-weight:800;margin-bottom:.5rem;text-align:right}
 </style>
@@ -227,7 +231,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.05</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.06</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -532,7 +536,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.05 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.06 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -729,7 +733,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.05">
+        <input type="text" id="set-app-version" value="v2.06">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -984,7 +988,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.05",
+    appVersion: "v2.06",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1388,6 +1392,7 @@
     if (!loginOverlay || loginOverlay.style.display !== "none") return; // 尚未登入（登入畫面還顯示著）不處理
     const anyModalOpen = document.querySelector('.modal-overlay.show');
     if (anyModalOpen) return;
+    if (pendingPushCount > 0) return; // 💡 有寫入正在進行中時暫緩，避免蓋掉尚未送達雲端的變更
     visibilitySyncLock = true;
     try {
       updateSyncStatusUI(false, "偵測到回到頁面，同步最新資料中...");
@@ -1405,7 +1410,13 @@
       syncOnBecomeVisible();
     }
   });
-  window.addEventListener('focus', syncOnBecomeVisible);
+  // 💡 重要修正：拿掉 window 的 'focus' 事件監聽。
+  // 原生的 confirm()/alert() 對話框（幾乎所有危險操作，包含「重置全部輪次結果」都會用到）
+  // 在跳出、關閉時，會讓瀏覽器視窗經歷一次「失去焦點→重新取得焦點」，這會誤觸發「立即同步」，
+  // 在使用者剛清空/修改資料、但寫入雲端還沒完成的空檔，把雲端「舊」的資料抓回來蓋掉剛剛的變更，
+  // 導致畫面看起來像沒有生效，需要重複操作第二次才會真的成功。
+  // document.visibilitychange 只會在真正切換分頁/App 時觸發，不會被 confirm()/alert() 誤觸發，
+  // 保留這個就足以涵蓋「切回分頁時自動更新最新資料」的需求，且不會有這個副作用。
 
   async function refreshCloudData() {
     updateSyncStatusUI(false, "重新整理中...");
@@ -1432,7 +1443,9 @@
       const anyModalOpen = document.querySelector('.modal-overlay.show');
       const activeTag = document.activeElement ? document.activeElement.tagName : '';
       const isTyping = (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT');
-      if (anyModalOpen || isTyping) return;
+      // 💡 若目前有寫入正在進行中（pendingPushCount > 0），暫緩這次背景同步，
+      // 避免背景讀取到「還沒寫入新結果」的舊資料，反而把畫面上剛做的變更蓋掉。
+      if (anyModalOpen || isTyping || pendingPushCount > 0) return;
       const ok = await cloudSyncPull();
       if (ok) {
         initApp();
@@ -3215,6 +3228,11 @@
       return;
     }
 
+    if (abStart > abEnd) {
+      alert(`【設定錯誤】A/B棟優先區間的「起」（${abStart}）不能大於「迄」（${abEnd}）！\n\n若區間設反了，系統會判定「沒有任何車位」屬於優先區間，導致 A/B 棟就近分配功能完全失效卻不會有任何警示，請修正後再儲存。`);
+      return;
+    }
+
     let outOfRangeWinners = [];
     residents.forEach(r => {
       ["1", "2", "3"].forEach(rn => {
@@ -3542,7 +3560,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.05 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.06 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -3581,7 +3599,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.05 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.06 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
