@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.98</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.99</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -200,7 +200,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v1.98</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v1.99</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -503,7 +503,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.98 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v1.99 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -700,7 +700,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.98">
+        <input type="text" id="set-app-version" value="v1.99">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -788,6 +788,15 @@
         </tbody>
       </table>
     </div>
+  </div>
+
+  <div class="card" style="background:#fffbeb;border-color:#fde68a">
+    <div class="card-title" style="border-left-color:#d97706">🔧 雲端連線診斷工具</div>
+    <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800">此工具會直接對雲端資料庫做一次「寫入」與「讀回」的獨立測試，完全不涉及住戶或抽籤資料，用來確認寫入雲端的功能本身是否正常運作。若持續發生「資料被舊資料覆蓋」的問題，請點擊下方按鈕測試，並將結果截圖回報。</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="runCloudDiagnostic()">▶️ 執行寫入/讀回測試</button>
+    </div>
+    <div id="diagnostic-result" style="margin-top:1.25rem;font-size:14px;font-family:ui-monospace,monospace;white-space:pre-wrap;background:#fff;border:1px solid #fde68a;border-radius:10px;padding:1rem;display:none;line-height:1.7"></div>
   </div>
 
   <div class="card">
@@ -943,7 +952,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.98",
+    appVersion: "v1.99",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -3317,7 +3326,79 @@
     }
   }
 
-  // ================= 10. 操作紀錄邏輯 (即時同步至雲端) =================
+  // ================= 雲端連線診斷工具 =================
+  async function runCloudDiagnostic() {
+    const box = document.getElementById("diagnostic-result");
+    box.style.display = "block";
+    box.innerText = "測試進行中，請稍候...";
+
+    let log = [];
+    const testValue = Math.floor(Math.random() * 1000000);
+    const testPath = `${FIREBASE_DB_URL}parkingData/_diagnosticTest.json`;
+
+    log.push(`【測試目標】${testPath}`);
+    log.push(`【測試數值】${testValue}（本次隨機產生，用於確認寫入/讀回是否一致）`);
+    log.push("");
+
+    // 步驟1：嘗試寫入測試值
+    log.push("▶ 步驟1：嘗試寫入測試資料...");
+    let writeOk = false;
+    try {
+      const writeRes = await fetch(testPath, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: testValue, time: new Date().toISOString(), by: currentUser.name })
+      });
+      const writeBodyText = await writeRes.text();
+      log.push(`   HTTP 狀態碼：${writeRes.status} ${writeRes.ok ? '(成功)' : '(失敗！)'}`);
+      log.push(`   伺服器回應內容：${writeBodyText}`);
+      writeOk = writeRes.ok;
+    } catch (e) {
+      log.push(`   ❌ 寫入時發生例外錯誤：${e.message || e}`);
+      log.push(`   （這通常代表網路完全無法連上此網址，或瀏覽器阻擋了跨網域請求 CORS）`);
+    }
+    log.push("");
+
+    // 稍等一下再讀回，避免讀到快取
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    // 步驟2：立刻讀回，確認剛剛寫入的值是否真的存在
+    log.push("▶ 步驟2：立刻讀回剛剛寫入的資料...");
+    let readOk = false;
+    let readValueMatches = false;
+    try {
+      const readRes = await fetch(`${testPath}?_t=${Date.now()}`, { cache: "no-store" });
+      const readBodyText = await readRes.text();
+      log.push(`   HTTP 狀態碼：${readRes.status} ${readRes.ok ? '(成功)' : '(失敗！)'}`);
+      log.push(`   伺服器回應內容：${readBodyText}`);
+      readOk = readRes.ok;
+      try {
+        const readData = JSON.parse(readBodyText);
+        readValueMatches = readData && Number(readData.value) === testValue;
+      } catch (e) { /* ignore parse error, handled below */ }
+    } catch (e) {
+      log.push(`   ❌ 讀回時發生例外錯誤：${e.message || e}`);
+    }
+    log.push("");
+
+    // 結論
+    log.push("【診斷結論】");
+    if (writeOk && readOk && readValueMatches) {
+      log.push("✅ 寫入與讀回測試均正常，剛剛寫入的數值有正確被讀回，代表雲端資料庫的讀寫功能本身運作正常。");
+      log.push("   若正式的抽籤結果仍然發生被覆蓋的狀況，問題極可能出在「另一個裝置/分頁的舊資料」在正確結果之後又寫入了一次，而不是網路或雲端連線本身的問題。");
+    } else if (writeOk && !readValueMatches) {
+      log.push("⚠️ 寫入回應為成功，但讀回的數值與剛剛寫入的不一致！這代表寫入可能被「延遲處理」、或有其他人/裝置幾乎同時又寫入了不同的資料蓋過去、或此路徑的資料庫規則有特殊處理。");
+    } else if (!writeOk) {
+      log.push("❌ 寫入失敗！這代表雲端資料庫本身拒絕了這次寫入請求（常見原因：Firebase 資料庫安全規則設定為不允許寫入、或該資料庫已停用/額度已滿）。");
+      log.push("   請至 Firebase 主控台檢查「即時資料庫」的「規則 (Rules)」分頁，確認 \".write\" 是否為 true。");
+    } else {
+      log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
+    }
+
+    box.innerText = log.join("\n");
+  }
+
+
   async function addLog(type, msg) {
     systemLogs.unshift({
       time: new Date().toLocaleString(),
