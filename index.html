@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.87</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v1.88</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -172,6 +172,9 @@
   .pdf-preview-box iframe { width:100%; height:100%; border:none; flex:1; background:#fff; z-index:2; }
   .pdf-placeholder { color:var(--text-muted); font-weight:700; font-size:16px; position:absolute; z-index:1; }
 
+  /* 登入背景輪播專用 */
+  .bg-fade { transition: background-image 1.5s ease-in-out; }
+
   @media(max-width:768px){
     .nav-tabs{display:none}
     .nav-hamburger{display:flex}
@@ -196,7 +199,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:11.5px;color:var(--text-muted);background:#f1f5f9;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #e2e8f0">v1.87</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:11.5px;color:var(--text-muted);background:#f1f5f9;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #e2e8f0">v1.88</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -207,7 +210,7 @@
     <button class="nav-tab" id="nav-tab-inquiry" onclick="showPage('inquiry')">中籤查詢</button>
     <button class="nav-tab" onclick="showPage('floorplan')">平面圖</button>
     <button class="nav-tab" id="nav-tab-settings" onclick="showPage('settings')">系統設定</button>
-    <button class="nav-tab" onclick="showPage('guide')">說明</button>
+    <button class="nav-tab" onclick="showPage('guide')">操作手冊</button>
   </div>
   <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileMenu()">
     <span></span><span></span><span></span>
@@ -224,11 +227,11 @@
   <button class="nav-tab" id="nav-tab-inquiry-mob" onclick="showPage('inquiry');closeMobileMenu()">中籤查詢</button>
   <button class="nav-tab" onclick="showPage('floorplan');closeMobileMenu()">平面圖</button>
   <button class="nav-tab" id="nav-tab-settings-mob" onclick="showPage('settings');closeMobileMenu()">系統設定</button>
-  <button class="nav-tab" id="nav-tab-guide" onclick="showPage('guide');closeMobileMenu()">說明</button>
+  <button class="nav-tab" id="nav-tab-guide" onclick="showPage('guide');closeMobileMenu()">操作手冊</button>
 </div>
 
 <!-- ===== 登入對話框 ===== -->
-<div id="login-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
+<div id="login-overlay" class="bg-fade" style="display:none;position:fixed;inset:0;background-color:#0f172a;z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
   <div style="background:rgba(255,255,255,0.98);backdrop-filter:blur(10px);border-radius:24px;padding:3rem 2.5rem;width:90%;max-width:420px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3)">
     <h3 id="login-modal-title" style="margin-bottom:1.75rem;text-align:center;font-size:24px;color:var(--text-main);font-weight:900;letter-spacing:-0.5px">稙村秀社區機車位電腦抽籤系統</h3>
     <div style="margin-bottom:1.25rem">
@@ -498,7 +501,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v1.86 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v1.88 進階版) ===== -->
 <div id="page-swap" class="page">
   <div class="section-title">車位互換管理</div>
   
@@ -582,10 +585,11 @@
 <!-- ===== 8. 中籤查詢 ===== -->
 <div id="page-inquiry" class="page">
   <div class="section-title">住戶中籤快速查詢</div>
-  <div class="card" style="max-width:600px;margin:0 auto 1.5rem">
-    <label style="font-size:14.5px;margin-bottom:10px">請輸入您的登記車牌號碼 (支援模糊查詢，如 ABC1234 或 ABC-1234)</label>
+  <div class="card" style="max-width:640px;margin:0 auto 1.5rem">
+    <label style="font-size:15px;margin-bottom:10px">請輸入您的「登記車牌號碼」或「分配車位號碼」 (支援模糊查詢)</label>
     <div style="display:flex;gap:12px;margin-top:12px">
-      <input type="text" id="inq-plate" placeholder="例: ABC-1234 或 ABC1234" oninput="formatPlateInput(this)" style="font-size:16px;font-weight:700">
+      <!-- 💡 [修正核心 2] 支援輸入車牌或車位號碼 -->
+      <input type="text" id="inq-plate" placeholder="例: ABC-1234 或 15" oninput="formatPlateInput(this)" style="font-size:16px;font-weight:700">
       <button class="btn btn-primary" onclick="doInquiry()" style="padding:0 2rem;font-size:15px">立即查詢</button>
     </div>
   </div>
@@ -638,12 +642,11 @@
   </div>
 </div>
 
-<!-- 💡 ===== 10. 說明 (整合 PDF 預覽) ===== -->
+<!-- ===== 10. 說明 (整合 PDF 預覽) ===== -->
 <div id="page-guide" class="page">
-  <div class="section-title">系統操作說明指南</div>
+  <div class="section-title">系統操作手冊與說明指南</div>
   
   <div class="grid-2" id="guide-pdf-container">
-    <!-- 社區主任版手冊區塊 (僅管理員與主任可見) -->
     <div class="card" id="guide-director-card" style="padding:1.5rem;margin-bottom:1.5rem">
       <div class="flex-between" style="margin-bottom:1rem">
         <h3 style="font-size:16px;font-weight:800;color:var(--primary);margin:0">👑 社區主任版操作手冊</h3>
@@ -654,12 +657,9 @@
           <button class="btn btn-danger btn-sm" style="padding:4px 10px;font-size:12px" onclick="deleteManual('director')">🗑️ 刪除</button>
         </div>
       </div>
-      <div id="preview-director-manual" class="pdf-preview-box">
-        <!-- JS 動態插入 iframe -->
-      </div>
+      <div id="preview-director-manual" class="pdf-preview-box"></div>
     </div>
 
-    <!-- 一般住戶版手冊區塊 -->
     <div class="card" id="guide-resident-card" style="padding:1.5rem;margin-bottom:1.5rem">
       <div class="flex-between" style="margin-bottom:1rem">
         <h3 style="font-size:16px;font-weight:800;color:#16a34a;margin:0">🏠 一般住戶版操作手冊</h3>
@@ -670,9 +670,7 @@
           <button class="btn btn-danger btn-sm" style="padding:4px 10px;font-size:12px" onclick="deleteManual('resident')">🗑️ 刪除</button>
         </div>
       </div>
-      <div id="preview-resident-manual" class="pdf-preview-box">
-         <!-- JS 動態插入 iframe -->
-      </div>
+      <div id="preview-resident-manual" class="pdf-preview-box"></div>
     </div>
   </div>
 
@@ -701,7 +699,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v1.87">
+        <input type="text" id="set-app-version" value="v1.88">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -746,20 +744,21 @@
     </div>
   </div>
 
-  <!-- 管理員自訂上傳登入頁面背景圖 -->
+  <!-- 💡 [修正核心 1] 支援上傳多張登入頁面背景圖輪播 -->
   <div class="card">
-    <div class="card-title">登入頁面背景圖設定</div>
+    <div class="card-title">首頁登入背景圖輪播設定</div>
     <div class="form-row">
       <div>
-        <label>上傳自訂登入背景圖</label>
+        <label>新增輪播背景圖片</label>
         <label class="btn btn-primary btn-sm" style="display:inline-block;cursor:pointer;margin-top:6px">
-          📤 選擇圖片檔案 <input type="file" accept="image/*" style="display:none" onchange="uploadLoginBackground(this)">
+          📤 上傳新圖片 <input type="file" accept="image/*" style="display:none" onchange="uploadLoginBackground(this)">
         </label>
       </div>
-      <div style="display:flex;align-items:flex-end">
-        <button class="btn btn-danger btn-sm" onclick="resetLoginBackground()">恢復預設背景</button>
+      <div style="display:flex;align-items:flex-end;justify-content:flex-end">
+        <button class="btn btn-danger btn-sm" onclick="resetLoginBackground()">恢復系統預設背景</button>
       </div>
     </div>
+    <div id="login-bg-list" style="margin-top:1rem;padding-top:1rem;border-top:1px dashed #cbd5e1"></div>
   </div>
 
   <div class="card">
@@ -916,6 +915,7 @@
   let currentResultRound = "第一輪";
   let currentFloorplan = 1;
   let fpZoomLevel = 1.0;
+  let bgCarouselTimer = null; // 背景輪播計時器
 
   let systemSettings = {
     appTitle: "稙村秀社區機車位電腦抽籤系統",
@@ -924,15 +924,15 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v1.87",
+    appVersion: "v1.88",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
-    loginBg: "",
+    loginBgs: [], // 改為陣列以支援輪播
     customFp1: "",
     customFp2: "",
     quickGuideText: defaultQuickGuide,
-    directorManualPdf: "", // 💡 儲存社區主任版 Base64 PDF
-    residentManualPdf: ""  // 💡 儲存一般住戶版 Base64 PDF
+    directorManualPdf: "", 
+    residentManualPdf: ""  
   };
 
   let residents = [];
@@ -1081,9 +1081,11 @@
           systemSettings.appVersion = codeVer;
           if (!systemSettings.b1Limit) systemSettings.b1Limit = Math.floor(systemSettings.totalSeats / 2);
           if (!systemSettings.quickGuideText) systemSettings.quickGuideText = defaultQuickGuide;
-          // 防止雲端無此欄位時出錯
-          if (typeof systemSettings.directorManualPdf === "undefined") systemSettings.directorManualPdf = "";
-          if (typeof systemSettings.residentManualPdf === "undefined") systemSettings.residentManualPdf = "";
+          if (!systemSettings.loginBgs) {
+            systemSettings.loginBgs = [];
+            // 相容舊版單一背景
+            if (data.systemSettings.loginBg) systemSettings.loginBgs.push(data.systemSettings.loginBg);
+          }
         }
         if (data.accountsList) accountsList = data.accountsList;
         if (data.pendingAudits) pendingAudits = data.pendingAudits;
@@ -1168,11 +1170,19 @@
 
   function applyLoginBackground() {
     const overlay = document.getElementById("login-overlay");
-    if (systemSettings.loginBg) {
-      overlay.style.backgroundImage = `url('${systemSettings.loginBg}')`;
-      overlay.style.backgroundSize = "cover";
-      overlay.style.backgroundPosition = "center";
-      overlay.style.backgroundRepeat = "no-repeat";
+    const bgs = systemSettings.loginBgs || [];
+    
+    if (bgCarouselTimer) clearInterval(bgCarouselTimer);
+
+    if (bgs.length > 0) {
+      overlay.style.backgroundImage = `url('${bgs[0]}')`;
+      if (bgs.length > 1) {
+        let bgIndex = 0;
+        bgCarouselTimer = setInterval(() => {
+          bgIndex = (bgIndex + 1) % bgs.length;
+          overlay.style.backgroundImage = `url('${bgs[bgIndex]}')`;
+        }, 5000); // 💡 每5秒輪播下一張
+      }
     } else {
       overlay.style.background = "linear-gradient(135deg, rgba(15,23,42,0.8), rgba(30,58,138,0.7)), #0f172a";
     }
@@ -1183,21 +1193,53 @@
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
-      systemSettings.loginBg = e.target.result;
+      if (!systemSettings.loginBgs) systemSettings.loginBgs = [];
+      systemSettings.loginBgs.push(e.target.result);
       cloudSyncPush();
       applyLoginBackground();
-      alert("登入頁面背景圖已成功更新並全域同步！");
-      addLog("設定", "管理員更新登入頁面背景圖");
+      renderLoginBgList();
+      alert("登入頁面背景圖已成功新增並全域同步！");
+      addLog("設定", "管理員新增登入頁面背景圖");
     };
     reader.readAsDataURL(file);
   }
 
+  function deleteLoginBg(index) {
+    if(confirm("確定要刪除這張背景圖片嗎？")) {
+      systemSettings.loginBgs.splice(index, 1);
+      cloudSyncPush();
+      applyLoginBackground();
+      renderLoginBgList();
+    }
+  }
+
+  function renderLoginBgList() {
+    let html = "";
+    let bgs = systemSettings.loginBgs || [];
+    if(bgs.length === 0) {
+      html = "<span style='font-size:13px;color:var(--text-muted);font-weight:600'>目前無自訂背景圖 (使用系統預設)</span>";
+    } else {
+      bgs.forEach((bg, i) => {
+        html += `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;background:#fff;padding:8px 12px;border-radius:8px;border:1px solid #e2e8f0">
+          <img src="${bg}" style="width:60px;height:35px;object-fit:cover;border-radius:4px;border:1px solid #cbd5e1">
+          <span style="font-size:14px;font-weight:700;flex:1">輪播背景圖 ${i+1}</span>
+          <button class="btn btn-danger btn-sm" style="padding:4px 10px;font-size:12px" onclick="deleteLoginBg(${i})">刪除</button>
+        </div>`;
+      });
+    }
+    const listEl = document.getElementById("login-bg-list");
+    if(listEl) listEl.innerHTML = html;
+  }
+
   function resetLoginBackground() {
-    systemSettings.loginBg = "";
-    cloudSyncPush();
-    applyLoginBackground();
-    alert("已恢復預設登入背景！");
-    addLog("設定", "管理員重置登入頁面背景圖");
+    if(confirm("確定要清空所有背景圖並恢復預設嗎？")) {
+      systemSettings.loginBgs = [];
+      cloudSyncPush();
+      applyLoginBackground();
+      renderLoginBgList();
+      alert("已恢復預設登入背景！");
+      addLog("設定", "管理員清空登入頁面背景圖");
+    }
   }
 
   function doLogin() {
@@ -1209,6 +1251,7 @@
       currentUser = { ...matchedAcc };
       localStorage.setItem("lottery_user", JSON.stringify(currentUser));
       document.getElementById("login-overlay").style.display = "none";
+      if(bgCarouselTimer) clearInterval(bgCarouselTimer);
       initUserBar();
       addLog("登入", `${currentUser.name} (${currentUser.role === 'admin' ? '管理員' : '社區主任'}) 登入系統`);
     } else {
@@ -1220,6 +1263,7 @@
     currentUser = { name: "社區住戶", role: "guest", username: "guest", password: "" };
     localStorage.setItem("lottery_user", JSON.stringify(currentUser));
     document.getElementById("login-overlay").style.display = "none";
+    if(bgCarouselTimer) clearInterval(bgCarouselTimer);
     initUserBar();
     addLog("登入", "以社區住戶身分進入系統");
   }
@@ -1281,9 +1325,10 @@
     renderSummary();
     renderLogs();
     renderSwap();
-    renderGuide(); // 💡 確保初始化時渲染操作手冊
+    renderGuide(); 
     renderDirectorsList();
     renderPendingAudits();
+    renderLoginBgList();
     initFloorplanSeats();
     updateLotteryCards();
     checkPlateWarnings();
@@ -1327,7 +1372,7 @@
     if(pageId === 'summary') renderSummary();
     if(pageId === 'logs') renderLogs();
     if(pageId === 'swap') renderSwap();
-    if(pageId === 'guide') renderGuide(); // 💡 切換至說明頁時更新手冊顯示
+    if(pageId === 'guide') renderGuide(); 
     if(pageId === 'lottery') { updateLotteryCards(); checkPlateWarnings(); }
     if(pageId === 'floorplan') { initFloorplanSeats(); } 
     if(pageId === 'settings' && currentUser.role === 'admin') {
@@ -1341,6 +1386,7 @@
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || defaultQuickGuide;
       renderDirectorsList();
       renderPendingAudits();
+      renderLoginBgList();
     }
   }
 
@@ -2111,17 +2157,18 @@
     processPreferencePass(res => res.pref2);
     processPreferencePass(res => res.pref3);
 
+    // 💡 [修正核心 1] 先做一次完美洗牌，再進行穩定排序，確保同等身分的一般戶間保有隨機順序，絕對公平
     remainingEligible = shuffleArray(remainingEligible);
+    
     remainingEligible.sort((a, b) => {
       let aRes = a.reserve === 'Y' ? 1 : 0;
       let bRes = b.reserve === 'Y' ? 1 : 0;
-      if (aRes !== bRes) return bRes - aRes; 
+      if (aRes !== bRes) return bRes - aRes; // 保留戶優先
 
       let aIsAB = (a.build.startsWith("A") || a.build.startsWith("B")) ? 1 : 0;
       let bIsAB = (b.build.startsWith("A") || b.build.startsWith("B")) ? 1 : 0;
-      return bIsAB - aIsAB; 
+      return bIsAB - aIsAB; // A/B棟優先
     });
-    remainingEligible = shuffleArray(remainingEligible);
 
     remainingEligible.forEach(res => {
       if (freeSeatsSet.size === 0) return;
@@ -2309,7 +2356,7 @@
         <td class="text-center">${r.room}</td>
         <td><b>${getDisplayName(r.name)}</b></td>
         <td class="text-center">${r.reserve==='Y'?'<span class="badge badge-purple">保留戶</span>':'一般戶'}</td>
-        <td class="text-center">${hasSeat ? '<b style="font-size:16px;color:var(--primary)">'+seat+'號</b>' : '-'}</td>
+        <td class="text-center">${hasSeat ? '<b style="font-size:16.5px;color:var(--primary)">'+seat+'號</b>' : '-'}</td>
         <td class="text-center">${statusStr}</td>
       </tr>`;
     });
@@ -2574,22 +2621,30 @@
     const rawInput = document.getElementById("inq-plate").value.trim();
     const resultBox = document.getElementById("inq-result");
     if(!rawInput) {
-      alert("請輸入車牌號碼！");
+      alert("請輸入車牌號碼或車位號碼！");
       return;
     }
 
     const cleanInput = rawInput.replace(/[-\s]/g, "").toUpperCase();
 
+    // 💡 [修正核心 2] 查詢引擎同時支援「車牌」與「抽中的車位號碼」比對
     let matchRes = residents.filter(r => {
       const p1 = (r.plate1 || "").replace(/[-\s]/g, "").toUpperCase();
       const p2 = (r.plate2 || "").replace(/[-\s]/g, "").toUpperCase();
       const p3 = (r.plate3 || "").replace(/[-\s]/g, "").toUpperCase();
-      return (p1 && p1.includes(cleanInput)) || (p2 && p2.includes(cleanInput)) || (p3 && p3.includes(cleanInput));
+      const plateMatch = (p1 && p1.includes(cleanInput)) || (p2 && p2.includes(cleanInput)) || (p3 && p3.includes(cleanInput));
+
+      let s1 = getUserSeat("第一輪", r.id);
+      let s2 = getUserSeat("第二輪", r.id);
+      let s3 = getUserSeat("第三輪", r.id);
+      const seatMatch = (s1 && s1.toString() === cleanInput) || (s2 && s2.toString() === cleanInput) || (s3 && s3.toString() === cleanInput);
+
+      return plateMatch || seatMatch;
     });
 
     if(matchRes.length === 0) {
       resultBox.style.display = "block";
-      resultBox.innerHTML = `<div class="card" style="text-align:center;color:#dc2626">查無與車牌 <b>${rawInput}</b> 相符的登記紀錄。</div>`;
+      resultBox.innerHTML = `<div class="card" style="text-align:center;color:#dc2626;font-size:15px;font-weight:700">查無與車牌或車位號碼 <b>${rawInput}</b> 相符的登記紀錄。</div>`;
       return;
     }
 
@@ -2736,7 +2791,7 @@
     applySystemBranding();
     initUserBar();
     renderDashboard();
-    renderGuide(); // 💡 確保設定儲存後，說明頁的手冊顯示邏輯也一併更新
+    renderGuide(); 
     
     alert("系統標題與導覽設定更新成功並已全域同步！");
     addLog("設定", `更新系統標題與快速導覽設定`);
@@ -3072,26 +3127,21 @@
     addLog("設定", `匯出 Excel 報表：${titleName}`);
   }
 
-  // 💡 ================= 12. 操作手冊(PDF) 動態預覽與權限管理 =================
+  // ================= 12. 操作手冊(PDF) 動態預覽與權限管理 =================
   function renderGuide() {
     const isGuest = currentUser.role === 'guest';
     const isAdmin = currentUser.role === 'admin';
 
-    // 權限隔離：一般住戶隱藏主任版手冊
     document.getElementById("guide-director-card").style.display = isGuest ? 'none' : 'block';
-    
-    // 權限隔離：只有系統管理員能看到上傳/刪除按鈕
     document.getElementById("admin-guide-director-btns").style.display = isAdmin ? 'flex' : 'none';
     document.getElementById("admin-guide-resident-btns").style.display = isAdmin ? 'flex' : 'none';
 
-    // 調整排版：若為一般住戶，讓住戶版手冊滿版顯示
     if (isGuest) {
       document.getElementById("guide-pdf-container").className = "";
     } else {
       document.getElementById("guide-pdf-container").className = "grid-2";
     }
 
-    // 渲染社區主任版 PDF
     const dirPreview = document.getElementById("preview-director-manual");
     if (systemSettings.directorManualPdf && systemSettings.directorManualPdf.length > 50) {
       dirPreview.innerHTML = `
@@ -3104,7 +3154,6 @@
       dirPreview.innerHTML = `<span class="pdf-placeholder">尚未上傳操作手冊</span>`;
     }
 
-    // 渲染一般住戶版 PDF
     const resPreview = document.getElementById("preview-resident-manual");
     if (systemSettings.residentManualPdf && systemSettings.residentManualPdf.length > 50) {
       resPreview.innerHTML = `
@@ -3126,7 +3175,6 @@
       inputElem.value = "";
       return;
     }
-    // 限制 4MB 以內，避免 Base64 轉換後 Firebase 傳輸超載
     if (file.size > 4 * 1024 * 1024) { 
       alert("檔案過大！為確保系統連線順暢，請上傳小於 4MB 的 PDF 檔案。");
       inputElem.value = "";
