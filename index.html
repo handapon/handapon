@@ -919,6 +919,7 @@
   let fpZoomLevel = 1.0;
   let bgCarouselTimer = null; 
   let cloudSyncReady = false; // 💡 新增：是否已成功從雲端完整下載過一次資料
+  let autoSyncTimer = null; // 💡 新增：背景自動同步計時器
 
   let systemSettings = {
     appTitle: "稙村秀社區機車位電腦抽籤系統",
@@ -1186,6 +1187,31 @@
     }
   }
 
+  // 💡 背景自動同步：每 15 秒安靜地重新向雲端拉取一次最新資料並重新整理畫面內容。
+  // 這是為了解決「分頁/裝置已經打開一段時間、沒有重新整理」的情境 —— 例如多位住戶同時開著
+  // 一般住戶查詢頁面，此時若管理員剛好又執行了新一輪抽籤，這些已經打開的分頁不需要使用者
+  // 手動操作，也能在最多 15 秒內自動看到最新結果；同時也大幅降低「登出/登入時序競爭」造成
+  // 顯示過期資料的機率。若偵測到使用者正在操作中（有彈出視窗開啟，或正在輸入欄位打字），
+  // 會暫緩該次自動同步，避免打斷操作。
+  function startAutoSync() {
+    if (autoSyncTimer) clearInterval(autoSyncTimer);
+    autoSyncTimer = setInterval(async () => {
+      const anyModalOpen = document.querySelector('.modal-overlay.show');
+      const activeTag = document.activeElement ? document.activeElement.tagName : '';
+      const isTyping = (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT');
+      if (anyModalOpen || isTyping) return;
+      const ok = await cloudSyncPull();
+      if (ok) {
+        initApp();
+        checkPlateWarnings();
+      }
+    }, 15000);
+  }
+
+  function stopAutoSync() {
+    if (autoSyncTimer) { clearInterval(autoSyncTimer); autoSyncTimer = null; }
+  }
+
   function checkLogin() {
     const logged = localStorage.getItem("lottery_user");
     applySystemBranding();
@@ -1199,6 +1225,7 @@
       let liveAcc = accountsList.find(a => a.username === currentUser.username);
       if (liveAcc) currentUser = { ...liveAcc };
       initUserBar();
+      startAutoSync();
     }
   }
 
@@ -1321,6 +1348,7 @@
       if(bgCarouselTimer) clearInterval(bgCarouselTimer);
       initUserBar();
       initApp();
+      startAutoSync();
       addLog("登入", `${currentUser.name} (${currentUser.role === 'admin' ? '管理員' : '社區主任'}) 登入系統`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
 
       if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = "登入系統"; }
@@ -1343,12 +1371,14 @@
     if(bgCarouselTimer) clearInterval(bgCarouselTimer);
     initUserBar();
     initApp();
+    startAutoSync();
     addLog("登入", "以社區住戶身分進入系統");
 
     if (guestBtn) { guestBtn.disabled = false; guestBtn.innerText = "進入社區住戶查詢入口"; }
   }
 
   async function doLogout() {
+    stopAutoSync();
     // 💡 重要修正：先前 addLog() 是「不等待」直接觸發雲端同步後，馬上呼叫 location.reload()，
     // 但瀏覽器在重新整理/離開頁面時，會直接中斷所有尚未完成的網路請求（包含這筆最終同步）！
     // 這正是「抽籤完後很快登出，其他人登入卻看到舊資料」的成因：最新資料的同步請求還沒送達雲端，
