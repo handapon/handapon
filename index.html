@@ -1149,7 +1149,12 @@
   function updateSyncStatusUI(isOnline, text) {
     const el = document.getElementById("sync-status-indicator");
     if(el) {
-      el.innerText = text;
+      if (isOnline) {
+        const t = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        el.innerText = `${text}（${t}）`;
+      } else {
+        el.innerText = text;
+      }
       el.className = isOnline ? "sync-online" : "sync-offline";
     }
   }
@@ -1173,6 +1178,51 @@
     checkLogin();
     initApp();
   };
+
+  // 💡 重要修正：處理瀏覽器的「返回快取 (bfcache)」行為。
+  // 在手機瀏覽器（尤其 iOS Safari）上，切換 App 或使用上一頁/下一頁時，
+  // 瀏覽器常常會直接從記憶體「還原」整個頁面畫面，完全不會重新執行 JavaScript，
+  // 也就是說 window.onload、doLogin()、guestLogin() 甚至自動同步計時器都不會被重新觸發，
+  // 畫面會停留在被還原的那個瞬間的舊資料，不管前面做了多少次同步修正都沒有用。
+  // pageshow 事件的 event.persisted 為 true 時，代表這次就是從 bfcache 還原回來的，
+  // 此時強制整頁重新載入，確保一定會重新執行完整的初始化流程（含強制拉取最新雲端資料）。
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+      location.reload();
+    }
+  });
+
+  // 💡 重要修正：瀏覽器對「背景分頁」的計時器（setInterval/setTimeout）會大幅節流甚至暫停，
+  // 代表分頁切到背景時，原本每 15 秒的自動同步實際上可能好幾分鐘都不會執行一次。
+  // 因此改為：只要分頁「重新變成可見」（從背景切回前景、或重新開啟該分頁），
+  // 就立刻強制重新拉取一次最新雲端資料並刷新畫面，不用等待下一次計時器觸發，
+  // 確保使用者每次「回來看」這個頁面時，看到的一定是當下最新的結果。
+  let visibilitySyncLock = false;
+  async function syncOnBecomeVisible() {
+    if (visibilitySyncLock) return;
+    if (!cloudSyncReady) return; // 初始同步還沒完成時不處理
+    const loginOverlay = document.getElementById("login-overlay");
+    if (!loginOverlay || loginOverlay.style.display !== "none") return; // 尚未登入（登入畫面還顯示著）不處理
+    const anyModalOpen = document.querySelector('.modal-overlay.show');
+    if (anyModalOpen) return;
+    visibilitySyncLock = true;
+    try {
+      updateSyncStatusUI(false, "偵測到回到頁面，同步最新資料中...");
+      const ok = await cloudSyncPull();
+      if (ok) {
+        initApp();
+        checkPlateWarnings();
+      }
+    } finally {
+      visibilitySyncLock = false;
+    }
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') {
+      syncOnBecomeVisible();
+    }
+  });
+  window.addEventListener('focus', syncOnBecomeVisible);
 
   async function refreshCloudData() {
     updateSyncStatusUI(false, "重新整理中...");
