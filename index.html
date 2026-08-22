@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.09</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.10</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -148,6 +148,7 @@
   .fp-outer-card{padding:3rem}
   .fp-inner-box{padding:4rem;background:#ffffff;border:2px dashed #cbd5e1;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.02);max-width:100%}
   .card-pad-lg{padding:2rem}
+  @media(min-width:1025px){ #staff-quick-nav, #guest-quick-nav{ display:none !important; } }
   .legend-item { display:flex; align-items:center; gap:8px; }
   .legend-color { width:18px; height:18px; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.1)}
   
@@ -179,7 +180,7 @@
   /* 登入背景輪播專用 */
   .bg-fade { transition: background-image 1.5s ease-in-out; }
 
-  @media(max-width:768px){
+  @media(max-width:1024px){
     .nav-tabs{display:none}
     .nav-hamburger{display:flex}
     .grid-2,.grid-3{grid-template-columns:1fr}
@@ -227,6 +228,18 @@
     .btn-row{gap:10px}
     .badge{padding:6px 12px}
   }
+  /* 平板專用（比手機寬敞，給更多留白與欄位密度，避免跟手機一樣過度壓縮） */
+  @media(min-width:600px) and (max-width:1024px){
+    .page{padding:2rem 1.5rem}
+    .card{padding:1.75rem}
+    .card-pad-lg{padding:1.75rem}
+    .stats-grid{grid-template-columns:repeat(4,1fr)}
+    .seat-grid{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+    .seat{min-height:64px;font-size:13px}
+    .grid-2,.grid-3{grid-template-columns:1fr 1fr}
+    .form-row,.form-row-3{grid-template-columns:1fr 1fr}
+    table{font-size:14.5px}
+  }
   .table-scroll-hint{display:none;font-size:12.5px;color:var(--text-muted);font-weight:800;margin-bottom:.5rem;text-align:right}
 </style>
 </head>
@@ -243,7 +256,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.09</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.10</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -307,6 +320,21 @@
       <button class="btn btn-primary" style="padding:1.1rem .75rem;font-size:15px;white-space:normal;line-height:1.4" onclick="showPage('inquiry')">🔍<br>中籤查詢</button>
       <button class="btn btn-primary" style="padding:1.1rem .75rem;font-size:15px;white-space:normal;line-height:1.4" onclick="showPage('floorplan')">🗺️<br>機車位<br>平面圖</button>
       <button class="btn btn-primary" style="padding:1.1rem .75rem;font-size:15px;white-space:normal;line-height:1.4" onclick="showPage('guide')">📖<br>操作手冊</button>
+    </div>
+  </div>
+
+  <div class="card" id="staff-quick-nav" style="display:none;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border-color:#93c5fd;margin-bottom:1.75rem">
+    <div class="card-title" style="border-left-color:#2563eb">📱 快速前往（手機/平板選單打不開時可從這裡切換頁面）</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px">
+      <button class="btn btn-primary" style="padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('residents')">👥<br>住戶名單</button>
+      <button class="btn btn-primary" style="padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('lottery')">🎲<br>執行抽籤</button>
+      <button class="btn btn-primary" style="padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('results')">📊<br>抽籤結果<br>與總表</button>
+      <button class="btn btn-primary" style="padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('swap')">🔄<br>車位互換</button>
+      <button class="btn btn-primary" style="padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('inquiry')">🔍<br>中籤查詢</button>
+      <button class="btn btn-primary" style="padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('floorplan')">🗺️<br>平面圖</button>
+      <button class="btn btn-primary" style="padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('guide')">📖<br>操作手冊</button>
+      <button class="btn btn-primary" id="staff-quick-nav-logs" style="display:none;padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('logs')">📋<br>操作紀錄</button>
+      <button class="btn btn-primary" id="staff-quick-nav-settings" style="display:none;padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('settings')">⚙️<br>系統設定</button>
     </div>
   </div>
   
@@ -564,7 +592,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.09 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.10 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -776,7 +804,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.09">
+        <input type="text" id="set-app-version" value="v2.10">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1031,7 +1059,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.09",
+    appVersion: "v2.10",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1700,6 +1728,13 @@
 
     const guestQuickNav = document.getElementById("guest-quick-nav");
     if (guestQuickNav) guestQuickNav.style.display = isGuest ? 'block' : 'none';
+
+    const staffQuickNav = document.getElementById("staff-quick-nav");
+    if (staffQuickNav) staffQuickNav.style.display = isGuest ? 'none' : 'block';
+    const staffLogsBtn = document.getElementById("staff-quick-nav-logs");
+    if (staffLogsBtn) staffLogsBtn.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
+    const staffSettingsBtn = document.getElementById("staff-quick-nav-settings");
+    if (staffSettingsBtn) staffSettingsBtn.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
     
     const resTabs = ['nav-tab-residents', 'nav-tab-residents-mob'];
     resTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
@@ -3606,7 +3641,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.09 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.10 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -3645,7 +3680,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.09 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.10 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
