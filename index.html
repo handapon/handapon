@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.08</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.09</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -210,6 +210,8 @@
     .lottery-hero{padding:1.5rem}
     .lottery-hero .flex-between{flex-direction:column;align-items:stretch}
     .btn-run-lottery{width:100%;font-size:16px;padding:1rem}
+    .page div[style*="display:flex"][style*="align-items:center"]{flex-wrap:wrap}
+    .page div[style*="display:flex"][style*="align-items:center"] .section-title{font-size:19px}
     #inq-plate{margin-bottom:10px}
     .page-inquiry-search-row, #page-inquiry div[style*="display:flex"]{flex-direction:column}
     #page-inquiry div[style*="display:flex"] button{width:100%;padding:.85rem !important}
@@ -241,7 +243,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.08</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.09</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -337,7 +339,10 @@
 <!-- ===== 2. 住戶名單 ===== -->
 <div id="page-residents" class="page">
   <div class="flex-between" style="margin-bottom:1.5rem">
-    <div class="section-title" style="margin:0">住戶名單管理</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
+      <div class="section-title" style="margin:0">住戶名單管理</div>
+    </div>
     <div class="btn-row" style="margin:0">
       <button class="btn btn-primary" id="btn-add-resident" onclick="openAddModal()">新增住戶</button>
       <button class="btn" onclick="exportCSV()">匯出全資料 CSV</button>
@@ -526,7 +531,10 @@
 <!-- ===== 6. 操作紀錄 ===== -->
 <div id="page-logs" class="page">
   <div class="flex-between" style="margin-bottom:1.5rem">
-    <div class="section-title" style="margin:0">系統操作紀錄</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
+      <div class="section-title" style="margin:0">系統操作紀錄</div>
+    </div>
     <div class="btn-row" style="margin:0">
       <button class="btn btn-sm btn-success" onclick="exportExcel('logs-table', '操作紀錄')">匯出 Excel (.xlsx)</button>
       <button class="btn btn-sm btn-danger" onclick="clearLogs()">清除紀錄</button>
@@ -556,9 +564,12 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.08 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.09 進階版) ===== -->
 <div id="page-swap" class="page">
-  <div class="section-title">車位互換管理</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
+    <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
+    <div class="section-title" style="margin:0">車位互換管理</div>
+  </div>
   
   <div id="swap-admin-content">
     <div class="card">
@@ -639,7 +650,10 @@
 
 <!-- ===== 8. 中籤查詢 ===== -->
 <div id="page-inquiry" class="page">
-  <div class="section-title">住戶中籤快速查詢</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
+    <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
+    <div class="section-title" style="margin:0">住戶中籤快速查詢</div>
+  </div>
   <div class="card" style="max-width:640px;margin:0 auto 1.5rem">
     <label style="font-size:15.5px;margin-bottom:10px">請輸入您的「登記車牌號碼」或「分配車位號碼」 (支援模糊查詢)</label>
     <div style="display:flex;gap:12px;margin-top:12px">
@@ -653,7 +667,10 @@
 <!-- ===== 9. 車位平面圖 ===== -->
 <div id="page-floorplan" class="page">
   <div class="flex-between" style="margin-bottom:1.5rem">
-    <div class="section-title" style="margin:0">機車位配置平面圖</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
+      <div class="section-title" style="margin:0">機車位配置平面圖</div>
+    </div>
     <div class="btn-row" style="margin:0">
       <label class="btn btn-primary btn-sm" id="admin-floorplan-upload" style="margin:0;cursor:pointer;display:none">
         📤 上傳自訂平面圖 <input type="file" accept="image/*" style="display:none" onchange="uploadCustomFloorplan(this)">
@@ -698,7 +715,10 @@
 
 <!-- ===== 10. 操作手冊 (整合 PDF 預覽) ===== -->
 <div id="page-guide" class="page">
-  <div class="section-title">系統操作手冊與說明指南</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
+    <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
+    <div class="section-title" style="margin:0">系統操作手冊與說明指南</div>
+  </div>
   
   <div class="grid-2" id="guide-pdf-container">
     <div class="card" id="guide-director-card" style="padding:1.5rem;margin-bottom:1.5rem">
@@ -742,7 +762,10 @@
 
 <!-- ===== 11. 系統設定 ===== -->
 <div id="page-settings" class="page">
-  <div class="section-title">系統設定與權限維護</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
+    <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
+    <div class="section-title" style="margin:0">系統設定與權限維護</div>
+  </div>
   
   <div class="card">
     <div class="card-title">系統標題、快速導覽與版次設定</div>
@@ -753,7 +776,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.08">
+        <input type="text" id="set-app-version" value="v2.09">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1008,7 +1031,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.08",
+    appVersion: "v2.09",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -3583,7 +3606,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.08 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.09 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -3622,7 +3645,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.08 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.09 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
