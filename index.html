@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.20</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.22</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -257,10 +257,13 @@
     body{background:#fff !important;font-size:11pt;line-height:1.5;color:#000}
     .nav, .user-bar, .nav-menu-mobile, #login-overlay, .modal-overlay,
     #guest-quick-nav, #staff-quick-nav, .btn-row, .round-tabs, .table-scroll-hint,
-    input, select, textarea, button, .yn-btn, label,
+    input, select, textarea, .btn, label,
     #plate-warning-banner, .legend-box, .lottery-hero, #dash-quick-guide {
       display: none !important;
     }
+    /* 💡 修正：先前把 .yn-btn 也一併隱藏，導致「1/2/3輪」「候補登記」欄位的 Y/N 狀態
+       在列印時整欄變成空白。改成保留內容顯示，只去除按鈕的互動外觀，呈現乾淨的文字狀態。 */
+    .yn-btn{border:1px solid #999 !important;background:#fff !important;color:#000 !important;box-shadow:none;cursor:default;pointer-events:none}
     .page{display:block !important;padding:0;max-width:100%;margin:0}
     .section-title{font-size:16pt;color:#000;margin-bottom:.5rem}
     .card{box-shadow:none !important;border:1px solid #999;padding:0;margin-bottom:1rem;background:#fff}
@@ -299,7 +302,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.20</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.22</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -651,7 +654,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.20 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.22 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -870,7 +873,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.20">
+        <input type="text" id="set-app-version" value="v2.22">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1142,7 +1145,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.20",
+    appVersion: "v2.22",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -2330,6 +2333,35 @@
     if(!room || !name) {
       alert("請填寫門牌與姓名！");
       return;
+    }
+
+    // 💡 新增：車牌重複偵測。先前完全沒有檢查是否有兩位不同住戶登記了同一組車牌號碼，
+    // 這在實際社區管理上很可能代表打字錯誤（例如複製貼上忘記改），
+    // 若不提醒，容易在「中籤查詢」或現場車位稽核時造成混淆。「新戶待補」為預期中的
+    // 重複標記，不列入檢查。採非強制性提醒（可選擇仍要繼續），避免誤擋合理的特殊情況。
+    const enteredPlates = [plate1, plate2, plate3].filter(p => p && p !== PENDING_PLATE_LABEL);
+    if (enteredPlates.length > 0) {
+      // 💡 先檢查「同一位住戶自己3個車牌欄位」是否重複輸入了同一組車牌（例如複製貼上忘記改），
+      // 這跟下面「跨住戶」的重複檢查是不同情境，先前完全沒有涵蓋到。
+      const selfDupes = enteredPlates.filter((p, i) => enteredPlates.indexOf(p) !== i);
+      if (selfDupes.length > 0) {
+        if (!confirm(`【重複車牌提醒】您在同一位住戶的車牌欄位中，重複輸入了相同的車牌號碼：${[...new Set(selfDupes)].join('、')}\n\n這通常代表輸入錯誤（例如複製貼上忘記修改），請確認是否為刻意重複。仍要繼續儲存嗎？`)) {
+          return;
+        }
+      }
+
+      const dupeMsgs = [];
+      enteredPlates.forEach(p => {
+        const dupeOwner = residents.find(r => Number(r.id) !== Number(id || -1) && [r.plate1, r.plate2, r.plate3].includes(p));
+        if (dupeOwner) {
+          dupeMsgs.push(`車牌 ${p} 已登記於 ${dupeOwner.build}棟 ${dupeOwner.room} ${dupeOwner.name}`);
+        }
+      });
+      if (dupeMsgs.length > 0) {
+        if (!confirm(`【重複車牌提醒】偵測到以下車牌可能與其他住戶重複：\n\n• ${dupeMsgs.join('\n• ')}\n\n這通常代表輸入錯誤（例如複製貼上忘記修改），請確認是否真的是同一輛車掛在兩戶名下。仍要繼續儲存嗎？`)) {
+          return;
+        }
+      }
     }
 
     let pref1 = parseInt(document.getElementById("res-pref1").value) || "";
@@ -4131,7 +4163,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.20 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.22 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4170,7 +4202,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.20 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.22 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
