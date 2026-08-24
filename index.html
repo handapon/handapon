@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.28</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.29</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -303,7 +303,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.28</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.29</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -659,7 +659,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.28 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.29 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -878,7 +878,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.28">
+        <input type="text" id="set-app-version" value="v2.29">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1159,7 +1159,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.28",
+    appVersion: "v2.29",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -2835,67 +2835,71 @@
       winners.push(`${res.build}-${res.room} ${getDisplayName(res.name)} ➔ 車位 ${sNum}號`);
     }
 
+    // 💡💡 重要修正（經自動化模糊測試找出的公平性漏洞，與正式抽籤同一類問題）：
+    // 先前是「全體候補者一起比對指定車位，優先序只在『同一個車位』被搶時才生效」，
+    // 若優先層級較低者的指定車位剛好命中「當下剩餘的最後一個車位」，會在比對階段直接搶走，
+    // 導致優先層級較高者（例如完全沒車位的保留戶）連保底的一般隨機分配機會都沒有。
+    // 修正為依照「尚未持有任何車位」>「保留戶」的既定優先順序，分成4個明確階層，
+    // 每個階層的指定車位比對＋保底隨機分配都完整處理完，才會進入下一個較低優先的階層。
+    function computeTier(res) {
+      let hasNone = (!getUserSeat("第一輪", res.id) && !getUserSeat("第二輪", res.id) && !getUserSeat("第三輪", res.id));
+      let isReserve = res.reserve === 'Y';
+      if (hasNone && isReserve) return 1;
+      if (hasNone && !isReserve) return 2;
+      if (!hasNone && isReserve) return 3;
+      return 4;
+    }
+
     let remaining = shuffleArray(candidates);
 
-    // 💡 第一階段：比對指定車位（pref1/2/3），與正式抽籤邏輯一致，保留戶優先、A/B棟優先區間次之
-    function processPrefPass(prefKeyGetter) {
-      let prefMap = {};
-      remaining.forEach(res => {
-        let p = prefKeyGetter(res) ? Number(prefKeyGetter(res)) : null;
-        if (p && freeSeatsSet.has(p)) {
-          if (!prefMap[p]) prefMap[p] = [];
-          prefMap[p].push(res);
+    for (let tier = 1; tier <= 4; tier++) {
+      function processPrefPassForTier(prefKeyGetter) {
+        let prefMap = {};
+        remaining.forEach(res => {
+          if (computeTier(res) !== tier) return;
+          let p = prefKeyGetter(res) ? Number(prefKeyGetter(res)) : null;
+          if (p && freeSeatsSet.has(p)) {
+            if (!prefMap[p]) prefMap[p] = [];
+            prefMap[p].push(res);
+          }
+        });
+        for (let sStr in prefMap) {
+          let seatNum = Number(sStr);
+          let contenders = prefMap[sStr];
+          let isAbSeat = (seatNum >= abStart && seatNum <= abEnd);
+          let finalWinner = null;
+          if (isAbSeat) {
+            let abC = contenders.filter(x => x.build.startsWith("A") || x.build.startsWith("B"));
+            let otherC = contenders.filter(x => !x.build.startsWith("A") && !x.build.startsWith("B"));
+            finalWinner = abC.length > 0 ? shuffleArray(abC)[0] : (otherC.length > 0 ? shuffleArray(otherC)[0] : null);
+          } else {
+            finalWinner = contenders.length > 0 ? shuffleArray(contenders)[0] : null;
+          }
+          if (finalWinner && freeSeatsSet.has(seatNum)) {
+            assignWaitlistSeat(finalWinner, seatNum);
+          }
         }
-      });
-      for (let sStr in prefMap) {
-        let seatNum = Number(sStr);
-        let contenders = prefMap[sStr];
-        let isAbSeat = (seatNum >= abStart && seatNum <= abEnd);
-        let finalWinner = null;
-        let reserveContenders = contenders.filter(x => x.reserve === 'Y');
-        let nonReserveContenders = contenders.filter(x => x.reserve !== 'Y');
-        if (reserveContenders.length > 0) {
-          finalWinner = shuffleArray(reserveContenders)[0];
-        } else if (isAbSeat) {
-          let abC = nonReserveContenders.filter(x => x.build.startsWith("A") || x.build.startsWith("B"));
-          let otherC = nonReserveContenders.filter(x => !x.build.startsWith("A") && !x.build.startsWith("B"));
-          finalWinner = abC.length > 0 ? shuffleArray(abC)[0] : (otherC.length > 0 ? shuffleArray(otherC)[0] : null);
-        } else {
-          finalWinner = nonReserveContenders.length > 0 ? shuffleArray(nonReserveContenders)[0] : null;
-        }
-        if (finalWinner && freeSeatsSet.has(seatNum)) {
-          assignWaitlistSeat(finalWinner, seatNum);
-        }
+        remaining = remaining.filter(res => !lotteryResults["候補"][res.id]);
       }
+      processPrefPassForTier(res => res.pref1);
+      processPrefPassForTier(res => res.pref2);
+      processPrefPassForTier(res => res.pref3);
+
+      let tierMembers = shuffleArray(remaining.filter(res => computeTier(res) === tier));
+      tierMembers.forEach(res => {
+        if (freeSeatsSet.size === 0) return;
+        let abFree = Array.from(freeSeatsSet).filter(s => s >= abStart && s <= abEnd);
+        let otherFree = Array.from(freeSeatsSet).filter(s => s < abStart || s > abEnd);
+        let seat = null;
+        if (res.build.startsWith("A") || res.build.startsWith("B")) {
+          seat = abFree.length > 0 ? shuffleArray(abFree)[0] : (otherFree.length > 0 ? shuffleArray(otherFree)[0] : null);
+        } else {
+          seat = otherFree.length > 0 ? shuffleArray(otherFree)[0] : (abFree.length > 0 ? shuffleArray(abFree)[0] : null);
+        }
+        if (seat) assignWaitlistSeat(res, seat);
+      });
       remaining = remaining.filter(res => !lotteryResults["候補"][res.id]);
     }
-    processPrefPass(res => res.pref1);
-    processPrefPass(res => res.pref2);
-    processPrefPass(res => res.pref3);
-
-    // 💡 第二階段：一般候補分配，優先序：尚未持有任何車位者 > 保留戶 > 隨機（洗牌保持公平）
-    remaining = shuffleArray(remaining);
-    remaining.sort((a, b) => {
-      let aHasNone = (!getUserSeat("第一輪", a.id) && !getUserSeat("第二輪", a.id) && !getUserSeat("第三輪", a.id)) ? 1 : 0;
-      let bHasNone = (!getUserSeat("第一輪", b.id) && !getUserSeat("第二輪", b.id) && !getUserSeat("第三輪", b.id)) ? 1 : 0;
-      if (aHasNone !== bHasNone) return bHasNone - aHasNone;
-      let aRes = a.reserve === 'Y' ? 1 : 0;
-      let bRes = b.reserve === 'Y' ? 1 : 0;
-      return bRes - aRes;
-    });
-
-    remaining.forEach(res => {
-      if (freeSeatsSet.size === 0) return;
-      let abFree = Array.from(freeSeatsSet).filter(s => s >= abStart && s <= abEnd);
-      let otherFree = Array.from(freeSeatsSet).filter(s => s < abStart || s > abEnd);
-      let seat = null;
-      if (res.build.startsWith("A") || res.build.startsWith("B")) {
-        seat = abFree.length > 0 ? shuffleArray(abFree)[0] : (otherFree.length > 0 ? shuffleArray(otherFree)[0] : null);
-      } else {
-        seat = otherFree.length > 0 ? shuffleArray(otherFree)[0] : (abFree.length > 0 ? shuffleArray(abFree)[0] : null);
-      }
-      if (seat) assignWaitlistSeat(res, seat);
-    });
 
     updateLotteryCards();
     renderDashboard();
@@ -3121,9 +3125,17 @@
 
     let remainingEligible = shuffleArray(eligible);
 
-    function processPreferencePass(prefKeyGetter) {
+    // 💡💡 重要修正（經自動化模糊測試找出的公平性漏洞）：
+    // 先前的寫法是「所有人（含一般戶）一起比對指定車位，保留戶只在『同一個車位』被搶時才優先」，
+    // 但如果保留戶自己的指定車位剛好比對失敗（已被佔用/超出範圍），而「當下剩餘的最後一個車位」
+    // 剛好是某位一般戶的指定車位，這位一般戶會在指定車位比對階段就直接把最後車位搶走——
+    // 保留戶連進入「一般隨機分配」保障機制的機會都沒有，導致保留戶完全槓龜，保障機制失效。
+    // 修正為明確分成兩個完全獨立的階段：保留戶（指定車位比對＋一般隨機分配保障）全部處理完，
+    // 確定每一位保留戶「在車位足夠的前提下」都已經有車位之後，才開始處理一般戶。
+    function processPreferencePass(prefKeyGetter, reserveOnly) {
       let prefMap = {};
       remainingEligible.forEach(res => {
+        if (reserveOnly && res.reserve !== 'Y') return;
         let p = prefKeyGetter(res) ? Number(prefKeyGetter(res)) : null;
         if (p && freeSeatsSet.has(p)) {
           if (!prefMap[p]) prefMap[p] = [];
@@ -3164,48 +3176,45 @@
       remainingEligible = remainingEligible.filter(res => !lotteryResults[round][res.id]);
     }
 
-    processPreferencePass(res => res.pref1);
-    processPreferencePass(res => res.pref2);
-    processPreferencePass(res => res.pref3);
+    function generalPoolAssign(list) {
+      list.forEach(res => {
+        if (freeSeatsSet.size === 0) return;
+        let currentAbFree = Array.from(freeSeatsSet).filter(s => s >= abStart && s <= abEnd);
+        let currentOtherFree = Array.from(freeSeatsSet).filter(s => s < abStart || s > abEnd);
+        let assignedSeat = null;
+        if (res.build.startsWith("A") || res.build.startsWith("B")) {
+          assignedSeat = currentAbFree.length > 0 ? shuffleArray(currentAbFree)[0] : (currentOtherFree.length > 0 ? shuffleArray(currentOtherFree)[0] : null);
+        } else {
+          assignedSeat = currentOtherFree.length > 0 ? shuffleArray(currentOtherFree)[0] : (currentAbFree.length > 0 ? shuffleArray(currentAbFree)[0] : null);
+        }
+        if (assignedSeat) assignSeatToRes(res.id, assignedSeat);
+      });
+    }
 
+    // ===== 階段一：保留戶（指定車位比對，僅保留戶互相競爭）=====
+    processPreferencePass(res => res.pref1, true);
+    processPreferencePass(res => res.pref2, true);
+    processPreferencePass(res => res.pref3, true);
+
+    // ===== 階段二：保留戶保障（指定車位比對後仍未取得車位者，優先從一般池隨機取得）=====
+    let stillEligibleReserve = shuffleArray(remainingEligible.filter(res => res.reserve === 'Y'));
+    let stillEligibleNonReserve = remainingEligible.filter(res => res.reserve !== 'Y');
+    generalPoolAssign(stillEligibleReserve);
+    remainingEligible = stillEligibleNonReserve.filter(res => !lotteryResults[round][res.id]);
+
+    // ===== 階段三：一般戶（指定車位比對，此時保留戶已全數確定，不會再被搶）=====
+    processPreferencePass(res => res.pref1, false);
+    processPreferencePass(res => res.pref2, false);
+    processPreferencePass(res => res.pref3, false);
+
+    // ===== 階段四：一般戶保底（A/B棟優先區間隨機分配）=====
     remainingEligible = shuffleArray(remainingEligible);
-    
     remainingEligible.sort((a, b) => {
-      let aRes = a.reserve === 'Y' ? 1 : 0;
-      let bRes = b.reserve === 'Y' ? 1 : 0;
-      if (aRes !== bRes) return bRes - aRes; 
-
       let aIsAB = (a.build.startsWith("A") || a.build.startsWith("B")) ? 1 : 0;
       let bIsAB = (b.build.startsWith("A") || b.build.startsWith("B")) ? 1 : 0;
-      return bIsAB - aIsAB; 
+      return bIsAB - aIsAB;
     });
-
-    remainingEligible.forEach(res => {
-      if (freeSeatsSet.size === 0) return;
-
-      let currentAbFree = Array.from(freeSeatsSet).filter(s => s >= abStart && s <= abEnd);
-      let currentOtherFree = Array.from(freeSeatsSet).filter(s => s < abStart || s > abEnd);
-
-      let assignedSeat = null;
-
-      if (res.build.startsWith("A") || res.build.startsWith("B")) {
-        if (currentAbFree.length > 0) {
-          assignedSeat = shuffleArray(currentAbFree)[0];
-        } else if (currentOtherFree.length > 0) {
-          assignedSeat = shuffleArray(currentOtherFree)[0];
-        }
-      } else {
-        if (currentOtherFree.length > 0) {
-          assignedSeat = shuffleArray(currentOtherFree)[0];
-        } else if (currentAbFree.length > 0) {
-          assignedSeat = shuffleArray(currentAbFree)[0];
-        }
-      }
-
-      if (assignedSeat) {
-        assignSeatToRes(res.id, assignedSeat);
-      }
-    });
+    generalPoolAssign(remainingEligible);
   }
 
   function clearCurrentRound() {
@@ -4240,7 +4249,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.28 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.29 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4279,7 +4288,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.28 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.29 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
