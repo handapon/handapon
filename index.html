@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.17</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.20</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -246,9 +246,47 @@
     table{font-size:14.5px}
   }
   .table-scroll-hint{display:none;font-size:12.5px;color:var(--text-muted);font-weight:800;margin-bottom:.5rem;text-align:right}
+
+  /* 💡 新增：列印專用樣式。先前「列印報表」/「匯出PDF」直接呼叫 window.print()，
+     會把整個畫面（深色導覽列、漢堡選單、按鈕、彩色陰影、輸入框等）原封不動印出來，
+     既浪費紙墨、深色區塊印出來又是一大片黑，非常不好讀也不專業。
+     這裡加上完整的列印樣式：只保留當前頁面的實際資料內容，隱藏所有互動元件，
+     改用乾淨的純黑白配色與適合紙本閱讀的字級間距，並加上頁首（社區名稱＋列印時間）。 */
+  #print-header{display:none}
+  @media print {
+    body{background:#fff !important;font-size:11pt;line-height:1.5;color:#000}
+    .nav, .user-bar, .nav-menu-mobile, #login-overlay, .modal-overlay,
+    #guest-quick-nav, #staff-quick-nav, .btn-row, .round-tabs, .table-scroll-hint,
+    input, select, textarea, button, .yn-btn, label,
+    #plate-warning-banner, .legend-box, .lottery-hero, #dash-quick-guide {
+      display: none !important;
+    }
+    .page{display:block !important;padding:0;max-width:100%;margin:0}
+    .section-title{font-size:16pt;color:#000;margin-bottom:.5rem}
+    .card{box-shadow:none !important;border:1px solid #999;padding:0;margin-bottom:1rem;background:#fff}
+    .card-title{border-left-color:#000 !important;color:#000;font-size:13pt}
+    .table-wrap{max-height:none !important;overflow:visible !important;border:none;box-shadow:none}
+    table{min-width:0 !important;font-size:10pt;width:100%}
+    th{position:static !important;background:#eee !important;color:#000 !important;box-shadow:none;border:1px solid #666;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    td{color:#000 !important;border:1px solid #999}
+    tr:nth-child(even) td{background:#f7f7f7 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .badge{border:1px solid #666 !important;background:#fff !important;color:#000 !important;padding:2px 8px}
+    .badge-green,.badge-orange,.badge-purple,.badge-blue,.badge-red,.badge-gray{background:#fff !important;color:#000 !important}
+    code.code-font{background:#fff !important;border:1px solid #999;color:#000 !important}
+    #print-header{display:block !important;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:2px solid #000}
+    #print-header .print-title{font-size:15pt;font-weight:900}
+    #print-header .print-meta{font-size:9.5pt;color:#333;margin-top:.25rem}
+    a[href]:after{content:""}
+  }
 </style>
 </head>
 <body>
+
+<!-- 💡 列印專用頁首，畫面上不顯示，只有列印/匯出PDF時會出現 -->
+<div id="print-header">
+  <div class="print-title" id="print-header-title"></div>
+  <div class="print-meta" id="print-header-meta"></div>
+</div>
 
 <!-- ===== 使用者頂部列 ===== -->
 <!-- 說明：表格若欄位較多，手機上請左右滑動查看完整內容 -->
@@ -261,7 +299,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.17</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.20</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -613,7 +651,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.17 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.20 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -832,7 +870,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.17">
+        <input type="text" id="set-app-version" value="v2.20">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -983,10 +1021,11 @@
       <div><label>參加第三輪</label><select id="res-r3"><option value="Y">參加</option><option value="N">不參加</option></select></div>
     </div>
     <div class="form-row-3">
-      <div><label>指定車位1</label><input type="number" id="res-pref1" placeholder="選填 (保留戶必填)"></div>
-      <div><label>指定車位2</label><input type="number" id="res-pref2" placeholder="選填"></div>
-      <div><label>指定車位3</label><input type="number" id="res-pref3" placeholder="選填"></div>
+      <div><label>指定車位1</label><input type="number" id="res-pref1" min="1" placeholder="選填 (保留戶必填)"></div>
+      <div><label>指定車位2</label><input type="number" id="res-pref2" min="1" placeholder="選填"></div>
+      <div><label>指定車位3</label><input type="number" id="res-pref3" min="1" placeholder="選填"></div>
     </div>
+    <div id="pref-range-hint" style="font-size:12.5px;color:var(--text-muted);font-weight:700;margin-top:-10px;margin-bottom:16px"></div>
     <div class="form-row-3">
       <div><label>車牌 1 (自動勾第1輪)</label><input type="text" id="res-plate1" placeholder="例: ABC-1234" oninput="onPlateInput(this)">
         <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:700;font-size:12.5px;color:#c2410c;cursor:pointer">
@@ -1103,7 +1142,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.17",
+    appVersion: "v2.20",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -2245,6 +2284,7 @@
     syncPendingPlateCheckbox(1, "");
     syncPendingPlateCheckbox(2, "");
     syncPendingPlateCheckbox(3, "");
+    document.getElementById("pref-range-hint").innerText = `有效範圍：1 ~ ${systemSettings.totalSeats}`;
     document.getElementById("resident-modal").classList.add("show");
   }
 
@@ -2269,6 +2309,7 @@
     syncPendingPlateCheckbox(1, r.plate1);
     syncPendingPlateCheckbox(2, r.plate2);
     syncPendingPlateCheckbox(3, r.plate3);
+    document.getElementById("pref-range-hint").innerText = `有效範圍：1 ~ ${systemSettings.totalSeats}`;
     document.getElementById("resident-modal").classList.add("show");
   }
 
@@ -2294,6 +2335,21 @@
     let pref1 = parseInt(document.getElementById("res-pref1").value) || "";
     let pref2 = parseInt(document.getElementById("res-pref2").value) || "";
     let pref3 = parseInt(document.getElementById("res-pref3").value) || "";
+
+    // 💡 修正：先前完全沒有驗證指定車位是否落在有效車位範圍內（1 ~ 總車位數），
+    // 若輸入了超出範圍的號碼（打錯字，或總車位數後來被調小），抽籤時這個指定值會在
+    // pref-pass 比對階段直接找不到符合的空位、被悄悄忽略，改成隨機分配一個車位，
+    // 但完全不會有任何警告——住戶/主任會誤以為指定車位已經生效，其實根本沒發生作用。
+    const invalidPrefs = [];
+    [["指定車位1", pref1], ["指定車位2", pref2], ["指定車位3", pref3]].forEach(([label, val]) => {
+      if (val !== "" && (val < 1 || val > systemSettings.totalSeats)) {
+        invalidPrefs.push(`${label}：${val}（有效範圍為 1 ~ ${systemSettings.totalSeats}）`);
+      }
+    });
+    if (invalidPrefs.length > 0) {
+      alert(`【指定車位範圍錯誤】以下指定車位號碼超出目前車位範圍，請修正後再儲存：\n\n• ${invalidPrefs.join('\n• ')}\n\n（若不修正，抽籤時這個指定值會直接失效、被忽略改成隨機分配，且不會有任何提示，請務必先修正！）`);
+      return;
+    }
 
     if (reserve === 'Y' && pref1 === "" && pref2 === "" && pref3 === "") {
       alert("【保留戶防呆警告】該住戶身分設定為「保留戶」，必須填寫至少一個指定車位！");
@@ -2469,6 +2525,7 @@
       const lines = text.split('\n');
       let count = 0;
       let skippedReserve = 0;
+      let invalidPrefCount = 0;
 
       for(let i=1; i<lines.length; i++) {
         const line = lines[i].trim();
@@ -2477,12 +2534,26 @@
         if(cols.length >= 4) { 
           const newId = residents.length > 0 ? Math.max(...residents.map(x => Number(x.id))) + 1 : 1;
           const isRes = (cols[4] === '保留戶' || cols[4] === 'Y') ? 'Y' : 'N';
-          const pref1 = cols[8] || "";
-          const pref2 = cols[9] || "";
-          const pref3 = cols[10] || "";
+          let pref1 = cols[8] || "";
+          let pref2 = cols[9] || "";
+          let pref3 = cols[10] || "";
           const p1 = cols[11] ? cols[11].toUpperCase() : "";
           const p2 = cols[12] ? cols[12].toUpperCase() : "";
           const p3 = cols[13] ? cols[13].toUpperCase() : "";
+
+          // 💡 修正：CSV 匯入先前完全沒有驗證指定車位範圍（1~總車位數），且型別跟手動編輯不一致
+          // （手動編輯永遠是數字，CSV 匯入卻是原始字串）。這裡統一轉成數字，並把超出範圍的
+          // 指定車位清空（避免匯入無效資料，之後抽籤時默默比對失敗、卻毫無警示），同時計數回報。
+          // 必須在下面的保留戶檢查「之前」執行，否則一個唯一指定車位剛好超出範圍的保留戶，
+          // 會因為清空前 pref1 字串仍非空而繞過保留戶檢查，被存成「保留戶但沒有任何指定車位」。
+          [pref1, pref2, pref3] = [pref1, pref2, pref3].map(v => {
+            let n = parseInt(v) || "";
+            if (n !== "" && (n < 1 || n > systemSettings.totalSeats)) {
+              invalidPrefCount++;
+              return "";
+            }
+            return n;
+          });
 
           if (isRes === 'Y' && !pref1 && !pref2 && !pref3) {
             skippedReserve++;
@@ -2542,7 +2613,10 @@
       checkPlateWarnings();
       let alertMsg = `成功匯入 ${count} 筆住戶資料！\n系統已同時還原 CSV 中的中籤車位紀錄。`;
       if (skippedReserve > 0) {
-        alertMsg += `\n（提示：有 ${skippedReserve} 筆保留戶資料因未填寫指定車位被系統防呆跳過）`;
+        alertMsg += `\n\n⚠️ 有 ${skippedReserve} 筆保留戶資料因未填寫指定車位，被系統防呆跳過未匯入。`;
+      }
+      if (invalidPrefCount > 0) {
+        alertMsg += `\n\n⚠️ 有 ${invalidPrefCount} 個指定車位欄位因超出目前車位範圍（1~${systemSettings.totalSeats}）已自動清空，請至住戶名單檢查並重新填寫正確的車位號碼。`;
       }
       addLog("住戶", `成功匯入 CSV 檔案 (${count} 筆)`).then(ok => {
         if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
@@ -3225,7 +3299,14 @@
     tbody.innerHTML = html;
   }
 
-  function exportResultsPDF() { window.print(); addLog("設定", `匯出抽籤結果 PDF 報表`); }
+  function preparePrintHeader() {
+    const title = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
+    const now = new Date().toLocaleString('zh-TW');
+    document.getElementById("print-header-title").innerText = `${title}｜抽籤結果與彙整總表`;
+    document.getElementById("print-header-meta").innerText = `目前檢視：${currentResultRound}　｜　列印時間：${now}`;
+  }
+
+  function exportResultsPDF() { preparePrintHeader(); window.print(); addLog("設定", `匯出抽籤結果 PDF 報表`); }
   
   function exportRoundResult() {
     let csv = "\ufeff";
@@ -3247,10 +3328,10 @@
     addLog("設定", `匯出目前表格 CSV：${currentResultRound}`);
   }
 
-  function printRoundResult() { window.print(); }
+  function printRoundResult() { preparePrintHeader(); window.print(); }
   function renderSummary() { renderResults(); }
   function exportSummary() { exportExcel('results-table', '抽籤結果與總表'); }
-  function printSummary() { window.print(); }
+  function printSummary() { preparePrintHeader(); window.print(); }
 
   // ================= 6. 車位互換管理邏輯 =================
   function renderSwap() {
@@ -3721,6 +3802,23 @@
       return;
     }
 
+    // 💡 這裡另外檢查「尚未抽出、但已登記的指定車位偏好」是否會因縮減總車位數而變成無效範圍。
+    // 這種情況不會阻擋儲存（畢竟只是偏好，不是已經生效的中籤結果），但若不提醒，
+    // 這些指定車位會在下次抽籤時悄悄比對不到、自動改成隨機分配，卻完全沒有任何警示。
+    let outOfRangePrefs = [];
+    residents.forEach(r => {
+      [["指定1", r.pref1], ["指定2", r.pref2], ["指定3", r.pref3]].forEach(([label, val]) => {
+        if (val && Number(val) > tSeats) {
+          outOfRangePrefs.push(`${r.build}棟 ${r.room} ${r.name} 的${label}（${val}號）`);
+        }
+      });
+    });
+    if (outOfRangePrefs.length > 0) {
+      if (!confirm(`【提醒】以下住戶登記的指定車位偏好，在縮減為 ${tSeats} 席後會超出範圍、下次抽籤時將無法比對生效（會自動改為隨機分配）：\n\n• ${outOfRangePrefs.join('\n• ')}\n\n仍要繼續儲存嗎？（建議儲存後至住戶名單修正這些指定車位）`)) {
+        return;
+      }
+    }
+
     systemSettings.totalSeats = tSeats;
     systemSettings.b1Limit = b1Lim;
     systemSettings.abStart = abStart;
@@ -4033,7 +4131,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.17 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.20 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4072,7 +4170,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.17 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.20 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
