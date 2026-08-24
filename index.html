@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.30</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.32</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -304,7 +304,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.30</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.32</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -660,7 +660,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.30 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.32 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -703,6 +703,7 @@
             
             <div id="swap-a-info" style="display:none;margin-top:20px;padding-top:20px;border-top:2px dashed #cbd5e1">
               <span id="swap-a-detail" style="font-size:15.5px;font-weight:900;color:var(--primary)"></span>
+              <div id="swap-a-current" style="font-size:13.5px;color:var(--text-muted);font-weight:700;margin-top:8px;background:#fff;padding:8px 12px;border-radius:8px;border:1px solid #e2e8f0"></div>
               <label style="margin-top:14px;color:#334155">請選擇住戶 A 欲換出的車位：</label>
               <select id="swap-a-seat-select" onchange="updateSwapPreview()" style="margin-top:8px;font-weight:800;color:var(--primary)"></select>
             </div>
@@ -721,6 +722,7 @@
             
             <div id="swap-b-info" style="display:none;margin-top:20px;padding-top:20px;border-top:2px dashed #cbd5e1">
               <span id="swap-b-detail" style="font-size:15.5px;font-weight:900;color:#16a34a"></span>
+              <div id="swap-b-current" style="font-size:13.5px;color:var(--text-muted);font-weight:700;margin-top:8px;background:#fff;padding:8px 12px;border-radius:8px;border:1px solid #e2e8f0"></div>
               <label style="margin-top:14px;color:#334155">請選擇住戶 B 欲換出的車位：</label>
               <select id="swap-b-seat-select" onchange="updateSwapPreview()" style="margin-top:8px;font-weight:800;color:#16a34a"></select>
             </div>
@@ -879,7 +881,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.30">
+        <input type="text" id="set-app-version" value="v2.32">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1164,7 +1166,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.30",
+    appVersion: "v2.32",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -3522,16 +3524,31 @@
     let s1 = getUserSeat("第一輪", id) || "";
     let s2 = getUserSeat("第二輪", id) || "";
     let s3 = getUserSeat("第三輪", id) || "";
+    let sW = getUserSeat("候補", id) || "";
 
     const info = document.getElementById(`swap-${type.toLowerCase()}-info`);
     const detail = document.getElementById(`swap-${type.toLowerCase()}-detail`);
     detail.innerText = nameStr;
 
+    // 💡 明確顯示「目前實際持有」的完整車位狀態（不受下拉選單選到哪一輪影響），
+    // 避免重複操作同兩位住戶時，因為車位已經換過而搞混目前真正的持有狀態。
+    const currentEl = document.getElementById(`swap-${type.toLowerCase()}-current`);
+    if (currentEl) {
+      currentEl.innerHTML = `目前實際持有：第一輪 <b>${s1 ? s1+'號' : '無'}</b>　第二輪 <b>${s2 ? s2+'號' : '無'}</b>　第三輪 <b>${s3 ? s3+'號' : '無'}</b>${sW ? `　候補 <b>${sW}號</b>` : ''}`;
+    }
+
+    // 💡💡 重要修正：先前下拉選單一律預設顯示「第一輪」，不管該住戶實際上的車位是在哪一輪。
+    // 若該住戶的車位其實在第二輪或第三輪，選單會靜靜地停在「第一輪：無車位」，
+    // 管理員若沒有注意到要手動切換，執行互換時該側就會被當成「無車位」處理，
+    // 導致互換失敗（雙方都無車位）或換出不是預期中的車位——這很可能就是互換「沒有成功」的主因。
+    // 修正為自動選到該住戶「實際持有車位」的那一輪（依第一~三輪順序，選第一個有車位的）。
+    let defaultRound = s1 ? 1 : (s2 ? 2 : (s3 ? 3 : 1));
+
     const sel = document.getElementById(`swap-${type.toLowerCase()}-seat-select`);
     sel.innerHTML = `
-        <option value="1|${s1}">第一輪：${s1 ? s1+'號' : '無車位'}</option>
-        <option value="2|${s2}">第二輪：${s2 ? s2+'號' : '無車位'}</option>
-        <option value="3|${s3}">第三輪：${s3 ? s3+'號' : '無車位'}</option>
+        <option value="1|${s1}" ${defaultRound === 1 ? 'selected' : ''}>第一輪：${s1 ? s1+'號' : '無車位'}</option>
+        <option value="2|${s2}" ${defaultRound === 2 ? 'selected' : ''}>第二輪：${s2 ? s2+'號' : '無車位'}</option>
+        <option value="3|${s3}" ${defaultRound === 3 ? 'selected' : ''}>第三輪：${s3 ? s3+'號' : '無車位'}</option>
     `;
 
     info.style.display = 'block';
@@ -3561,7 +3578,14 @@
     let aRoundName = aRoundNum == '1' ? '第一輪' : (aRoundNum == '2' ? '第二輪' : '第三輪');
     let bRoundName = bRoundNum == '1' ? '第一輪' : (bRoundNum == '2' ? '第二輪' : '第三輪');
 
-    prev.innerHTML = `<b>跨輪次進階互換預覽：</b><br><br>` +
+    // 💡 若任一方選到「無車位」的輪次，加上醒目的黃色提醒，讓管理員在按下確認互換之前，
+    // 就能一眼看出「這個選擇可能不是原本想換的車位」，而不是等到互換失敗才發現。
+    let warningHtml = "";
+    if (!aSeat || !bSeat) {
+      warningHtml = `<div style="background:#fef3c7;border:1px solid #fbbf24;color:#92400e;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:800;font-size:13.5px">⚠️ 目前選擇的輪次中，${!aSeat && !bSeat ? '雙方' : (!aSeat ? '住戶 A' : '住戶 B')}顯示「無車位」。若這不是您原本想交換的車位，請確認上方下拉選單是否選對輪次（住戶可能實際持有車位在其他輪次）。</div>`;
+    }
+
+    prev.innerHTML = warningHtml + `<b>跨輪次進階互換預覽：</b><br><br>` +
       `👤 住戶 A 將釋出其 <b style="color:var(--primary)">${aRoundName} (${aSeat?aSeat+'號':'無'})</b> ➔ 獲得：<b style="color:#16a34a">${bSeat?bSeat+'號':'無'}</b> (將存入 A 的${aRoundName})<br><br>` +
       `👤 住戶 B 將釋出其 <b style="color:#16a34a">${bRoundName} (${bSeat?bSeat+'號':'無'})</b> ➔ 獲得：<b style="color:var(--primary)">${aSeat?aSeat+'號':'無'}</b> (將存入 B 的${bRoundName})`;
   }
@@ -4261,7 +4285,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.30 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.32 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4300,7 +4324,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.30 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.32 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
