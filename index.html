@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.29</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.30</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -195,6 +195,7 @@
     .card-pad-lg{padding:1.25rem}
     .empty{padding:2.5rem 1rem}
     #waitlist-col-hint{font-size:12px;padding:8px 10px}
+    #back-to-top-btn{width:42px;height:42px;right:14px;bottom:18px;font-size:17px}
     .card-title{font-size:17px}
     .section-title{font-size:21px}
     .table-wrap{max-height:55vh;margin:0 -0.1rem}
@@ -259,7 +260,7 @@
     .nav, .user-bar, .nav-menu-mobile, #login-overlay, .modal-overlay,
     #guest-quick-nav, #staff-quick-nav, .btn-row, .round-tabs, .table-scroll-hint,
     input, select, textarea, .btn, label,
-    #plate-warning-banner, .legend-box, .lottery-hero, #dash-quick-guide, #waitlist-col-hint {
+    #plate-warning-banner, .legend-box, .lottery-hero, #dash-quick-guide, #waitlist-col-hint, #back-to-top-btn {
       display: none !important;
     }
     /* 💡 修正：先前把 .yn-btn 也一併隱藏，導致「1/2/3輪」「候補登記」欄位的 Y/N 狀態
@@ -303,7 +304,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.29</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.30</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -659,7 +660,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.29 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.30 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -878,7 +879,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.29">
+        <input type="text" id="set-app-version" value="v2.30">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1108,6 +1109,10 @@
   </div>
 </div>
 
+<!-- 💡 回到頁首浮動按鈕：頁面較長時（如系統設定、操作手冊）方便快速回到頂端，捲動一段距離後才會顯示 -->
+<button id="back-to-top-btn" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="回到頁首"
+  style="display:none;position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;border:none;box-shadow:0 6px 16px rgba(37,99,235,0.4);font-size:20px;cursor:pointer;z-index:850;align-items:center;justify-content:center">⬆</button>
+
 <script>
   // ================= Firebase 雲端資料庫 URL 設定 =================
   const FIREBASE_DB_URL = "https://parking-lottery-resident-list-default-rtdb.asia-southeast1.firebasedatabase.app/";
@@ -1159,7 +1164,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.29",
+    appVersion: "v2.30",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1577,6 +1582,13 @@
       location.reload();
     }
   });
+
+  // 💡 捲動超過一定距離才顯示「回到頁首」按鈕，避免一開始就佔用畫面空間
+  window.addEventListener('scroll', function () {
+    const btn = document.getElementById('back-to-top-btn');
+    if (!btn) return;
+    btn.style.display = (window.scrollY > 400) ? 'flex' : 'none';
+  }, { passive: true });
 
   // 💡 重要修正：瀏覽器對「背景分頁」的計時器（setInterval/setTimeout）會大幅節流甚至暫停，
   // 代表分頁切到背景時，原本每 15 秒的自動同步實際上可能好幾分鐘都不會執行一次。
@@ -4249,7 +4261,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.29 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.30 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4288,7 +4300,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.29 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.30 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
