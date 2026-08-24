@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.16</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.17</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -159,6 +159,7 @@
   .seat:hover{transform:translateY(-3px);box-shadow:0 10px 18px rgba(0,0,0,0.12);z-index:2}
   .seat-free{background:#f0fdf4;color:#15803d;border-color:#86efac}
   .seat-used{background:#eff6ff;color:var(--primary);border-color:#93c5fd}
+  .seat-waitlist{background:#fff7ed;color:#c2410c;border-color:#fdba74}
   .seat-void{background:#f8fafc;color:#64748b;border:2px dashed #cbd5e1;text-decoration:line-through;opacity:0.8}
   
   .section-title{font-size:26px;font-weight:900;margin-bottom:1.75rem;color:var(--text-main);letter-spacing:-0.5px}
@@ -260,7 +261,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.16</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.17</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -362,6 +363,7 @@
     <div class="legend-box">
       <div class="legend-item"><div class="legend-color" style="background:#f0fdf4;border:1px solid #86efac"></div>空車位 (可分配)</div>
       <div class="legend-item"><div class="legend-color" style="background:#eff6ff;border:1px solid #93c5fd"></div>已分發車位</div>
+      <div class="legend-item"><div class="legend-color" style="background:#fff7ed;border:1px solid #fdba74"></div>🎟️ 候補分配車位</div>
       <div class="legend-item"><div class="legend-color" style="background:#f8fafc;border:2px dashed #cbd5e1"></div>作廢車位</div>
     </div>
     <div id="dash-seatmap"></div>
@@ -611,7 +613,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.16 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.17 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -739,6 +741,7 @@
       <div class="legend-box" style="margin-bottom:2.5rem;font-size:15px;color:#0f172a">
         <div class="legend-item"><div class="legend-color" style="background:#f0fdf4;border:1px solid #86efac"></div>空車位</div>
         <div class="legend-item" style="margin-left:15px"><div class="legend-color" style="background:#eff6ff;border:1px solid #93c5fd"></div>已分發車位</div>
+        <div class="legend-item" style="margin-left:15px"><div class="legend-color" style="background:#fff7ed;border:1px solid #fdba74"></div>🎟️ 候補分配車位</div>
         <div class="legend-item" style="margin-left:15px"><div class="legend-color" style="background:#f8fafc;border:2px dashed #cbd5e1"></div>作廢車位</div>
       </div>
 
@@ -829,7 +832,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.16">
+        <input type="text" id="set-app-version" value="v2.17">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1100,7 +1103,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.16",
+    appVersion: "v2.17",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1182,6 +1185,15 @@
       }
     }
     return null;
+  }
+
+  // 💡 判斷某車位是否是透過候補抽籤分配的，用於車位地圖上額外標示，方便管理員一眼辨識
+  function isSeatFromWaitlist(seatNum) {
+    if (!lotteryResults["候補"]) return false;
+    for (let rawKey in lotteryResults["候補"]) {
+      if (Number(lotteryResults["候補"][rawKey]) === Number(seatNum)) return true;
+    }
+    return false;
   }
 
   function shuffleArray(array) {
@@ -1999,9 +2011,10 @@
         label = `${i}號<br><span style="font-size:11.5px;font-weight:700">(作廢)</span>`;
         hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
-        cls = "seat seat-used";
-        label = `${i}號<br><b style="font-size:15px">${occupant.build} ${occupant.room}</b>`;
-        hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
+        let isWL = isSeatFromWaitlist(i);
+        cls = isWL ? "seat seat-waitlist" : "seat seat-used";
+        label = `${i}號<br><b style="font-size:15px">${occupant.build} ${occupant.room}</b>${isWL ? '<br><span style="font-size:10.5px;font-weight:800">🎟️候補</span>' : ''}`;
+        hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}${isWL ? '（候補分配）' : ''}`;
       }
       seatHtml += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
     }
@@ -3621,9 +3634,10 @@
         label = `${i}號<br><span style="font-size:11px;font-weight:600;opacity:0.8">(作廢)</span>`;
         hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
-        cls = "seat seat-used";
-        label = `${i}號<br><b style="font-size:15px;color:#1e3a8a">${occupant.build} ${occupant.room}</b>`;
-        hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
+        let isWL = isSeatFromWaitlist(i);
+        cls = isWL ? "seat seat-waitlist" : "seat seat-used";
+        label = `${i}號<br><b style="font-size:15px;color:${isWL ? '#c2410c' : '#1e3a8a'}">${occupant.build} ${occupant.room}</b>${isWL ? '<br><span style="font-size:10.5px;font-weight:800">🎟️候補</span>' : ''}`;
+        hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}${isWL ? '（候補分配）' : ''}`;
       }
       b1Html += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
     }
@@ -3640,9 +3654,10 @@
         label = `${i}號<br><span style="font-size:11px;font-weight:600;opacity:0.8">(作廢)</span>`;
         hoverTitle = `車位 ${i}號 (作廢)`;
       } else if(occupant) {
-        cls = "seat seat-used";
-        label = `${i}號<br><b style="font-size:15px;color:#1e3a8a">${occupant.build} ${occupant.room}</b>`;
-        hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}`;
+        let isWL = isSeatFromWaitlist(i);
+        cls = isWL ? "seat seat-waitlist" : "seat seat-used";
+        label = `${i}號<br><b style="font-size:15px;color:${isWL ? '#c2410c' : '#1e3a8a'}">${occupant.build} ${occupant.room}</b>${isWL ? '<br><span style="font-size:10.5px;font-weight:800">🎟️候補</span>' : ''}`;
+        hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}${isWL ? '（候補分配）' : ''}`;
       }
       b2Html += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
     }
@@ -4018,7 +4033,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.16 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.17 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4057,7 +4072,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.16 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.17 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
