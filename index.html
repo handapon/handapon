@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.23</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.28</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -194,12 +194,13 @@
     .card{padding:1.25rem}
     .card-pad-lg{padding:1.25rem}
     .empty{padding:2.5rem 1rem}
+    #waitlist-col-hint{font-size:12px;padding:8px 10px}
     .card-title{font-size:17px}
     .section-title{font-size:21px}
     .table-wrap{max-height:55vh;margin:0 -0.1rem}
     table{min-width:560px;font-size:13.5px}
-    #residents-table{min-width:960px}
-    #results-table{min-width:820px}
+    #residents-table{min-width:1040px}
+    #results-table{min-width:900px}
     th{padding:.9rem .7rem;font-size:13px}
     td{padding:.9rem .7rem}
     .pdf-preview-box { height: 320px; }
@@ -258,7 +259,7 @@
     .nav, .user-bar, .nav-menu-mobile, #login-overlay, .modal-overlay,
     #guest-quick-nav, #staff-quick-nav, .btn-row, .round-tabs, .table-scroll-hint,
     input, select, textarea, .btn, label,
-    #plate-warning-banner, .legend-box, .lottery-hero, #dash-quick-guide {
+    #plate-warning-banner, .legend-box, .lottery-hero, #dash-quick-guide, #waitlist-col-hint {
       display: none !important;
     }
     /* 💡 修正：先前把 .yn-btn 也一併隱藏，導致「1/2/3輪」「候補登記」欄位的 Y/N 狀態
@@ -302,7 +303,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.23</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.28</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -446,6 +447,9 @@
       </select>
     </div>
     <div style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.25rem;font-weight:800" id="resident-count"></div>
+    <div id="waitlist-col-hint" style="font-size:13px;color:#c2410c;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;margin-bottom:1.25rem;font-weight:700">
+      💡 「候補登記」欄位說明：三輪抽籤結束後若仍有剩餘車位或住戶棄權，會優先從此欄位勾選「Y」的住戶中抽出遞補。（此說明因應手機/平板無法顯示滑鼠提示文字而額外加註）
+    </div>
     
     <div class="table-scroll-hint">👉 表格可左右滑動查看更多欄位</div>
     <div class="table-wrap">
@@ -467,6 +471,7 @@
             <th class="text-center col-group-start">車牌1</th>
             <th class="text-center">車牌2</th>
             <th class="text-center">車牌3</th>
+            <th class="text-center">車牌<br>(候補)</th>
             <th class="text-center col-group-start">操作</th>
           </tr>
         </thead>
@@ -654,7 +659,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.23 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.28 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -873,7 +878,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.23">
+        <input type="text" id="set-app-version" value="v2.28">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1023,6 +1028,9 @@
       <div><label>參加第二輪</label><select id="res-r2"><option value="Y">參加</option><option value="N">不參加</option></select></div>
       <div><label>參加第三輪</label><select id="res-r3"><option value="Y">參加</option><option value="N">不參加</option></select></div>
     </div>
+    <div style="max-width:340px;margin-bottom:16px">
+      <label>候補登記（三輪後遞補剩餘車位）</label><select id="res-waitlist"><option value="N">未登記</option><option value="Y">已登記</option></select>
+    </div>
     <div class="form-row-3">
       <div><label>指定車位1</label><input type="number" id="res-pref1" min="1" placeholder="選填 (保留戶必填)"></div>
       <div><label>指定車位2</label><input type="number" id="res-pref2" min="1" placeholder="選填"></div>
@@ -1045,6 +1053,12 @@
           <input type="checkbox" id="res-plate3-pending" onchange="onPendingPlateToggle(3)" style="width:auto"> 新戶待補（尚無車牌）
         </label>
       </div>
+    </div>
+    <div style="max-width:340px">
+      <label>車牌 (候補用，自動勾候補登記)</label><input type="text" id="res-plateW" placeholder="選填" oninput="onPlateInput(this)">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:700;font-size:12.5px;color:#c2410c;cursor:pointer">
+          <input type="checkbox" id="res-plateW-pending" onchange="onPendingPlateToggle('W')" style="width:auto"> 新戶待補（尚無車牌）
+        </label>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal()">取消</button>
@@ -1145,7 +1159,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.23",
+    appVersion: "v2.28",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1986,6 +2000,9 @@
       if (r.r3 === 'Y' && (!r.plate3 || r.plate3.trim() === "")) {
         anomalies.push(`[${r.build}] ${r.room} ${r.name}：已勾選參加「第三輪」，但「車牌 3」欄位空白`);
       }
+      if (r.waitlist === 'Y' && (!r.plateWaitlist || r.plateWaitlist.trim() === "")) {
+        anomalies.push(`[${r.build}] ${r.room} ${r.name}：已登記「候補」，但「候補用車牌」欄位空白`);
+      }
     });
 
     if (anomalies.length > 0) {
@@ -2139,6 +2156,7 @@
         <td class="text-center col-group-start">${renderPlateCell(r.plate1)}</td>
         <td class="text-center">${renderPlateCell(r.plate2)}</td>
         <td class="text-center">${renderPlateCell(r.plate3)}</td>
+        <td class="text-center">${renderPlateCell(r.plateWaitlist)}</td>
         <td class="text-center col-group-start">
           <div style="display:flex;gap:8px;justify-content:center">
             <button class="btn btn-sm" onclick="openEditModal(${r.id})">編輯</button>
@@ -2191,6 +2209,7 @@
     renderResidents();
     renderDashboard();
     updateLotteryCards();
+    initFloorplanSeats();
     checkPlateWarnings();
   }
 
@@ -2199,6 +2218,13 @@
     if (!r) return;
 
     if ((r.waitlist || 'N') === 'N') {
+      // 💡 比照 toggleResidentRound 的規則：既然候補現在也有專屬車牌欄位，
+      // 沒有車牌就不能勾選登記候補，需先至「編輯」補上候補用車牌。
+      let plateVal = r.plateWaitlist ? r.plateWaitlist.trim() : "";
+      if (!plateVal) {
+        alert(`【車牌檢核提醒】該住戶未填寫「候補用車牌」，無法勾選登記候補！請先點擊「編輯」補齊候補車牌號碼（若尚無車牌，可勾選「新戶待補」）。`);
+        return;
+      }
       // 準備登記候補：若住戶目前已經持有任一車位（含候補），提醒但仍允許（例如多車位住戶還想再候補一位）
       let hasAnySeat = getUserSeat("第一輪", r.id) || getUserSeat("第二輪", r.id) || getUserSeat("第三輪", r.id) || getUserSeat("候補", r.id);
       if (hasAnySeat) {
@@ -2233,10 +2259,12 @@
     const p1 = document.getElementById("res-plate1").value.trim().toUpperCase();
     const p2 = document.getElementById("res-plate2").value.trim().toUpperCase();
     const p3 = document.getElementById("res-plate3").value.trim().toUpperCase();
+    const pW = document.getElementById("res-plateW").value.trim().toUpperCase();
     
     document.getElementById("res-r1").value = p1 !== "" ? "Y" : "N";
     document.getElementById("res-r2").value = p2 !== "" ? "Y" : "N";
     document.getElementById("res-r3").value = p3 !== "" ? "Y" : "N";
+    document.getElementById("res-waitlist").value = pW !== "" ? "Y" : "N";
   }
 
   function onPendingPlateToggle(n) {
@@ -2277,6 +2305,7 @@
     document.getElementById("res-r1").value = "N";
     document.getElementById("res-r2").value = "N";
     document.getElementById("res-r3").value = "N";
+    document.getElementById("res-waitlist").value = "N";
     document.getElementById("res-reserve").value = "N";
     document.getElementById("res-pref1").value = "";
     document.getElementById("res-pref2").value = "";
@@ -2284,9 +2313,11 @@
     document.getElementById("res-plate1").value = "";
     document.getElementById("res-plate2").value = "";
     document.getElementById("res-plate3").value = "";
+    document.getElementById("res-plateW").value = "";
     syncPendingPlateCheckbox(1, "");
     syncPendingPlateCheckbox(2, "");
     syncPendingPlateCheckbox(3, "");
+    syncPendingPlateCheckbox('W', "");
     document.getElementById("pref-range-hint").innerText = `有效範圍：1 ~ ${systemSettings.totalSeats}`;
     document.getElementById("resident-modal").classList.add("show");
   }
@@ -2302,6 +2333,7 @@
     document.getElementById("res-r1").value = r.r1;
     document.getElementById("res-r2").value = r.r2;
     document.getElementById("res-r3").value = r.r3;
+    document.getElementById("res-waitlist").value = r.waitlist || "N";
     document.getElementById("res-reserve").value = r.reserve;
     document.getElementById("res-pref1").value = r.pref1;
     document.getElementById("res-pref2").value = r.pref2;
@@ -2309,9 +2341,11 @@
     document.getElementById("res-plate1").value = r.plate1;
     document.getElementById("res-plate2").value = r.plate2;
     document.getElementById("res-plate3").value = r.plate3;
+    document.getElementById("res-plateW").value = r.plateWaitlist || "";
     syncPendingPlateCheckbox(1, r.plate1);
     syncPendingPlateCheckbox(2, r.plate2);
     syncPendingPlateCheckbox(3, r.plate3);
+    syncPendingPlateCheckbox('W', r.plateWaitlist || "");
     document.getElementById("pref-range-hint").innerText = `有效範圍：1 ~ ${systemSettings.totalSeats}`;
     document.getElementById("resident-modal").classList.add("show");
   }
@@ -2329,6 +2363,7 @@
     const plate1 = document.getElementById("res-plate1").value.trim().toUpperCase();
     const plate2 = document.getElementById("res-plate2").value.trim().toUpperCase();
     const plate3 = document.getElementById("res-plate3").value.trim().toUpperCase();
+    const plateW = document.getElementById("res-plateW").value.trim().toUpperCase();
 
     if(!room || !name) {
       alert("請填寫門牌與姓名！");
@@ -2339,9 +2374,9 @@
     // 這在實際社區管理上很可能代表打字錯誤（例如複製貼上忘記改），
     // 若不提醒，容易在「中籤查詢」或現場車位稽核時造成混淆。「新戶待補」為預期中的
     // 重複標記，不列入檢查。採非強制性提醒（可選擇仍要繼續），避免誤擋合理的特殊情況。
-    const enteredPlates = [plate1, plate2, plate3].filter(p => p && p !== PENDING_PLATE_LABEL);
+    const enteredPlates = [plate1, plate2, plate3, plateW].filter(p => p && p !== PENDING_PLATE_LABEL);
     if (enteredPlates.length > 0) {
-      // 💡 先檢查「同一位住戶自己3個車牌欄位」是否重複輸入了同一組車牌（例如複製貼上忘記改），
+      // 💡 先檢查「同一位住戶自己4個車牌欄位」是否重複輸入了同一組車牌（例如複製貼上忘記改），
       // 這跟下面「跨住戶」的重複檢查是不同情境，先前完全沒有涵蓋到。
       const selfDupes = enteredPlates.filter((p, i) => enteredPlates.indexOf(p) !== i);
       if (selfDupes.length > 0) {
@@ -2352,7 +2387,7 @@
 
       const dupeMsgs = [];
       enteredPlates.forEach(p => {
-        const dupeOwner = residents.find(r => Number(r.id) !== Number(id || -1) && [r.plate1, r.plate2, r.plate3].includes(p));
+        const dupeOwner = residents.find(r => Number(r.id) !== Number(id || -1) && [r.plate1, r.plate2, r.plate3, r.plateWaitlist].includes(p));
         if (dupeOwner) {
           dupeMsgs.push(`車牌 ${p} 已登記於 ${dupeOwner.build}棟 ${dupeOwner.room} ${dupeOwner.name}`);
         }
@@ -2421,24 +2456,27 @@
     let r1 = document.getElementById("res-r1").value;
     let r2 = document.getElementById("res-r2").value;
     let r3 = document.getElementById("res-r3").value;
+    let waitlist = document.getElementById("res-waitlist").value;
 
     if (!plate1) r1 = "N";
     if (!plate2) r2 = "N";
     if (!plate3) r3 = "N";
+    if (!plateW) waitlist = "N";
 
     const data = {
       build, room, name,
       r1, r2, r3,
       reserve,
       pref1, pref2, pref3,
-      plate1, plate2, plate3
+      plate1, plate2, plate3,
+      plateWaitlist: plateW
     };
 
     if(id === "") {
       const newId = residents.length > 0 ? Math.max(...residents.map(x => Number(x.id))) + 1 : 1;
       data.id = newId;
       data.assign1 = ""; data.assign2 = ""; data.assign3 = "";
-      data.waitlist = "N"; data.assignWaitlist = "";
+      data.waitlist = waitlist; data.assignWaitlist = "";
       residents.push(data);
       addLog("住戶", `新增住戶：${name} (${build} ${room})`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
     } else {
@@ -2468,15 +2506,20 @@
             delete lotteryResults["第三輪"][`p_${oldRes.id}`];
           }
         }
+        if (waitlist === 'N') {
+          if (oldRes.assignWaitlist) releasedSeats.push(`候補車位 ${oldRes.assignWaitlist}號`);
+          if (lotteryResults["候補"]) {
+            delete lotteryResults["候補"][oldRes.id];
+            delete lotteryResults["候補"][`p_${oldRes.id}`];
+          }
+        }
 
         data.id = Number(id);
         data.assign1 = r1 === 'Y' ? (oldRes.assign1 || "") : "";
         data.assign2 = r2 === 'Y' ? (oldRes.assign2 || "") : "";
         data.assign3 = r3 === 'Y' ? (oldRes.assign3 || "") : "";
-        // 💡 修正：data 是從表單重新建立的物件，若不明確保留這兩個欄位，
-        // 每次編輯住戶都會把候補登記狀態與候補中籤車位悄悄清空！
-        data.waitlist = oldRes.waitlist || "N";
-        data.assignWaitlist = oldRes.assignWaitlist || "";
+        data.waitlist = waitlist;
+        data.assignWaitlist = waitlist === 'Y' ? (oldRes.assignWaitlist || "") : "";
         residents[idx] = data;
 
         if (releasedSeats.length > 0) {
@@ -2494,6 +2537,7 @@
     updateLotteryCards();
     renderPendingAudits();
     checkPlateWarnings();
+    initFloorplanSeats();
   }
 
   function deleteResident(id) {
@@ -2516,6 +2560,7 @@
       renderDashboard();
       updateLotteryCards();
       checkPlateWarnings();
+      initFloorplanSeats();
       addLog("住戶", `刪除住戶 ID: ${id} 並釋放其佔用的車位`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
     }
   }
@@ -2534,6 +2579,7 @@
       updateLotteryCards();
       renderPendingAudits();
       checkPlateWarnings();
+      initFloorplanSeats();
       addLog("住戶", "管理員刪除所有住戶資料").then(ok => {
         if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
         alert("所有住戶資料已成功清空並全域同步！");
@@ -2596,8 +2642,11 @@
           let seat2 = parseInt(cols[6]) || "";
           let seat3 = parseInt(cols[7]) || "";
           // 💡 候補登記/候補車位為選填的新欄位（位於最後），若匯入的是舊格式 CSV（沒有這兩欄）則安全地留空預設值
-          let waitlistFlag = (cols[14] === '已登記') ? 'Y' : 'N';
           let waitlistSeat = parseInt(cols[15]) || "";
+          const pW = cols[16] ? cols[16].toUpperCase() : "";
+          // 💡 候補登記狀態：有候補車牌，或（相容舊格式匯出檔）已經持有候補車位，皆視為已登記，
+          // 避免匯入舊版沒有候補車牌欄位的 CSV 時，把已中籤的候補住戶誤判成「未登記」。
+          let waitlistFlag = (pW || waitlistSeat) ? "Y" : "N";
 
           residents.push({
             id: newId,
@@ -2612,6 +2661,7 @@
             plate1: p1,
             plate2: p2,
             plate3: p3,
+            plateWaitlist: pW,
             assign1: seat1,
             assign2: seat2,
             assign3: seat3,
@@ -2643,6 +2693,7 @@
       renderDashboard();
       updateLotteryCards();
       checkPlateWarnings();
+      initFloorplanSeats();
       let alertMsg = `成功匯入 ${count} 筆住戶資料！\n系統已同時還原 CSV 中的中籤車位紀錄。`;
       if (skippedReserve > 0) {
         alertMsg += `\n\n⚠️ 有 ${skippedReserve} 筆保留戶資料因未填寫指定車位，被系統防呆跳過未匯入。`;
@@ -3250,7 +3301,7 @@
     const tbody = document.getElementById("result-tbody");
 
     if (currentResultRound === "全部輪次") {
-      thElem.innerHTML = `<th class="text-center">棟別</th><th class="text-center">門牌</th><th>姓名</th><th class="text-center col-group-start">身分</th><th class="text-center col-group-start">第一輪</th><th class="text-center">第二輪</th><th class="text-center">第三輪</th><th class="text-center">候補</th><th class="text-center col-group-start">車牌1</th><th class="text-center">車牌2</th><th class="text-center">車牌3</th>`;
+      thElem.innerHTML = `<th class="text-center">棟別</th><th class="text-center">門牌</th><th>姓名</th><th class="text-center col-group-start">身分</th><th class="text-center col-group-start">第一輪</th><th class="text-center">第二輪</th><th class="text-center">第三輪</th><th class="text-center">候補</th><th class="text-center col-group-start">車牌1</th><th class="text-center">車牌2</th><th class="text-center">車牌3</th><th class="text-center">車牌(候補)</th>`;
       let html = "";
       residents.forEach(r => {
         const matchSearch = r.name.toLowerCase().includes(search) || r.room.toLowerCase().includes(search) || r.build.toLowerCase().includes(search);
@@ -3285,6 +3336,7 @@
           <td class="text-center col-group-start">${renderPlateCell(r.plate1)}</td>
           <td class="text-center">${renderPlateCell(r.plate2)}</td>
           <td class="text-center">${renderPlateCell(r.plate3)}</td>
+          <td class="text-center">${renderPlateCell(r.plateWaitlist)}</td>
         </tr>`;
       });
       tbody.innerHTML = html;
@@ -3636,12 +3688,14 @@
       const p1 = (r.plate1 || "").replace(/[-\s]/g, "").toUpperCase();
       const p2 = (r.plate2 || "").replace(/[-\s]/g, "").toUpperCase();
       const p3 = (r.plate3 || "").replace(/[-\s]/g, "").toUpperCase();
-      const plateMatch = (p1 && p1.includes(cleanInput)) || (p2 && p2.includes(cleanInput)) || (p3 && p3.includes(cleanInput));
+      const pW = (r.plateWaitlist || "").replace(/[-\s]/g, "").toUpperCase();
+      const plateMatch = (p1 && p1.includes(cleanInput)) || (p2 && p2.includes(cleanInput)) || (p3 && p3.includes(cleanInput)) || (pW && pW.includes(cleanInput));
 
       let s1 = getUserSeat("第一輪", r.id);
       let s2 = getUserSeat("第二輪", r.id);
       let s3 = getUserSeat("第三輪", r.id);
-      const seatMatch = (s1 && s1.toString() === cleanInput) || (s2 && s2.toString() === cleanInput) || (s3 && s3.toString() === cleanInput);
+      let sW = getUserSeat("候補", r.id);
+      const seatMatch = (s1 && s1.toString() === cleanInput) || (s2 && s2.toString() === cleanInput) || (s3 && s3.toString() === cleanInput) || (sW && sW.toString() === cleanInput);
 
       return plateMatch || seatMatch;
     });
@@ -3657,14 +3711,16 @@
       let seat1 = getUserSeat("第一輪", r.id);
       let seat2 = getUserSeat("第二輪", r.id);
       let seat3 = getUserSeat("第三輪", r.id);
+      let seatW = getUserSeat("候補", r.id);
 
       let s1 = seat1 ? seat1 + '號' : (getValidWinnerCount("第一輪") > 0 ? (r.r1 === 'Y' ? "未中籤" : "未參加") : "未執行");
       let s2 = seat2 ? seat2 + '號' : (getValidWinnerCount("第二輪") > 0 ? (r.r2 === 'Y' ? "未中籤" : "未參加") : "未執行");
       let s3 = seat3 ? seat3 + '號' : (getValidWinnerCount("第三輪") > 0 ? (r.r3 === 'Y' ? "未中籤" : "未參加") : "未執行");
+      let sW = seatW ? seatW + '號' : (r.waitlist === 'Y' ? "候補中，尚未遞補" : "未登記候補");
       
       html += `<div class="card" style="max-width:640px;margin:0 auto 1.5rem;box-shadow:0 8px 20px rgba(0,0,0,0.06)">
         <h4 style="color:var(--primary);margin-bottom:1rem;font-size:18px;font-weight:900;border-bottom:2px solid #e2e8f0;padding-bottom:10px">查詢結果：${getDisplayName(r.name)} (${r.build} ${r.room})</h4>
-        <p style="font-size:15px;color:var(--text-muted);margin-bottom:16px;font-weight:800">登記車牌：<code class="code-font">${r.plate1 || r.plate2 || r.plate3}</code></p>
+        <p style="font-size:15px;color:var(--text-muted);margin-bottom:16px;font-weight:800">登記車牌：<code class="code-font">${r.plate1 || r.plate2 || r.plate3 || r.plateWaitlist}</code></p>
         <div style="font-size:15px;color:#0f172a;background:#f8fafc;padding:16px 20px;border-radius:12px;border:1px solid #cbd5e1;margin-bottom:16px;font-weight:800;box-shadow:inset 0 2px 4px rgba(0,0,0,0.02)">
           👤 車主身分反查：${r.build}棟 ${r.room} - ${getDisplayName(r.name)} <span class="badge ${r.reserve === 'Y' ? 'badge-purple' : 'badge-gray'}" style="margin-left:8px">${r.reserve === 'Y' ? '保留戶' : '一般戶'}</span>
         </div>
@@ -3672,6 +3728,7 @@
           <div>第一輪分配：<b style="color:var(--primary)">${s1}</b></div>
           <div>第二輪分配：<b style="color:var(--primary)">${s2}</b></div>
           <div>第三輪分配：<b style="color:var(--primary)">${s3}</b></div>
+          <div>🎟️ 候補狀態：<b style="color:#c2410c">${sW}</b></div>
         </div>
       </div>`;
     });
@@ -3986,10 +4043,14 @@
     }
     let html = "";
     pendingAudits.forEach((aud, i) => {
+      // 💡 事先檢查這筆申請的車位號碼是否已超出目前範圍（可能是申請後總車位數被調整過），
+      // 讓管理員在點「同意」之前就能先看到警示，而不是核准失敗才知道。
+      const prefNums = aud.prefs.split(',').map(x => x.trim()).filter(x => x !== '無' && x !== '');
+      const hasInvalidRange = prefNums.some(n => { const v = parseInt(n); return !isNaN(v) && (v < 1 || v > systemSettings.totalSeats); });
       html += `<tr>
         <td><b>${getDisplayName(aud.name)}</b></td>
         <td class="text-center">${aud.room}</td>
-        <td class="text-center"><code class="code-font">#${aud.prefs}</code></td>
+        <td class="text-center"><code class="code-font">#${aud.prefs}</code>${hasInvalidRange ? '<br><span class="badge badge-red" style="margin-top:4px">⚠️ 超出目前車位範圍</span>' : ''}</td>
         <td class="text-center">${getDisplayName(aud.director)}</td>
         <td class="text-center">
           <div style="display:flex;gap:6px;justify-content:center">
@@ -4026,9 +4087,25 @@
       }
 
       let pArr = aud.prefs.split(',').map(x => x.trim() === "無" ? "" : parseInt(x.trim()));
-      res.pref1 = pArr[0] || "";
-      res.pref2 = pArr[1] || "";
-      res.pref3 = pArr[2] || "";
+      let newPref1 = pArr[0] || "", newPref2 = pArr[1] || "", newPref3 = pArr[2] || "";
+
+      // 💡 修正：核准審核是完全獨立於「手動編輯」與「CSV匯入」的第三條寫入路徑，先前完全沒有
+      // 重新驗證指定車位範圍。即使申請送出當下是合法範圍，若期間管理員把總車位數調小，
+      // 這筆申請核准時的車位號碼就可能已經超出範圍，若不再次檢查，會静默核准無效資料。
+      const invalidApprovedPrefs = [];
+      [["指定車位1", newPref1], ["指定車位2", newPref2], ["指定車位3", newPref3]].forEach(([label, val]) => {
+        if (val !== "" && (val < 1 || val > systemSettings.totalSeats)) {
+          invalidApprovedPrefs.push(`${label}：${val}（有效範圍為 1 ~ ${systemSettings.totalSeats}）`);
+        }
+      });
+      if (invalidApprovedPrefs.length > 0) {
+        alert(`⚠️ 無法核准：這筆申請的指定車位號碼已超出目前車位範圍（可能是申請送出後，總車位數被調整過）：\n\n• ${invalidApprovedPrefs.join('\n• ')}\n\n請聯繫社區主任確認正確的車位號碼後重新提交，此審核項目暫不會被移除。`);
+        return;
+      }
+
+      res.pref1 = newPref1;
+      res.pref2 = newPref2;
+      res.pref3 = newPref3;
 
       alert("已同意該指定車位申請並同步！\n(備註：變更志願不會影響該住戶已經抽中的車位。若需重新分發，請至抽籤控制台重抽該輪次。)");
     } else {
@@ -4163,7 +4240,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.23 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.28 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4202,7 +4279,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.23 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.28 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
@@ -4283,7 +4360,7 @@
 
   // ================= 11. 匯出工具 =================
   function exportCSV() {
-    let csv = "\ufeffID,棟別,門牌,姓名,身分,第一輪車位,第二輪車位,第三輪車位,指定1,指定2,指定3,車牌1,車牌2,車牌3,候補登記,候補車位\n";
+    let csv = "\ufeffID,棟別,門牌,姓名,身分,第一輪車位,第二輪車位,第三輪車位,指定1,指定2,指定3,車牌1,車牌2,車牌3,候補登記,候補車位,候補車牌\n";
     residents.forEach(r => {
       let s1 = getUserSeat("第一輪", r.id) || (getValidWinnerCount("第一輪") > 0 ? (r.r1 === 'Y' ? "未中籤" : "未參加") : "未執行");
       let s2 = getUserSeat("第二輪", r.id) || (getValidWinnerCount("第二輪") > 0 ? (r.r2 === 'Y' ? "未中籤" : "未參加") : "未執行");
@@ -4296,8 +4373,9 @@
       let safeP1 = (r.plate1 || "").replace(/,/g, "，").replace(/\n/g, " ");
       let safeP2 = (r.plate2 || "").replace(/,/g, "，").replace(/\n/g, " ");
       let safeP3 = (r.plate3 || "").replace(/,/g, "，").replace(/\n/g, " ");
+      let safePW = (r.plateWaitlist || "").replace(/,/g, "，").replace(/\n/g, " ");
 
-      csv += `${r.id},${safeBuild},${safeRoom},${safeName},${r.reserve === 'Y' ? '保留戶' : '一般戶'},${s1},${s2},${s3},${r.pref1 || ''},${r.pref2 || ''},${r.pref3 || ''},${safeP1},${safeP2},${safeP3},${r.waitlist === 'Y' ? '已登記' : '未登記'},${sW}\n`;
+      csv += `${r.id},${safeBuild},${safeRoom},${safeName},${r.reserve === 'Y' ? '保留戶' : '一般戶'},${s1},${s2},${s3},${r.pref1 || ''},${r.pref2 || ''},${r.pref3 || ''},${safeP1},${safeP2},${safeP3},${r.waitlist === 'Y' ? '已登記' : '未登記'},${sW},${safePW}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
