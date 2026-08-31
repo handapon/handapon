@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.33</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.34</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -308,7 +308,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.33</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.34</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -664,7 +664,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.33 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.34 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -885,7 +885,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.33">
+        <input type="text" id="set-app-version" value="v2.34">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1170,7 +1170,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.33",
+    appVersion: "v2.34",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1475,6 +1475,19 @@
             // 這樣不論大型欄位叫什麼名字，都會正確保留；小型欄位則保證是最新值。
             systemSettings = { ...(data.media || {}), ...data.systemSettings };
             systemSettings.appVersion = codeVer;
+            // 💡💡 重要修正（經自動化測試找出的嚴重漏洞）：以下這些欄位是抽籤演算法運作的
+            // 核心必要參數。先前只針對少數「裝飾性」欄位（如快速導覽文字、登入背景圖）做了
+            // 遺失欄位的防呆備援，卻完全沒有保護 totalSeats / voidSeats / abStart / abEnd 這些
+            // 演算法直接依賴的核心設定——經測試證實，若雲端資料剛好缺少 abStart/abEnd
+            // （例如全新建立、尚未儲存過設定的 Firebase 資料庫），整個抽籤系統會完全靜默失效、
+            // 不分配任何車位，卻連一個錯誤訊息都不會顯示，極難察覺與排查。
+            if (typeof systemSettings.totalSeats === "undefined" || systemSettings.totalSeats === null) systemSettings.totalSeats = 122;
+            if (!Array.isArray(systemSettings.voidSeats)) systemSettings.voidSeats = [];
+            if (typeof systemSettings.abStart === "undefined" || systemSettings.abStart === null) systemSettings.abStart = 19;
+            if (typeof systemSettings.abEnd === "undefined" || systemSettings.abEnd === null) systemSettings.abEnd = 56;
+            if (typeof systemSettings.swapEnabled === "undefined") systemSettings.swapEnabled = true;
+            if (!systemSettings.swapDeadline) systemSettings.swapDeadline = "2026-06-30";
+            if (!systemSettings.appTitle) systemSettings.appTitle = "稙村秀社區機車位電腦抽籤系統";
             if (!systemSettings.b1Limit) systemSettings.b1Limit = Math.floor(systemSettings.totalSeats / 2);
             if (!systemSettings.quickGuideText) systemSettings.quickGuideText = defaultQuickGuide;
             if (!systemSettings.loginBgs) systemSettings.loginBgs = [];
@@ -2798,7 +2811,9 @@
       });
     });
     let freeSeats = [];
-    for (let i = 1; i <= systemSettings.totalSeats; i++) {
+    // 💡 第二層防護：totalSeats 若因任何原因缺失，這裡也提供安全預設值。
+    const safeTotalSeats = (typeof systemSettings.totalSeats === "number") ? systemSettings.totalSeats : 122;
+    for (let i = 1; i <= safeTotalSeats; i++) {
       if (!voidSeatsSet.has(i) && !usedSeatsSet.has(i)) freeSeats.push(i);
     }
     return freeSeats;
@@ -2842,8 +2857,10 @@
     if (!lotteryResults["候補"]) lotteryResults["候補"] = {};
     let freeSeatsSet = new Set(freeSeats);
     let winners = [];
-    const abStart = systemSettings.abStart;
-    const abEnd = systemSettings.abEnd;
+    // 💡 第二層防護：即使 systemSettings.abStart/abEnd 因任何原因缺失，這裡也提供安全預設值，
+    // 確保演算法本身絕對不會因為這兩個關鍵參數缺失而完全靜默停擺（見同步時的第一層防護說明）。
+    const abStart = (typeof systemSettings.abStart === "number") ? systemSettings.abStart : 19;
+    const abEnd = (typeof systemSettings.abEnd === "number") ? systemSettings.abEnd : 56;
 
     function assignWaitlistSeat(res, seatNum) {
       let sNum = Number(seatNum);
@@ -3120,14 +3137,17 @@
     });
 
     let freeSeats = [];
-    for(let i = 1; i <= systemSettings.totalSeats; i++) {
+    const safeTotalSeatsForRound = (typeof systemSettings.totalSeats === "number") ? systemSettings.totalSeats : 122;
+    for(let i = 1; i <= safeTotalSeatsForRound; i++) {
       if(!voidSeatsSet.has(i) && !usedSeatsSet.has(i)) {
         freeSeats.push(i);
       }
     }
 
-    const abStart = systemSettings.abStart;
-    const abEnd = systemSettings.abEnd;
+    // 💡 第二層防護：即使 systemSettings.abStart/abEnd 因任何原因缺失，這裡也提供安全預設值，
+    // 確保演算法本身絕對不會因為這兩個關鍵參數缺失而完全靜默停擺（見同步時的第一層防護說明）。
+    const abStart = (typeof systemSettings.abStart === "number") ? systemSettings.abStart : 19;
+    const abEnd = (typeof systemSettings.abEnd === "number") ? systemSettings.abEnd : 56;
     let freeSeatsSet = new Set(freeSeats);
 
     function assignSeatToRes(resId, seatNum) {
@@ -4289,7 +4309,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.33 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.34 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4328,7 +4348,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.33 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.34 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
