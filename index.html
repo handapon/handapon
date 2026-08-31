@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.34</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.35</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -142,6 +142,9 @@
   .lm-balls{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:2rem 0}
   .lm-ball{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:#fff;font-size:26px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(37,99,235,0.4);animation:ballSpin .3s ease-in-out infinite alternate}
   @keyframes ballSpin{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-12px) rotate(6deg)}}
+  @keyframes spinRing{to{transform:rotate(360deg)}}
+  .spinner-icon{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spinRing .7s linear infinite;vertical-align:-3px;margin-right:8px}
+  .spinner-icon.dark{border-color:rgba(37,99,235,0.25);border-top-color:var(--primary)}
   .lm-progress-wrap{background:#e2e8f0;border-radius:100px;height:12px;overflow:hidden;margin-bottom:1.5rem;border:1px solid #cbd5e1}
   .lm-progress-bar{height:100%;background:linear-gradient(90deg,#3b82f6,#10b981);width:0;transition:width .2s ease}
 
@@ -174,6 +177,7 @@
   #sync-status-indicator { font-size:13px; padding:4px 14px; border-radius:6px; font-weight:800; transition:all .3s; }
   .sync-online { background:#dcfce7; color:#15803d; border:1px solid #86efac;}
   .sync-offline { background:#fef2f2; color:#dc2626; border:1px solid #fca5a5;}
+  .sync-syncing { background:#eff6ff; color:var(--primary); border:1px solid #93c5fd;}
 
   /* 💡 預覽手冊相關樣式 */
   .pdf-preview-box { background:#f8fafc; border:2px dashed #94a3b8; border-radius:14px; height:500px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; position:relative; box-shadow:inset 0 2px 10px rgba(0,0,0,0.02)}
@@ -259,6 +263,7 @@
      這裡加上完整的列印樣式：只保留當前頁面的實際資料內容，隱藏所有互動元件，
      改用乾淨的純黑白配色與適合紙本閱讀的字級間距，並加上頁首（社區名稱＋列印時間）。 */
   #print-header{display:none}
+  #notification-slip{display:none}
   @media print {
     body{background:#fff !important;font-size:11pt;line-height:1.5;color:#000}
     .nav, .user-bar, .nav-menu-mobile, #login-overlay, .modal-overlay,
@@ -286,6 +291,11 @@
     #print-header .print-title{font-size:15pt;font-weight:900}
     #print-header .print-meta{font-size:9.5pt;color:#333;margin-top:.25rem}
     a[href]:after{content:""}
+    /* 💡 個人中籤通知單專用列印模式：只印通知單本身，隱藏當下畫面顯示的頁面與頁首，
+       避免列印出來除了通知單之外，還混雜著背景頁面的其他內容。 */
+    body.printing-slip .page, body.printing-slip #print-header { display: none !important; }
+    body:not(.printing-slip) #notification-slip { display: none !important; }
+    body.printing-slip #notification-slip { display: block !important; max-width:100%; }
   }
 </style>
 </head>
@@ -296,6 +306,9 @@
   <div class="print-title" id="print-header-title"></div>
   <div class="print-meta" id="print-header-meta"></div>
 </div>
+
+<!-- 💡 個人中籤通知單，畫面上不顯示，只有點擊「列印個人中籤通知單」時才會出現並印出 -->
+<div id="notification-slip"></div>
 
 <!-- ===== 使用者頂部列 ===== -->
 <!-- 說明：表格若欄位較多，手機上請左右滑動查看完整內容 -->
@@ -308,7 +321,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.34</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.35</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -461,16 +474,16 @@
       <table id="residents-table">
         <thead>
           <tr>
-            <th class="text-center">ID</th>
-            <th class="text-center">棟別</th>
-            <th class="text-center">門牌</th>
-            <th>姓名</th>
+            <th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(residentSortState,'id',renderResidents)">ID <span id="sort-icon-id"></span></th>
+            <th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(residentSortState,'build',renderResidents)">棟別 <span id="sort-icon-build"></span></th>
+            <th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(residentSortState,'room',renderResidents)">門牌 <span id="sort-icon-room"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort(residentSortState,'name',renderResidents)">姓名 <span id="sort-icon-name"></span></th>
             <th class="text-center col-group-start">1輪</th>
             <th class="text-center">2輪</th>
             <th class="text-center">3輪</th>
             <th class="text-center">候補<br>登記</th>
-            <th class="text-center col-group-start">身分</th>
-            <th class="text-center col-group-start">指定1</th>
+            <th class="text-center col-group-start" style="cursor:pointer;user-select:none" onclick="toggleSort(residentSortState,'reserve',renderResidents)">身分 <span id="sort-icon-reserve"></span></th>
+            <th class="text-center col-group-start" style="cursor:pointer;user-select:none" onclick="toggleSort(residentSortState,'pref1',renderResidents)">指定1 <span id="sort-icon-pref1"></span></th>
             <th class="text-center">指定2</th>
             <th class="text-center">指定3</th>
             <th class="text-center col-group-start">車牌1</th>
@@ -664,7 +677,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.34 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.35 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -885,7 +898,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.34">
+        <input type="text" id="set-app-version" value="v2.35">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -986,9 +999,20 @@
     <div id="diagnostic-result" style="margin-top:1.25rem;font-size:14px;font-family:ui-monospace,monospace;white-space:pre-wrap;background:#fff;border:1px solid #fde68a;border-radius:10px;padding:1rem;display:none;line-height:1.7"></div>
   </div>
 
+  <div class="card" style="background:#f0fdf4;border-color:#86efac">
+    <div class="card-title" style="border-left-color:#16a34a">💾 資料備份與年度封存</div>
+    <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800">「立即完整備份」會把目前所有住戶、抽籤結果、系統設定打包成一個檔案下載，可作為完整快照備份（與 CSV 匯出互補，CSV 只有住戶資料）。「年度封存」則是在不清空目前資料的前提下，把當下狀態存成一份唯讀快照留存，方便社區交屋潮、每年重新抽籤前，先保留好這次的完整紀錄。</p>
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="downloadFullBackup()">💾 立即完整備份（下載）</button>
+      <button class="btn btn-primary" onclick="createArchive()">📦 封存本年度資料</button>
+      <button class="btn" onclick="showArchiveList()">📂 檢視歷史封存紀錄</button>
+    </div>
+    <div id="archive-list-box" style="display:none;margin-top:1.5rem"></div>
+  </div>
+
   <div class="card">
     <div class="card-title">系統資料管理與初始化</div>
-    <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800">注意事項：請謹慎執行以下清空或重置操作。</p>
+    <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800">注意事項：請謹慎執行以下清空或重置操作，建議執行前先使用上方「立即完整備份」。</p>
     <div class="btn-row">
       <button class="btn btn-danger" onclick="deleteAllResidents()">🗑️ 刪除所有住戶資料</button>
       <button class="btn btn-danger" onclick="resetSystemData()">⚠️ 重置所有系統資料</button>
@@ -1141,6 +1165,36 @@
   let pendingAudits = [];
   let currentRound = "第一輪";
   let currentResultRound = "第一輪";
+  let residentSortState = { column: null, dir: 1 };
+  let resultSortState = { column: null, dir: 1 };
+
+  function toggleSort(stateObj, column, rerenderFn) {
+    if (stateObj.column === column) {
+      stateObj.dir *= -1;
+    } else {
+      stateObj.column = column;
+      stateObj.dir = 1;
+    }
+    rerenderFn();
+  }
+
+  function sortIcon(stateObj, column) {
+    if (stateObj.column !== column) return '<span style="opacity:.35">⇅</span>';
+    return stateObj.dir === 1 ? '▲' : '▼';
+  }
+
+  // 💡 通用排序比較：數字比數字、字串比字串（含中文，使用 localeCompare 確保正確排序），
+  // 空值/未中籤一律排到最後，不管是遞增或遞減排序都一樣（避免「未中籤」穿插在數字中間）
+  function sortCompare(a, b, dir) {
+    const aEmpty = (a === null || a === undefined || a === "");
+    const bEmpty = (b === null || b === undefined || b === "");
+    if (aEmpty && bEmpty) return 0;
+    if (aEmpty) return 1;
+    if (bEmpty) return -1;
+    if (typeof a === 'number' && typeof b === 'number') return (a - b) * dir;
+    return String(a).localeCompare(String(b), 'zh-Hant') * dir;
+  }
+
   let currentFloorplan = 1;
   let fpZoomLevel = 1.0;
   let bgCarouselTimer = null; 
@@ -1170,7 +1224,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.34",
+    appVersion: "v2.35",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1389,6 +1443,43 @@
     }
   }
 
+  // 💡 封存資料採「按需同步」模式（跟大型檔案media同樣的獨立路徑做法），
+  // 不放進每次登入/自動同步都會拉取的主要路徑，避免封存紀錄累積後拖慢日常同步速度。
+  let archives = [];
+
+  async function loadArchivesFromCloud() {
+    if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
+      archives = [];
+      return true;
+    }
+    try {
+      const res = await fetch(`${FIREBASE_DB_URL}parkingData/archives.json?_t=${new Date().getTime()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      archives = Array.isArray(data) ? data : (data ? Object.values(data) : []);
+      return true;
+    } catch (e) {
+      console.error("讀取封存紀錄失敗：", e);
+      return false;
+    }
+  }
+
+  async function pushArchivesToCloud() {
+    if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) return false;
+    try {
+      const res = await fetch(`${FIREBASE_DB_URL}parkingData/archives.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(archives)
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return true;
+    } catch (e) {
+      console.error("寫入封存紀錄失敗：", e);
+      return false;
+    }
+  }
+
   async function cloudSyncPushMedia() {
     // 💡 專門用來同步大型檔案（登入背景圖、平面圖、操作手冊PDF）的獨立函式，
     // 只在真正上傳/刪除這些檔案時才會被呼叫，不會影響一般資料（例如抽籤結果）的同步速度。
@@ -1431,6 +1522,10 @@
       updateSyncStatusUI(false, "未設定雲端");
       return false;
     }
+
+    // 💡 明確顯示「同步中」載入指示（含轉圈動畫），讓使用者一眼就知道系統正在拉取最新資料，
+    // 而不是畫面靜止不動、不確定系統是否在運作。
+    updateSyncStatusUI(null, "同步中...");
 
     const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -1559,6 +1654,12 @@
   function updateSyncStatusUI(isOnline, text) {
     const el = document.getElementById("sync-status-indicator");
     if(el) {
+      if (isOnline === null) {
+        // 💡 同步進行中的專屬狀態：顯示轉圈動畫，明確區分於「已完成/失敗」的靜態文字狀態
+        el.innerHTML = `<span class="spinner-icon dark"></span>${text}`;
+        el.className = "sync-syncing";
+        return;
+      }
       if (isOnline) {
         const t = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         el.innerText = `${text}（${t}）`;
@@ -1808,7 +1909,7 @@
     const matchedAcc = accountsList.find(acc => acc.username === u && acc.password === p);
     if (matchedAcc) {
       const loginBtn = document.querySelector('#login-overlay .btn-primary');
-      if (loginBtn) { loginBtn.disabled = true; loginBtn.innerText = "登入中，同步最新資料..."; }
+      if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<span class="spinner-icon"></span>登入中，同步最新資料...'; }
 
       // 💡 重要修正：先前登入時直接沿用「這個分頁一開始載入時」的舊資料，
       // 如果這個分頁在別人剛執行完抽籤「之前」就已經打開，或先前有同步時序問題，
@@ -1835,7 +1936,7 @@
 
   async function guestLogin() {
     const guestBtn = document.querySelector('#login-overlay button[onclick="guestLogin()"]');
-    if (guestBtn) { guestBtn.disabled = true; guestBtn.innerText = "進入中，同步最新資料..."; }
+    if (guestBtn) { guestBtn.disabled = true; guestBtn.innerHTML = '<span class="spinner-icon dark"></span>進入中，同步最新資料...'; }
 
     // 💡 同上修正：訪客進入前也強制重新拉取雲端最新資料，確保一定看到最新的抽籤結果，
     // 而不是這個分頁很早以前打開時的舊快照。
@@ -2167,7 +2268,23 @@
       return matchSearch && matchBuild && matchReserve;
     });
 
+    // 💡 依目前排序狀態排序（點擊表格欄位標題即可切換排序欄位/方向）
+    if (residentSortState.column) {
+      const col = residentSortState.column;
+      filtered.sort((a, b) => {
+        let av = col === 'id' ? Number(a.id) : (col === 'pref1' || col === 'pref2' || col === 'pref3' ? (a[col] ? Number(a[col]) : "") : a[col]);
+        let bv = col === 'id' ? Number(b.id) : (col === 'pref1' || col === 'pref2' || col === 'pref3' ? (b[col] ? Number(b[col]) : "") : b[col]);
+        return sortCompare(av, bv, residentSortState.dir);
+      });
+    }
+
     document.getElementById("resident-count").innerText = `目前顯示 ${filtered.length} 筆住戶資料 (系統共建檔 ${residents.length} 筆)`;
+
+    // 💡 更新表格標題上的排序方向圖示（▲/▼/⇅），對應目前的排序狀態
+    ['id','build','room','name','reserve','pref1'].forEach(col => {
+      const el = document.getElementById(`sort-icon-${col}`);
+      if (el) el.innerHTML = sortIcon(residentSortState, col);
+    });
 
     let html = "";
     filtered.forEach(r => {
@@ -2191,6 +2308,7 @@
         <td class="text-center col-group-start">
           <div style="display:flex;gap:8px;justify-content:center">
             <button class="btn btn-sm" onclick="openEditModal(${r.id})">編輯</button>
+            <button class="btn btn-sm" onclick="printNotificationSlip(${r.id})" title="列印個人中籤通知單">🖨️</button>
             <button class="btn btn-sm btn-danger" onclick="deleteResident(${r.id})">刪除</button>
           </div>
         </td>
@@ -3348,24 +3466,37 @@
     const tbody = document.getElementById("result-tbody");
 
     if (currentResultRound === "全部輪次") {
-      thElem.innerHTML = `<th class="text-center">棟別</th><th class="text-center">門牌</th><th>姓名</th><th class="text-center col-group-start">身分</th><th class="text-center col-group-start">第一輪</th><th class="text-center">第二輪</th><th class="text-center">第三輪</th><th class="text-center">候補</th><th class="text-center col-group-start">車牌1</th><th class="text-center">車牌2</th><th class="text-center">車牌3</th><th class="text-center">車牌(候補)</th>`;
+      thElem.innerHTML = `<th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'build',renderResults)">棟別 ${sortIcon(resultSortState,'build')}</th><th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'room',renderResults)">門牌 ${sortIcon(resultSortState,'room')}</th><th style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'name',renderResults)">姓名 ${sortIcon(resultSortState,'name')}</th><th class="text-center col-group-start">身分</th><th class="text-center col-group-start" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'seat1',renderResults)">第一輪 ${sortIcon(resultSortState,'seat1')}</th><th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'seat2',renderResults)">第二輪 ${sortIcon(resultSortState,'seat2')}</th><th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'seat3',renderResults)">第三輪 ${sortIcon(resultSortState,'seat3')}</th><th class="text-center">候補</th><th class="text-center col-group-start">車牌1</th><th class="text-center">車牌2</th><th class="text-center">車牌3</th><th class="text-center">車牌(候補)</th>`;
       let html = "";
-      residents.forEach(r => {
+      let rowsData = residents.map(r => ({
+        r,
+        seat1: getUserSeat("第一輪", r.id),
+        seat2: getUserSeat("第二輪", r.id),
+        seat3: getUserSeat("第三輪", r.id),
+        seatW: getUserSeat("候補", r.id)
+      })).filter(({r}) => {
         const matchSearch = r.name.toLowerCase().includes(search) || r.room.toLowerCase().includes(search) || r.build.toLowerCase().includes(search);
-        if(!matchSearch && search !== "") return;
-
-        let seat1 = getUserSeat("第一輪", r.id);
-        let seat2 = getUserSeat("第二輪", r.id);
-        let seat3 = getUserSeat("第三輪", r.id);
-        let seatW = getUserSeat("候補", r.id);
-        
+        return matchSearch || search === "";
+      }).filter(({r, seat1, seat2, seat3, seatW}) => {
         let isParticipatingAny = (r.r1 === 'Y' || r.r2 === 'Y' || r.r3 === 'Y' || r.waitlist === 'Y');
         let hasAnySeat = (seat1 || seat2 || seat3 || seatW);
+        if(type === 'got' && !hasAnySeat) return false;
+        if(type === 'no' && (hasAnySeat || !isParticipatingAny)) return false;
+        if(type === 'skip' && isParticipatingAny) return false;
+        return true;
+      });
 
-        if(type === 'got' && !hasAnySeat) return;
-        if(type === 'no' && (hasAnySeat || !isParticipatingAny)) return;
-        if(type === 'skip' && isParticipatingAny) return;
+      // 💡 依目前排序狀態排序（點擊表格欄位標題即可切換排序欄位/方向）
+      if (resultSortState.column) {
+        const col = resultSortState.column;
+        rowsData.sort((a, b) => {
+          let av = (col === 'seat1' || col === 'seat2' || col === 'seat3') ? a[col] : a.r[col];
+          let bv = (col === 'seat1' || col === 'seat2' || col === 'seat3') ? b[col] : b.r[col];
+          return sortCompare(av, bv, resultSortState.dir);
+        });
+      }
 
+      rowsData.forEach(({r, seat1, seat2, seat3, seatW}) => {
         let s1 = seat1 ? `<b style="color:var(--primary)">${seat1}號</b>` : (getValidWinnerCount("第一輪") > 0 ? (r.r1 === 'Y' ? "未中籤" : "未參加") : "未執行");
         let s2 = seat2 ? `<b style="color:var(--primary)">${seat2}號</b>` : (getValidWinnerCount("第二輪") > 0 ? (r.r2 === 'Y' ? "未中籤" : "未參加") : "未執行");
         let s3 = seat3 ? `<b style="color:var(--primary)">${seat3}號</b>` : (getValidWinnerCount("第三輪") > 0 ? (r.r3 === 'Y' ? "未中籤" : "未參加") : "未執行");
@@ -3799,10 +3930,50 @@
           <div>第三輪分配：<b style="color:var(--primary)">${s3}</b></div>
           <div>🎟️ 候補狀態：<b style="color:#c2410c">${sW}</b></div>
         </div>
+        <div class="btn-row" style="margin-top:1.25rem">
+          <button class="btn btn-primary btn-sm" onclick="printNotificationSlip(${r.id})">🖨️ 列印個人中籤通知單</button>
+        </div>
       </div>`;
     });
     resultBox.style.display = "block";
     resultBox.innerHTML = html;
+  }
+
+  // 💡 個人中籤通知單：產生單一住戶的專屬列印版面，套用既有的列印樣式（隱藏導覽列/按鈕等），
+  // 讓管理員或住戶可以直接列印一張正式的通知單，而不需要印出整份總表。
+  function printNotificationSlip(residentId) {
+    const r = residents.find(x => Number(x.id) === Number(residentId));
+    if (!r) return;
+    let s1 = getUserSeat("第一輪", r.id);
+    let s2 = getUserSeat("第二輪", r.id);
+    let s3 = getUserSeat("第三輪", r.id);
+    let sW = getUserSeat("候補", r.id);
+    const now = new Date().toLocaleString('zh-TW');
+    const title = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
+
+    const slip = document.getElementById("notification-slip");
+    slip.innerHTML = `
+      <div style="text-align:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:3px solid #000">
+        <div style="font-size:17pt;font-weight:900">${title}</div>
+        <div style="font-size:13pt;font-weight:800;margin-top:6px">個人車位中籤通知單</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12pt;margin-bottom:1.5rem">
+        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0;width:30%">住戶棟別／門牌</td><td style="padding:10px;border:1px solid #333">${r.build} 棟　${r.room}</td></tr>
+        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">住戶姓名</td><td style="padding:10px;border:1px solid #333">${r.name}</td></tr>
+        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">身分別</td><td style="padding:10px;border:1px solid #333">${r.reserve === 'Y' ? '保留戶' : '一般戶'}</td></tr>
+        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">第一輪分配車位</td><td style="padding:10px;border:1px solid #333;font-size:14pt;font-weight:900">${s1 ? s1 + ' 號' : '（未中籤／未參加）'}</td></tr>
+        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">第二輪分配車位</td><td style="padding:10px;border:1px solid #333;font-size:14pt;font-weight:900">${s2 ? s2 + ' 號' : '（未中籤／未參加）'}</td></tr>
+        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">第三輪分配車位</td><td style="padding:10px;border:1px solid #333;font-size:14pt;font-weight:900">${s3 ? s3 + ' 號' : '（未中籤／未參加）'}</td></tr>
+        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">候補狀態</td><td style="padding:10px;border:1px solid #333;font-size:14pt;font-weight:900">${sW ? sW + ' 號' : (r.waitlist === 'Y' ? '候補中，尚未遞補' : '未登記候補')}</td></tr>
+      </table>
+      <div style="font-size:10pt;color:#333">本通知單由系統於 ${now} 產生，僅供核對車位使用，若有疑義請聯繫社區管理委員會。</div>
+    `;
+    slip.style.display = "block";
+    document.body.classList.add('printing-slip');
+    window.print();
+    // 💡 列印完成（或取消）後自動移除這個class，恢復正常畫面顯示，避免殘留影響其他頁面
+    const resetSlipMode = () => { document.body.classList.remove('printing-slip'); window.removeEventListener('afterprint', resetSlipMode); };
+    window.addEventListener('afterprint', resetSlipMode);
   }
 
   // ================= 8. 平面圖功能 =================
@@ -4194,6 +4365,162 @@
     addLog("審核", `管理員拒絕住戶 ${aud.name} 之指定車位`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
   }
 
+  // ============ 立即完整備份 ============
+  function downloadFullBackup() {
+    if (currentUser.role === 'guest') {
+      alert("權限不足！");
+      return;
+    }
+    const backup = {
+      backupType: "稙村秀社區機車位抽籤系統_完整備份",
+      backupTime: new Date().toISOString(),
+      appVersion: systemSettings.appVersion,
+      residents,
+      lotteryResults,
+      systemSettings,
+      swapLogs,
+      systemLogs,
+      pendingAudits,
+      accountsList
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.download = `稙村秀社區機車位系統_完整備份_${dateStr}.json`;
+    a.click();
+    // 💡 備份檔含帳號密碼等完整資料，提醒管理員妥善保存，不要外流或公開分享
+    alert("完整備份已下載！\n\n此檔案包含所有住戶資料、抽籤結果、系統設定與帳號資料（含密碼），請妥善保存於安全的地方，不要公開分享或上傳到公開空間。");
+    addLog("設定", "下載完整系統備份");
+  }
+
+  // ============ 年度封存 ============
+  async function createArchive() {
+    if (currentUser.role !== 'admin') {
+      alert("權限不足，僅系統管理員可執行年度封存！");
+      return;
+    }
+    const label = prompt("請為這次封存輸入一個好辨識的名稱（例如：2026年第一次抽籤、114年度公告版本）：", `封存於 ${new Date().toLocaleDateString('zh-TW')}`);
+    if (label === null) return; // 使用者取消
+    if (!label.trim()) {
+      alert("請輸入封存名稱！");
+      return;
+    }
+    if (!confirm(`確定要把「目前」的住戶名單與抽籤結果，封存為一份唯讀快照「${label}」嗎？\n\n封存只是額外保留一份備份紀錄，不會清空或影響目前正在使用的資料，之後仍可正常繼續操作。`)) {
+      return;
+    }
+    const loaded = await loadArchivesFromCloud();
+    if (!loaded) {
+      alert("讀取現有封存清單失敗，請檢查網路連線後再試一次！");
+      return;
+    }
+    archives.push({
+      id: archives.length > 0 ? Math.max(...archives.map(a => a.id || 0)) + 1 : 1,
+      label: label.trim(),
+      archivedAt: new Date().toISOString(),
+      archivedBy: currentUser.name,
+      snapshot: {
+        residents: JSON.parse(JSON.stringify(residents)),
+        lotteryResults: JSON.parse(JSON.stringify(lotteryResults)),
+        totalSeats: systemSettings.totalSeats,
+        voidSeats: JSON.parse(JSON.stringify(systemSettings.voidSeats || []))
+      }
+    });
+    const pushed = await pushArchivesToCloud();
+    if (!pushed) {
+      alert("封存寫入雲端失敗，請檢查網路連線後再試一次！（本次封存尚未成功保存）");
+      archives.pop();
+      return;
+    }
+    addLog("設定", `建立年度封存：${label.trim()}`);
+    alert(`已成功封存「${label.trim()}」！\n\n可到「檢視歷史封存紀錄」查看。若接下來要開始新一輪抽籤，可視需要另外使用「重置所有系統資料」清空目前資料（封存的內容不會受影響）。`);
+    showArchiveList();
+  }
+
+  async function showArchiveList() {
+    const box = document.getElementById("archive-list-box");
+    box.style.display = "block";
+    box.innerHTML = `<div style="text-align:center;padding:1.5rem;color:var(--text-muted);font-weight:700">載入封存紀錄中...</div>`;
+    const loaded = await loadArchivesFromCloud();
+    if (!loaded) {
+      box.innerHTML = `<div style="text-align:center;padding:1.5rem;color:#dc2626;font-weight:700">讀取封存紀錄失敗，請檢查網路連線</div>`;
+      return;
+    }
+    if (archives.length === 0) {
+      box.innerHTML = `<div class="empty">目前尚無任何封存紀錄</div>`;
+      return;
+    }
+    let html = `<div style="font-size:14.5px;font-weight:800;color:var(--text-muted);margin-bottom:.75rem">共 ${archives.length} 筆封存紀錄：</div>`;
+    archives.slice().reverse().forEach(a => {
+      const winnerCount = Object.values(a.snapshot.lotteryResults || {}).reduce((sum, roundMap) => sum + Object.keys(roundMap || {}).length, 0);
+      html += `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+          <b style="font-size:15.5px">${a.label}</b><br>
+          <span style="font-size:12.5px;color:var(--text-muted);font-weight:700">封存時間：${new Date(a.archivedAt).toLocaleString('zh-TW')}　封存人：${a.archivedBy || '未知'}　住戶數：${(a.snapshot.residents||[]).length}　已分配車位數：${winnerCount}</span>
+        </div>
+        <div class="btn-row" style="margin:0">
+          <button class="btn btn-sm" onclick="viewArchive(${a.id})">👁️ 檢視</button>
+          <button class="btn btn-sm btn-success" onclick="downloadArchive(${a.id})">💾 下載</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteArchive(${a.id})">🗑️ 刪除</button>
+        </div>
+      </div>`;
+    });
+    box.innerHTML = html;
+  }
+
+  function viewArchive(archiveId) {
+    const a = archives.find(x => x.id === archiveId);
+    if (!a) return;
+    const rs = a.snapshot.residents || [];
+    let rows = rs.map(r => {
+      let s1 = r.assign1 ? r.assign1 + '號' : '-';
+      let s2 = r.assign2 ? r.assign2 + '號' : '-';
+      let s3 = r.assign3 ? r.assign3 + '號' : '-';
+      return `<tr><td class="text-center"><b>${r.build}</b></td><td class="text-center">${r.room}</td><td>${r.name}</td><td class="text-center">${s1}</td><td class="text-center">${s2}</td><td class="text-center">${s3}</td></tr>`;
+    }).join('');
+    const box = document.getElementById("archive-list-box");
+    box.innerHTML = `
+      <div class="flex-between" style="margin-bottom:1rem">
+        <b style="font-size:16px">📦 ${a.label}（唯讀檢視）</b>
+        <button class="btn btn-sm" onclick="showArchiveList()">⬅ 返回列表</button>
+      </div>
+      <div class="table-wrap" style="max-height:400px">
+        <table><thead><tr><th class="text-center">棟別</th><th class="text-center">門牌</th><th>姓名</th><th class="text-center">第一輪</th><th class="text-center">第二輪</th><th class="text-center">第三輪</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="6" class="empty">此封存無住戶資料</td></tr>'}</tbody></table>
+      </div>
+    `;
+  }
+
+  function downloadArchive(archiveId) {
+    const a = archives.find(x => x.id === archiveId);
+    if (!a) return;
+    const blob = new Blob([JSON.stringify(a, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const el = document.createElement('a');
+    el.href = url;
+    el.download = `封存_${a.label.replace(/[^\w\u4e00-\u9fa5]/g, '_')}_${a.archivedAt.slice(0,10)}.json`;
+    el.click();
+  }
+
+  async function deleteArchive(archiveId) {
+    if (currentUser.role !== 'admin') {
+      alert("權限不足，僅系統管理員可刪除封存紀錄！");
+      return;
+    }
+    const a = archives.find(x => x.id === archiveId);
+    if (!a) return;
+    if (!confirm(`確定要刪除封存「${a.label}」嗎？此動作無法復原！（建議刪除前先點「下載」保留一份檔案）`)) return;
+    archives = archives.filter(x => x.id !== archiveId);
+    const pushed = await pushArchivesToCloud();
+    if (!pushed) {
+      alert("刪除失敗，請檢查網路連線後再試一次！");
+      return;
+    }
+    addLog("設定", `刪除封存紀錄：${a.label}`);
+    showArchiveList();
+  }
+
   function resetSystemData() {
     if(currentUser.role !== 'admin') {
       alert("權限不足，僅系統管理員可重置資料！");
@@ -4309,7 +4636,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.34 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.35 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4348,7 +4675,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.34 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.35 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
