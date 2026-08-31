@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.35</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.36</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
   :root {
     --primary: #2563eb;
@@ -321,7 +321,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.35</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.36</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -677,7 +677,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.35 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.36 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -898,7 +898,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.35">
+        <input type="text" id="set-app-version" value="v2.36">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1113,7 +1113,7 @@
     </div>
     <div style="margin-bottom:1.5rem">
       <label>登入密碼</label>
-      <input type="text" id="dir-pass" placeholder="請輸入密碼">
+      <input type="text" id="dir-pass" placeholder="新增帳號時必填；編輯時留空表示不變更密碼">
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeDirectorModal()">取消</button>
@@ -1146,6 +1146,45 @@
 <script>
   // ================= Firebase 雲端資料庫 URL 設定 =================
   const FIREBASE_DB_URL = "https://parking-lottery-resident-list-default-rtdb.asia-southeast1.firebasedatabase.app/";
+
+  // ============ 密碼雜湊工具（PBKDF2 + 每組帳號各自的隨機鹽值） ============
+  // 💡 使用瀏覽器內建的 Web Crypto API，不需額外載入第三方套件。
+  // 雜湊後的密碼格式為 "$pbkdf2$<鹽值hex>$<雜湊值hex>"，跟舊版明文密碼在格式上明顯可分辨，
+  // 藉此支援「登入時悄悄升級」：舊帳號用明文密碼還是能正常登入，登入成功當下就順便
+  // 把密碼換成雜湊格式存回去，不需要要求所有人同時重設密碼。
+  function isHashedPassword(pw) {
+    return typeof pw === "string" && pw.startsWith("$pbkdf2$");
+  }
+
+  async function hashPassword(password, saltHex) {
+    const enc = new TextEncoder();
+    let salt;
+    if (saltHex) {
+      salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+    } else {
+      salt = crypto.getRandomValues(new Uint8Array(16));
+    }
+    const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+    const derivedBits = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
+      keyMaterial,
+      256
+    );
+    const hashHex = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, "0")).join("");
+    const saltHexOut = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
+    return `$pbkdf2$${saltHexOut}$${hashHex}`;
+  }
+
+  async function verifyPassword(inputPassword, storedPassword) {
+    if (!isHashedPassword(storedPassword)) {
+      // 舊版明文密碼帳號，仍支援直接比對登入（登入成功後會在 doLogin 中自動升級為雜湊格式）
+      return inputPassword === storedPassword;
+    }
+    const parts = storedPassword.split("$"); // ["", "pbkdf2", 鹽值hex, 雜湊值hex]
+    const saltHex = parts[2];
+    const computed = await hashPassword(inputPassword, saltHex);
+    return computed === storedPassword;
+  }
 
   let currentUser = { name: "系統管理員", role: "admin", username: "admin", password: "1234" };
   let accountsList = [
@@ -1224,7 +1263,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.35",
+    appVersion: "v2.36",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1245,7 +1284,7 @@
     if (plateVal === PENDING_PLATE_LABEL) {
       return `<span class="badge badge-orange" title="尚未登記真實車牌，保留抽籤資格">🕒 ${PENDING_PLATE_LABEL}</span>`;
     }
-    return `<code class="code-font">${plateVal}</code>`;
+    return `<code class="code-font">${escapeHtml(plateVal)}</code>`;
   }
 
   function normalizeResId(rawKey) {
@@ -1680,6 +1719,19 @@
     return str[0] + "O".repeat(str.length - 2) + str[str.length - 1];
   }
 
+  // 💡 HTML escape 工具：所有插入 innerHTML 的使用者可控文字欄位（住戶姓名、棟別、門牌、
+  // 帳號姓名、封存名稱等）都必須先經過這裡，避免有心人在這些欄位輸入 <script> 之類的內容，
+  // 讓其他使用者（含訪客、其他管理員）瀏覽時被動執行惡意程式碼（儲存型 XSS）。
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function getDisplayName(name) {
     return (currentUser.role === 'guest') ? maskName(name) : name;
   }
@@ -1801,6 +1853,7 @@
       currentUser = JSON.parse(logged);
       let liveAcc = accountsList.find(a => a.username === currentUser.username);
       if (liveAcc) currentUser = { ...liveAcc };
+      delete currentUser.password; // 💡 比照 doLogin()：currentUser 不應保留密碼/雜湊值
       initUserBar();
       startAutoSync();
     }
@@ -1906,20 +1959,30 @@
     const u = document.getElementById("login-user").value.trim();
     const p = document.getElementById("login-pw").value.trim();
 
-    const matchedAcc = accountsList.find(acc => acc.username === u && acc.password === p);
-    if (matchedAcc) {
-      const loginBtn = document.querySelector('#login-overlay .btn-primary');
-      if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<span class="spinner-icon"></span>登入中，同步最新資料...'; }
+    const loginBtn = document.querySelector('#login-overlay .btn-primary');
+    if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<span class="spinner-icon"></span>登入中，同步最新資料...'; }
 
-      // 💡 重要修正：先前登入時直接沿用「這個分頁一開始載入時」的舊資料，
-      // 如果這個分頁在別人剛執行完抽籤「之前」就已經打開，或先前有同步時序問題，
-      // 登入後看到的就會是過期資料，甚至後續操作還會把這份舊資料再寫回雲端、覆蓋掉真正最新的結果。
-      // 修正為：每次登入都強制重新向雲端拉取一次最新資料，確保這個工作階段一開始就是最新狀態。
-      await cloudSyncPull();
+    // 💡 重要修正：先前登入時直接沿用「這個分頁一開始載入時」的舊資料，
+    // 如果這個分頁在別人剛執行完抽籤「之前」就已經打開，或先前有同步時序問題，
+    // 登入後看到的就會是過期資料，甚至後續操作還會把這份舊資料再寫回雲端、覆蓋掉真正最新的結果。
+    // 修正為：每次登入都強制重新向雲端拉取一次最新資料，確保這個工作階段一開始就是最新狀態。
+    // （這裡也一併修正了先前「先用舊資料比對一次、拉取後比對失敗又退回用舊資料比對結果」的邏輯，
+    // 若密碼已經在別的裝置被更改過，舊版寫法仍可能誤用過期密碼登入成功。）
+    await cloudSyncPull();
 
-      // 用剛拉取回來的最新帳號清單，重新核對一次自己的帳號資料（避免密碼/角色被別處更新過卻沒套用）
-      let freshAcc = accountsList.find(acc => acc.username === u && acc.password === p) || matchedAcc;
-      currentUser = { ...freshAcc };
+    const acc = accountsList.find(a => a.username === u);
+    let loginOk = acc ? await verifyPassword(p, acc.password) : false;
+
+    if (loginOk) {
+      // 💡 密碼雜湊升級：若這組帳號目前仍是舊版明文密碼、這次驗證又通過，就順便換成雜湊格式存回去，
+      // 管理員/主任完全不需要額外操作，下次登入起密碼就已經是雜湊過的，資料庫不會再留有明文密碼。
+      if (!isHashedPassword(acc.password)) {
+        acc.password = await hashPassword(p);
+        cloudSyncPush();
+      }
+
+      currentUser = { ...acc };
+      delete currentUser.password; // 💡 currentUser 不需要保留密碼（雜湊值也不必要），避免被存進 localStorage
       localStorage.setItem("lottery_user", JSON.stringify(currentUser));
       document.getElementById("login-overlay").style.display = "none";
       if(bgCarouselTimer) clearInterval(bgCarouselTimer);
@@ -1931,6 +1994,9 @@
       if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = "登入系統"; }
     } else {
       document.getElementById("login-error").style.display = "block";
+      if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = "登入系統"; }
+      // 💡 記錄登入失敗嘗試（不記錄密碼本身），方便日後稽核是否有人在嘗試猜測帳密
+      addLog("登入", `登入失敗：帳號「${u}」密碼錯誤或帳號不存在`);
     }
   }
 
@@ -2290,9 +2356,9 @@
     filtered.forEach(r => {
       html += `<tr>
         <td class="text-center">${r.id}</td>
-        <td class="text-center"><b>${r.build}</b></td>
-        <td class="text-center"><b>${r.room}</b></td>
-        <td><b>${getDisplayName(r.name)}</b></td>
+        <td class="text-center"><b>${escapeHtml(r.build)}</b></td>
+        <td class="text-center"><b>${escapeHtml(r.room)}</b></td>
+        <td><b>${escapeHtml(getDisplayName(r.name))}</b></td>
         <td class="text-center col-group-start"><button class="yn-btn ${r.r1==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r1')">${r.r1}</button></td>
         <td class="text-center"><button class="yn-btn ${r.r2==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r2')">${r.r2}</button></td>
         <td class="text-center"><button class="yn-btn ${r.r3==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r3')">${r.r3}</button></td>
@@ -3503,9 +3569,9 @@
         let sW = seatW ? `<b style="color:#d97706">${seatW}號</b>` : (r.waitlist === 'Y' ? '候補中' : '-');
         
         html += `<tr>
-          <td class="text-center"><b>${r.build}</b></td>
-          <td class="text-center">${r.room}</td>
-          <td><b>${getDisplayName(r.name)}</b></td>
+          <td class="text-center"><b>${escapeHtml(r.build)}</b></td>
+          <td class="text-center">${escapeHtml(r.room)}</td>
+          <td><b>${escapeHtml(getDisplayName(r.name))}</b></td>
           <td class="text-center col-group-start">${r.reserve==='Y'?'<span class="badge badge-purple">保留戶</span>':'<span class="badge badge-gray">一般戶</span>'}</td>
           <td class="text-center col-group-start">${s1}</td>
           <td class="text-center">${s2}</td>
@@ -3549,9 +3615,9 @@
       count++;
       html += `<tr>
         <td class="text-center">${count}</td>
-        <td class="text-center"><b>${r.build}</b></td>
-        <td class="text-center">${r.room}</td>
-        <td><b>${getDisplayName(r.name)}</b></td>
+        <td class="text-center"><b>${escapeHtml(r.build)}</b></td>
+        <td class="text-center">${escapeHtml(r.room)}</td>
+        <td><b>${escapeHtml(getDisplayName(r.name))}</b></td>
         <td class="text-center">${r.reserve==='Y'?'<span class="badge badge-purple">保留戶</span>':'<span class="badge badge-gray">一般戶</span>'}</td>
         <td class="text-center">${hasSeat ? '<b style="font-size:17px;color:var(--primary)">'+seat+'號</b>' : '-'}</td>
         <td class="text-center">${statusStr}</td>
@@ -3655,8 +3721,8 @@
     let html = "";
     matches.forEach(m => {
       let seatSummary = `第1輪:${getUserSeat("第一輪", m.id)||'無'}, 第2輪:${getUserSeat("第二輪", m.id)||'無'}, 第3輪:${getUserSeat("第三輪", m.id)||'無'}${getUserSeat("候補", m.id) ? ', 候補:'+getUserSeat("候補", m.id) : ''}`;
-      html += `<div style="padding:14px;cursor:pointer;border-bottom:1px solid #e2e8f0;transition:background 0.15s" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'" onclick="selectSwapResident('${type}', ${m.id}, '${getDisplayName(m.name)} (${m.build}-${m.room})')">
-        <b style="font-size:15px;color:var(--text-main)">${m.build}-${m.room}</b> <span style="font-weight:600">${getDisplayName(m.name)}</span> <span style="font-size:13px;color:var(--text-muted);display:block;margin-top:6px;font-weight:700">(${seatSummary})</span>
+      html += `<div style="padding:14px;cursor:pointer;border-bottom:1px solid #e2e8f0;transition:background 0.15s" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'" onclick="selectSwapResident('${type}', ${m.id})">
+        <b style="font-size:15px;color:var(--text-main)">${escapeHtml(m.build)}-${escapeHtml(m.room)}</b> <span style="font-weight:600">${escapeHtml(getDisplayName(m.name))}</span> <span style="font-size:13px;color:var(--text-muted);display:block;margin-top:6px;font-weight:700">(${seatSummary})</span>
       </div>`;
     });
     dropdown.innerHTML = html;
@@ -3671,7 +3737,9 @@
     updateSwapPreview();
   }
 
-  function selectSwapResident(type, id, nameStr) {
+  function selectSwapResident(type, id) {
+    const res = residents.find(r => Number(r.id) === Number(id));
+    const nameStr = res ? `${getDisplayName(res.name)} (${res.build}-${res.room})` : "";
     document.getElementById(`swap-${type.toLowerCase()}-idx`).value = id;
     document.getElementById(`swap-${type.toLowerCase()}-search`).value = nameStr;
     document.getElementById(`swap-${type.toLowerCase()}-dropdown`).style.display = 'none';
@@ -3838,8 +3906,8 @@
     renderResidents();
     initFloorplanSeats();
     
-    selectSwapResident('A', aId, document.getElementById('swap-a-search').value);
-    selectSwapResident('B', bId, document.getElementById('swap-b-search').value);
+    selectSwapResident('A', aId);
+    selectSwapResident('B', bId);
     
     addLog("互換", `執行進階跨輪互換：${resA.name} 與 ${resB.name}`).then(ok => {
       if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
@@ -3919,10 +3987,10 @@
       let sW = seatW ? seatW + '號' : (r.waitlist === 'Y' ? "候補中，尚未遞補" : "未登記候補");
       
       html += `<div class="card" style="max-width:640px;margin:0 auto 1.5rem;box-shadow:0 8px 20px rgba(0,0,0,0.06)">
-        <h4 style="color:var(--primary);margin-bottom:1rem;font-size:18px;font-weight:900;border-bottom:2px solid #e2e8f0;padding-bottom:10px">查詢結果：${getDisplayName(r.name)} (${r.build} ${r.room})</h4>
-        <p style="font-size:15px;color:var(--text-muted);margin-bottom:16px;font-weight:800">登記車牌：<code class="code-font">${r.plate1 || r.plate2 || r.plate3 || r.plateWaitlist}</code></p>
+        <h4 style="color:var(--primary);margin-bottom:1rem;font-size:18px;font-weight:900;border-bottom:2px solid #e2e8f0;padding-bottom:10px">查詢結果：${escapeHtml(getDisplayName(r.name))} (${escapeHtml(r.build)} ${escapeHtml(r.room)})</h4>
+        <p style="font-size:15px;color:var(--text-muted);margin-bottom:16px;font-weight:800">登記車牌：<code class="code-font">${escapeHtml(r.plate1 || r.plate2 || r.plate3 || r.plateWaitlist)}</code></p>
         <div style="font-size:15px;color:#0f172a;background:#f8fafc;padding:16px 20px;border-radius:12px;border:1px solid #cbd5e1;margin-bottom:16px;font-weight:800;box-shadow:inset 0 2px 4px rgba(0,0,0,0.02)">
-          👤 車主身分反查：${r.build}棟 ${r.room} - ${getDisplayName(r.name)} <span class="badge ${r.reserve === 'Y' ? 'badge-purple' : 'badge-gray'}" style="margin-left:8px">${r.reserve === 'Y' ? '保留戶' : '一般戶'}</span>
+          👤 車主身分反查：${escapeHtml(r.build)}棟 ${escapeHtml(r.room)} - ${escapeHtml(getDisplayName(r.name))} <span class="badge ${r.reserve === 'Y' ? 'badge-purple' : 'badge-gray'}" style="margin-left:8px">${r.reserve === 'Y' ? '保留戶' : '一般戶'}</span>
         </div>
         <div style="font-size:16.5px;line-height:2.2;font-weight:800">
           <div>第一輪分配：<b style="color:var(--primary)">${s1}</b></div>
@@ -3958,8 +4026,8 @@
         <div style="font-size:13pt;font-weight:800;margin-top:6px">個人車位中籤通知單</div>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:12pt;margin-bottom:1.5rem">
-        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0;width:30%">住戶棟別／門牌</td><td style="padding:10px;border:1px solid #333">${r.build} 棟　${r.room}</td></tr>
-        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">住戶姓名</td><td style="padding:10px;border:1px solid #333">${r.name}</td></tr>
+        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0;width:30%">住戶棟別／門牌</td><td style="padding:10px;border:1px solid #333">${escapeHtml(r.build)} 棟　${escapeHtml(r.room)}</td></tr>
+        <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">住戶姓名</td><td style="padding:10px;border:1px solid #333">${escapeHtml(r.name)}</td></tr>
         <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">身分別</td><td style="padding:10px;border:1px solid #333">${r.reserve === 'Y' ? '保留戶' : '一般戶'}</td></tr>
         <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">第一輪分配車位</td><td style="padding:10px;border:1px solid #333;font-size:14pt;font-weight:900">${s1 ? s1 + ' 號' : '（未中籤／未參加）'}</td></tr>
         <tr><td style="padding:10px;border:1px solid #333;font-weight:800;background:#f0f0f0">第二輪分配車位</td><td style="padding:10px;border:1px solid #333;font-size:14pt;font-weight:900">${s2 ? s2 + ' 號' : '（未中籤／未參加）'}</td></tr>
@@ -4196,8 +4264,8 @@
         ${acc.role !== 'admin' ? `<button class="btn btn-sm btn-danger" onclick="deleteDirectorAccount(${idx})">刪除</button>` : ''}
       `;
       html += `<tr>
-        <td><b>${getDisplayName(acc.name)}</b></td>
-        <td><code class="code-font">${acc.username}</code></td>
+        <td><b>${escapeHtml(getDisplayName(acc.name))}</b></td>
+        <td><code class="code-font">${escapeHtml(acc.username)}</code></td>
         <td class="text-center">${roleBadge}</td>
         <td class="text-center">${actions}</td>
       </tr>`;
@@ -4223,7 +4291,10 @@
       document.getElementById("dir-edit-idx").value = idx;
       document.getElementById("dir-name").value = acc.name;
       document.getElementById("dir-user").value = acc.username;
-      document.getElementById("dir-pass").value = acc.password;
+      // 💡 修正：先前這裡會把「現有密碼」（將來會是雜湊值）直接填入輸入框顯示，
+      // 若管理員沒注意到、直接點儲存，雜湊值會被當成「新密碼」再雜湊一次，
+      // 導致原本的密碼永遠無法再用來登入。改為留空，並在儲存邏輯中「留空＝不變更密碼」。
+      document.getElementById("dir-pass").value = "";
     }
   }
 
@@ -4231,30 +4302,41 @@
     document.getElementById("director-modal").classList.remove("show");
   }
 
-  function saveDirectorAccount() {
+  async function saveDirectorAccount() {
     const idx = parseInt(document.getElementById("dir-edit-idx").value);
     const name = document.getElementById("dir-name").value.trim();
     const user = document.getElementById("dir-user").value.trim();
     const pass = document.getElementById("dir-pass").value.trim();
 
-    if (!name || !user || !pass) {
-      alert("所有欄位皆不可為空！");
+    if (!name || !user) {
+      alert("姓名與帳號皆不可為空！");
       return;
     }
 
     if (idx === -1) {
-      accountsList.push({ name, username: user, password: pass, role: "director" });
+      // 新增帳號：密碼為必填
+      if (!pass) {
+        alert("新增帳號時必須設定密碼！");
+        return;
+      }
+      const hashed = await hashPassword(pass);
+      accountsList.push({ name, username: user, password: hashed, role: "director" });
       addLog("設定", `新增社區主任帳號：${name} (${user})`);
     } else {
       let targetAcc = accountsList[idx];
       targetAcc.name = name;
       targetAcc.username = user;
-      targetAcc.password = pass;
+      // 💡 留空表示不變更密碼；有輸入才雜湊後更新，避免每次編輯姓名/帳號都被迫重設密碼，
+      // 也避免把顯示出來的雜湊值誤當成新密碼再雜湊一次（已在 openDirectorModal 修正不預先填入）。
+      if (pass) {
+        targetAcc.password = await hashPassword(pass);
+      }
       if (targetAcc.username === currentUser.username) {
         currentUser = { ...targetAcc };
+        delete currentUser.password;
         localStorage.setItem("lottery_user", JSON.stringify(currentUser));
       }
-      addLog("設定", `編輯/重設帳號資料：${name}`);
+      addLog("設定", `編輯帳號資料：${name}${pass ? '（含重設密碼）' : ''}`);
     }
 
     closeDirectorModal();
@@ -4288,10 +4370,10 @@
       const prefNums = aud.prefs.split(',').map(x => x.trim()).filter(x => x !== '無' && x !== '');
       const hasInvalidRange = prefNums.some(n => { const v = parseInt(n); return !isNaN(v) && (v < 1 || v > systemSettings.totalSeats); });
       html += `<tr>
-        <td><b>${getDisplayName(aud.name)}</b></td>
-        <td class="text-center">${aud.room}</td>
-        <td class="text-center"><code class="code-font">#${aud.prefs}</code>${hasInvalidRange ? '<br><span class="badge badge-red" style="margin-top:4px">⚠️ 超出目前車位範圍</span>' : ''}</td>
-        <td class="text-center">${getDisplayName(aud.director)}</td>
+        <td><b>${escapeHtml(getDisplayName(aud.name))}</b></td>
+        <td class="text-center">${escapeHtml(aud.room)}</td>
+        <td class="text-center"><code class="code-font">#${escapeHtml(aud.prefs)}</code>${hasInvalidRange ? '<br><span class="badge badge-red" style="margin-top:4px">⚠️ 超出目前車位範圍</span>' : ''}</td>
+        <td class="text-center">${escapeHtml(getDisplayName(aud.director))}</td>
         <td class="text-center">
           <div style="display:flex;gap:6px;justify-content:center">
             <button class="btn btn-sm btn-success" onclick="approveAudit(${i})">同意</button>
@@ -4456,8 +4538,8 @@
       const winnerCount = Object.values(a.snapshot.lotteryResults || {}).reduce((sum, roundMap) => sum + Object.keys(roundMap || {}).length, 0);
       html += `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:1rem 1.25rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
         <div>
-          <b style="font-size:15.5px">${a.label}</b><br>
-          <span style="font-size:12.5px;color:var(--text-muted);font-weight:700">封存時間：${new Date(a.archivedAt).toLocaleString('zh-TW')}　封存人：${a.archivedBy || '未知'}　住戶數：${(a.snapshot.residents||[]).length}　已分配車位數：${winnerCount}</span>
+          <b style="font-size:15.5px">${escapeHtml(a.label)}</b><br>
+          <span style="font-size:12.5px;color:var(--text-muted);font-weight:700">封存時間：${new Date(a.archivedAt).toLocaleString('zh-TW')}　封存人：${escapeHtml(a.archivedBy || '未知')}　住戶數：${(a.snapshot.residents||[]).length}　已分配車位數：${winnerCount}</span>
         </div>
         <div class="btn-row" style="margin:0">
           <button class="btn btn-sm" onclick="viewArchive(${a.id})">👁️ 檢視</button>
@@ -4477,12 +4559,12 @@
       let s1 = r.assign1 ? r.assign1 + '號' : '-';
       let s2 = r.assign2 ? r.assign2 + '號' : '-';
       let s3 = r.assign3 ? r.assign3 + '號' : '-';
-      return `<tr><td class="text-center"><b>${r.build}</b></td><td class="text-center">${r.room}</td><td>${r.name}</td><td class="text-center">${s1}</td><td class="text-center">${s2}</td><td class="text-center">${s3}</td></tr>`;
+      return `<tr><td class="text-center"><b>${escapeHtml(r.build)}</b></td><td class="text-center">${escapeHtml(r.room)}</td><td>${escapeHtml(r.name)}</td><td class="text-center">${s1}</td><td class="text-center">${s2}</td><td class="text-center">${s3}</td></tr>`;
     }).join('');
     const box = document.getElementById("archive-list-box");
     box.innerHTML = `
       <div class="flex-between" style="margin-bottom:1rem">
-        <b style="font-size:16px">📦 ${a.label}（唯讀檢視）</b>
+        <b style="font-size:16px">📦 ${escapeHtml(a.label)}（唯讀檢視）</b>
         <button class="btn btn-sm" onclick="showArchiveList()">⬅ 返回列表</button>
       </div>
       <div class="table-wrap" style="max-height:400px">
@@ -4636,7 +4718,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.35 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.36 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4675,7 +4757,7 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.35 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.36 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
@@ -4722,8 +4804,8 @@
           <div class="log-tl-line"></div>
           <div class="log-tl-dot"></div>
           <div class="log-tl-content">
-            <div style="font-size:13.5px;color:var(--text-muted);margin-bottom:6px;font-weight:800">${l.time} <span class="badge badge-blue" style="margin:0 8px">${l.type}</span> 👤 ${l.user}</div>
-            <div style="font-size:15px;color:var(--text-main);font-weight:700;line-height:1.6">${l.msg}</div>
+            <div style="font-size:13.5px;color:var(--text-muted);margin-bottom:6px;font-weight:800">${escapeHtml(l.time)} <span class="badge badge-blue" style="margin:0 8px">${escapeHtml(l.type)}</span> 👤 ${escapeHtml(l.user)}</div>
+            <div style="font-size:15px;color:var(--text-main);font-weight:700;line-height:1.6">${escapeHtml(l.msg)}</div>
           </div>
         </div>`;
       });
