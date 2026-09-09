@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.36</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.40</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
@@ -264,6 +264,19 @@
      改用乾淨的純黑白配色與適合紙本閱讀的字級間距，並加上頁首（社區名稱＋列印時間）。 */
   #print-header{display:none}
   #notification-slip{display:none}
+  #swap-registration-form{display:none}
+  .swap-form-sheet{background:#fff;color:#000;width:100%;max-width:900px;margin:0 auto;padding:36px 42px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .swap-form-title{text-align:center;font-size:26px;font-weight:900;letter-spacing:2px;margin-bottom:8px}
+  .swap-form-subtitle{text-align:center;font-size:13px;color:#444;margin-bottom:24px}
+  .swap-form-table{width:100%;border-collapse:collapse;margin-bottom:18px;font-size:14px}
+  .swap-form-table th,.swap-form-table td{border:1px solid #555;padding:11px 10px;vertical-align:middle}
+  .swap-form-table th{background:#f1f1f1;text-align:center;font-weight:900;white-space:nowrap}
+  .swap-form-table td.blank-line{height:44px}
+  .swap-form-note{font-size:12.5px;line-height:1.7;margin:14px 0 20px}
+  .swap-form-sign-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:18px}
+  .swap-form-sign-box{border:1px solid #555;min-height:105px;padding:10px}
+  .swap-form-sign-label{font-weight:900;margin-bottom:42px}
+  .swap-form-footer{font-size:12px;color:#444;margin-top:18px;line-height:1.6}
   @media print {
     body{background:#fff !important;font-size:11pt;line-height:1.5;color:#000}
     .nav, .user-bar, .nav-menu-mobile, #login-overlay, .modal-overlay,
@@ -296,6 +309,12 @@
     body.printing-slip .page, body.printing-slip #print-header { display: none !important; }
     body:not(.printing-slip) #notification-slip { display: none !important; }
     body.printing-slip #notification-slip { display: block !important; max-width:100%; }
+    body.printing-swap-form .page, body.printing-swap-form #print-header, body.printing-swap-form #notification-slip { display: none !important; }
+    body.printing-swap-form #swap-registration-form { display:block !important; max-width:100%; }
+    body.printing-swap-form .swap-form-sheet { max-width:100%; margin:0; padding:10mm 10mm 8mm; }
+    body.printing-swap-form .swap-form-title { font-size:22pt; }
+    body.printing-swap-form .swap-form-table { font-size:10.5pt; page-break-inside:avoid; }
+    body.printing-swap-form .swap-form-sign-row { page-break-inside:avoid; }
   }
 </style>
 </head>
@@ -310,6 +329,70 @@
 <!-- 💡 個人中籤通知單，畫面上不顯示，只有點擊「列印個人中籤通知單」時才會出現並印出 -->
 <div id="notification-slip"></div>
 
+<!-- 💡 車位互換空白登記表：僅在列印/另存 PDF 時顯示 -->
+<div id="swap-registration-form">
+  <div class="swap-form-sheet">
+    <div class="swap-form-title">稙村秀社區住戶車位交換登記表</div>
+    <div class="swap-form-subtitle">空白申請表／適用於住戶雙方同意交換車位之登記</div>
+
+    <table class="swap-form-table">
+      <tr>
+        <th style="width:14%">申請日期</th><td class="blank-line" style="width:36%"></td>
+        <th style="width:14%">交換日期</th><td class="blank-line" style="width:36%"></td>
+      </tr>
+    </table>
+
+    <table class="swap-form-table">
+      <tr>
+        <th colspan="2">住戶 A（原車位持有人）</th>
+        <th colspan="2">住戶 B（原車位持有人）</th>
+      </tr>
+      <tr>
+        <th style="width:14%">姓名</th><td class="blank-line"></td>
+        <th style="width:14%">姓名</th><td class="blank-line"></td>
+      </tr>
+      <tr>
+        <th>棟別／門牌</th><td class="blank-line"></td>
+        <th>棟別／門牌</th><td class="blank-line"></td>
+      </tr>
+      <tr>
+        <th>車牌號碼</th><td class="blank-line"></td>
+        <th>車牌號碼</th><td class="blank-line"></td>
+      </tr>
+      <tr>
+        <th>原分配輪次</th><td class="blank-line"></td>
+        <th>原分配輪次</th><td class="blank-line"></td>
+      </tr>
+      <tr>
+        <th>原車位號碼</th><td class="blank-line"></td>
+        <th>原車位號碼</th><td class="blank-line"></td>
+      </tr>
+      <tr>
+        <th>交換後車位</th><td class="blank-line"></td>
+        <th>交換後車位</th><td class="blank-line"></td>
+      </tr>
+    </table>
+
+    <table class="swap-form-table">
+      <tr><th style="width:18%">交換原因／備註</th><td class="blank-line" style="height:90px"></td></tr>
+    </table>
+
+    <div class="swap-form-note">
+      ※ 本表供住戶辦理車位交換登記使用。交換前請確認雙方住戶、車位號碼及分配輪次資料無誤，並由雙方簽名確認。實際交換是否成立，仍以社區車位管理系統及管理單位最終核准結果為準。
+    </div>
+
+    <div class="swap-form-sign-row">
+      <div class="swap-form-sign-box"><div class="swap-form-sign-label">住戶 A 簽名：</div></div>
+      <div class="swap-form-sign-box"><div class="swap-form-sign-label">住戶 B 簽名：</div></div>
+      <div class="swap-form-sign-box"><div class="swap-form-sign-label">管理單位確認：</div></div>
+    </div>
+
+    <div class="swap-form-footer">
+      表單編號：________________　　經辦人：________________　　備註：____________________________________________
+    </div>
+  </div>
+</div>
+
 <!-- ===== 使用者頂部列 ===== -->
 <!-- 說明：表格若欄位較多，手機上請左右滑動查看完整內容 -->
 <div class="user-bar" id="user-bar" style="display:none">
@@ -321,7 +404,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.36</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.41</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -677,7 +760,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.36 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.40 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -757,6 +840,7 @@
       <div class="flex-between">
         <div class="card-title" style="margin:0;border:none;padding:0">歷史互換紀錄</div>
         <button class="btn btn-sm" onclick="exportSwapLogs()">匯出 CSV</button>
+        <button class="btn btn-sm btn-primary" onclick="exportSwapRegistrationForm()">📄 匯出空白交換登記表</button>
       </div>
       <div id="swap-log-list" style="margin-top:1rem;max-height:360px;overflow-y:auto;padding-right:10px"></div>
     </div>
@@ -898,7 +982,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.36">
+        <input type="text" id="set-app-version" value="v2.40">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1263,7 +1347,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.36",
+    appVersion: "v2.41",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1285,6 +1369,29 @@
       return `<span class="badge badge-orange" title="尚未登記真實車牌，保留抽籤資格">🕒 ${PENDING_PLATE_LABEL}</span>`;
     }
     return `<code class="code-font">${escapeHtml(plateVal)}</code>`;
+  }
+
+  function normalizeSystemSettings() {
+    const total = Number(systemSettings.totalSeats);
+    systemSettings.totalSeats = Number.isFinite(total) && total > 0 ? Math.floor(total) : 122;
+
+    const b1 = Number(systemSettings.b1Limit);
+    systemSettings.b1Limit = Number.isFinite(b1) && b1 > 0 && b1 < systemSettings.totalSeats
+      ? Math.floor(b1) : Math.floor(systemSettings.totalSeats / 2);
+
+    const aStart = Number(systemSettings.abStart);
+    const aEnd = Number(systemSettings.abEnd);
+    systemSettings.abStart = Number.isFinite(aStart) ? Math.max(1, Math.min(systemSettings.totalSeats, Math.floor(aStart))) : 19;
+    systemSettings.abEnd = Number.isFinite(aEnd) ? Math.max(1, Math.min(systemSettings.totalSeats, Math.floor(aEnd))) : 56;
+    if (systemSettings.abStart > systemSettings.abEnd) {
+      [systemSettings.abStart, systemSettings.abEnd] = [systemSettings.abEnd, systemSettings.abStart];
+    }
+
+    systemSettings.voidSeats = Array.from(new Set(
+      (Array.isArray(systemSettings.voidSeats) ? systemSettings.voidSeats : [])
+        .map(v => Number(v))
+        .filter(v => Number.isInteger(v) && v >= 1 && v <= systemSettings.totalSeats)
+    )).sort((a,b) => a-b);
   }
 
   function normalizeResId(rawKey) {
@@ -1322,24 +1429,37 @@
 
   function getValidWinnerCount(round) {
     if (!lotteryResults || !lotteryResults[round]) return 0;
+    const seenResidents = new Set();
+    const seenSeats = new Set();
     let count = 0;
     for (let rawKey in lotteryResults[round]) {
-      let seat = lotteryResults[round][rawKey];
-      if (seat !== null && seat !== undefined && seat !== "" && Number(seat) > 0) {
-        count++;
-      }
+      const cleanId = normalizeResId(rawKey);
+      const seat = Number(lotteryResults[round][rawKey]);
+      if (cleanId <= 0 || !Number.isInteger(seat) || seat < 1 || seat > Number(systemSettings.totalSeats)) continue;
+      if (systemSettings.voidSeats.includes(seat)) continue;
+      if (seenResidents.has(cleanId) || seenSeats.has(seat)) continue;
+      if (!residents.some(r => Number(r.id) === cleanId)) continue;
+      seenResidents.add(cleanId);
+      seenSeats.add(seat);
+      count++;
     }
     return count;
   }
 
   function getSeatOccupant(seatNum) {
-    for (let r of ["候補", "第三輪", "第二輪", "第一輪"]) {
-      if (!lotteryResults[r]) continue;
-      for (let rawKey in lotteryResults[r]) {
-        let seat = lotteryResults[r][rawKey];
-        if (Number(seat) === Number(seatNum)) {
-          let targetId = normalizeResId(rawKey);
-          let res = residents.find(x => Number(x.id) === targetId);
+    const targetSeat = Number(seatNum);
+    if (!Number.isInteger(targetSeat) || targetSeat < 1) return null;
+    for (const r of residents) {
+      for (const field of ["assign1", "assign2", "assign3", "assignWaitlist"]) {
+        if (Number(r[field]) === targetSeat) return r;
+      }
+    }
+    for (let round of ["候補", "第三輪", "第二輪", "第一輪"]) {
+      if (!lotteryResults[round]) continue;
+      for (let rawKey in lotteryResults[round]) {
+        if (Number(lotteryResults[round][rawKey]) === targetSeat) {
+          const targetId = normalizeResId(rawKey);
+          const res = residents.find(x => Number(x.id) === targetId);
           if (res) return res;
         }
       }
@@ -1591,10 +1711,14 @@
                   let val = data.lotteryResults[r][rawKey];
                   if (cleanId > 0 && val) {
                     lotteryResults[r][cleanId] = Number(val);
-                    let rNum = r === "第一輪" ? 1 : (r === "第二輪" ? 2 : 3);
                     let targetRes = residents.find(x => Number(x.id) === cleanId);
                     if (targetRes) {
-                      targetRes['assign' + rNum] = Number(val);
+                      if (r === "候補") {
+                        targetRes.assignWaitlist = Number(val);
+                      } else {
+                        const rNum = r === "第一輪" ? 1 : (r === "第二輪" ? 2 : 3);
+                        targetRes['assign' + rNum] = Number(val);
+                      }
                     }
                   }
                 }
@@ -1629,6 +1753,7 @@
             if (typeof systemSettings.customFp2 === "undefined") systemSettings.customFp2 = "";
             if (typeof systemSettings.directorManualPdf === "undefined") systemSettings.directorManualPdf = "";
             if (typeof systemSettings.residentManualPdf === "undefined") systemSettings.residentManualPdf = "";
+            normalizeSystemSettings();
 
             // 💡 一次性資料遷移偵測（名稱無關版）：檢查「一般同步」的 systemSettings 節點本身
             // 是否還藏著超過門檻大小的欄位（代表是舊版直接存在這裡、還沒搬到 media 的大型資料）。
@@ -2309,6 +2434,10 @@
       return;
     }
 
+    systemSettings.totalSeats = tSeats;
+    systemSettings.b1Limit = b1Lim;
+    systemSettings.abStart = abStart;
+    systemSettings.abEnd = abEnd;
     systemSettings.voidSeats = uniqueInputSeats.sort((a,b)=>a-b);
     renderDashboard();
     initFloorplanSeats();
@@ -2802,6 +2931,27 @@
     }
   }
 
+  function parseCSVText(text) {
+    const rows = [];
+    let row = [], field = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (text[i + 1] === '"') { field += '"'; i++; }
+          else inQuotes = false;
+        } else field += ch;
+      } else {
+        if (ch === '"') inQuotes = true;
+        else if (ch === ',') { row.push(field); field = ''; }
+        else if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+        else if (ch !== '\r') field += ch;
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
   function importCSV(inputElem) {
     if (residents.length > 0) {
       if (!confirm("⚠️ 【警告】目前系統中已有住戶資料！\n\n再次匯入 CSV 將會「疊加新增」所有名單，可能會造成資料大量重複。\n您確定要繼續匯入嗎？（若要重新匯入，請先清空所有住戶資料）")) {
@@ -2815,15 +2965,14 @@
     const reader = new FileReader();
     reader.onload = function(e) {
       const text = e.target.result;
-      const lines = text.split('\n');
+      const rows = parseCSVText(text.replace(/^\uFEFF/, ''));
       let count = 0;
       let skippedReserve = 0;
       let invalidPrefCount = 0;
 
-      for(let i=1; i<lines.length; i++) {
-        const line = lines[i].trim();
-        if(!line) continue;
-        const cols = line.split(',').map(c => c.trim());
+      for(let i=1; i<rows.length; i++) {
+        const cols = rows[i].map(c => String(c ?? '').trim());
+        if (cols.every(c => c === '')) continue;
         if(cols.length >= 4) { 
           const newId = residents.length > 0 ? Math.max(...residents.map(x => Number(x.id))) + 1 : 1;
           const isRes = (cols[4] === '保留戶' || cols[4] === 'Y') ? 'Y' : 'N';
@@ -2884,6 +3033,9 @@
             assignWaitlist: waitlistSeat
           });
           
+          // 💡 資料格式一致化：本機 lotteryResults 統一使用「數字/可轉數字的住戶 ID」作為鍵值；
+          // 雲端寫入時再由 cloudSyncPush() 統一轉成 p_<ID>，避免同一住戶同時留下數字鍵與 p_ 鍵而被統計兩次。
+          // 讀取端 getUserSeat() 仍保留對舊版 p_ 格式的相容支援。
           if (seat1) {
             if (!lotteryResults["第一輪"]) lotteryResults["第一輪"] = {};
             lotteryResults["第一輪"][newId] = seat1;
@@ -2937,6 +3089,7 @@
   }
 
   function updateLotteryCards() {
+    normalizeSystemSettings();
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
     const baseAvailable = systemSettings.totalSeats - voidCount;
 
@@ -2987,7 +3140,8 @@
 
   // 💡 計算目前「剩餘可分配車位」：總車位扣除作廢車位、再扣除已經在任何輪次（含候補）分配出去的車位
   function getLeftoverFreeSeats() {
-    let voidSeatsSet = new Set(systemSettings.voidSeats || []);
+    normalizeSystemSettings();
+    let voidSeatsSet = new Set((systemSettings.voidSeats || []).map(Number));
     let usedSeatsSet = new Set();
     residents.forEach(r => {
       [r.assign1, r.assign2, r.assign3, r.assignWaitlist].forEach(s => {
@@ -3023,7 +3177,115 @@
     `;
   }
 
-  function runWaitlistLottery() {
+  function validateCurrentAllocationState(options = {}) {
+    normalizeSystemSettings();
+    const errors = [];
+    const seenSeats = new Map();
+    const seenResidents = new Set();
+    const roundField = {
+      "第一輪": "assign1",
+      "第二輪": "assign2",
+      "第三輪": "assign3",
+      "候補": "assignWaitlist"
+    };
+
+    ["第一輪", "第二輪", "第三輪", "候補"].forEach(round => {
+      const map = lotteryResults[round] || {};
+      Object.entries(map).forEach(([rawId, rawSeat]) => {
+        const id = normalizeResId(rawId);
+        const seat = Number(rawSeat);
+        const res = residents.find(r => Number(r.id) === id);
+        if (id <= 0 || !res) {
+          errors.push(`${round} 存在無效住戶 ID：${rawId}`);
+          return;
+        }
+        if (!Number.isInteger(seat) || seat < 1 || seat > systemSettings.totalSeats) {
+          errors.push(`${round} 的車位 ${rawSeat} 超出目前 1~${systemSettings.totalSeats} 範圍`);
+          return;
+        }
+        if (systemSettings.voidSeats.includes(seat)) {
+          errors.push(`${round} 的車位 ${seat}號目前被設定為作廢`);
+        }
+        const seatKey = String(seat);
+        if (seenSeats.has(seatKey)) {
+          errors.push(`車位 ${seat}號重複分配：${seenSeats.get(seatKey)} 與 ${round}`);
+        } else {
+          seenSeats.set(seatKey, round);
+        }
+        const field = roundField[round];
+        if (round !== "候補") {
+          const roundNum = round === "第一輪" ? 1 : (round === "第二輪" ? 2 : 3);
+          const rKey = `r${roundNum}`;
+          const plateKey = `plate${roundNum}`;
+          if (res[rKey] !== 'Y') errors.push(`${round} 住戶資格矛盾：${res.build}-${res.room} ${getDisplayName(res.name)} 未參加該輪卻存在 ${seat} 號中籤結果`);
+          if (!String(res[plateKey] || '').trim()) errors.push(`${round} 車牌資格矛盾：${res.build}-${res.room} ${getDisplayName(res.name)} 的 ${plateKey} 為空白卻存在 ${seat} 號中籤結果`);
+        } else if (res.waitlist !== 'Y') {
+          errors.push(`候補資格矛盾：${res.build}-${res.room} ${getDisplayName(res.name)} 未登記候補卻存在 ${seat} 號候補結果`);
+        }
+        if (Number(res[field]) !== seat) {
+          errors.push(`${round} 結果與住戶資料不一致：${res.build}-${res.room} ${getDisplayName(res.name)}，抽籤結果為 ${seat} 號，但住戶欄位為 ${res[field] || '無'}`);
+        }
+        const residentKey = `${round}:${id}`;
+        if (seenResidents.has(residentKey)) errors.push(`${round} 同一住戶存在重複結果：ID ${id}`);
+        seenResidents.add(residentKey);
+      });
+    });
+
+    residents.forEach(r => {
+      const assignments = [
+        ["第一輪", "assign1", r.assign1],
+        ["第二輪", "assign2", r.assign2],
+        ["第三輪", "assign3", r.assign3],
+        ["候補", "assignWaitlist", r.assignWaitlist]
+      ];
+      assignments.forEach(([round, field, rawSeat]) => {
+        if (rawSeat === "" || rawSeat === null || rawSeat === undefined) return;
+        const seat = Number(rawSeat);
+        if (!Number.isInteger(seat) || seat < 1 || seat > systemSettings.totalSeats) {
+          errors.push(`${r.build}-${r.room} ${getDisplayName(r.name)} 的${round}車位資料無效：${rawSeat}`);
+          return;
+        }
+        if (systemSettings.voidSeats.includes(seat)) errors.push(`${r.build}-${r.room} ${getDisplayName(r.name)} 的${round}車位 ${seat}號目前是作廢車位`);
+        const map = lotteryResults[round] || {};
+        const stored = Object.entries(map).some(([rawId, val]) => normalizeResId(rawId) === Number(r.id) && Number(val) === seat);
+        if (!stored) errors.push(`${r.build}-${r.room} ${getDisplayName(r.name)} 的${round}住戶車位欄位為 ${seat}號，但 lotteryResults 找不到相同結果`);
+      });
+    });
+
+    // 第二層檢查：即使 lotteryResults 缺少某筆資料，仍禁止住戶欄位本身在不同輪次重複占用同一實體車位。
+    const residentSeatOwners = new Map();
+    residents.forEach(r => {
+      [["第一輪", r.assign1], ["第二輪", r.assign2], ["第三輪", r.assign3], ["候補", r.assignWaitlist]].forEach(([round, rawSeat]) => {
+        const seat = Number(rawSeat);
+        if (!Number.isInteger(seat) || seat <= 0) return;
+        const key = String(seat);
+        if (residentSeatOwners.has(key)) {
+          const prev = residentSeatOwners.get(key);
+          if (prev.id !== Number(r.id) || prev.round !== round) {
+            errors.push(`住戶資料欄位發現車位 ${seat}號重複占用：${prev.label} 與 ${r.build}-${r.room} ${getDisplayName(r.name)} 的${round}`);
+          }
+        } else {
+          residentSeatOwners.set(key, { id: Number(r.id), round, label: `${r.build}-${r.room} ${getDisplayName(r.name)} 的${round}` });
+        }
+      });
+    });
+
+    if (errors.length && options.alert !== false) {
+      alert(`【抽籤資料一致性檢查失敗】\n\n${errors.slice(0, 20).map(x => `• ${x}`).join('\n')}${errors.length > 20 ? `\n…另有 ${errors.length - 20} 項。` : ''}\n\n請先重新整理雲端資料或修正異常，系統已阻止本次抽籤，以避免產生重複、非法或互相矛盾的車位資料。`);
+    }
+    return { ok: errors.length === 0, errors };
+  }
+
+  let waitlistLotteryRunning = false;
+
+  async function runWaitlistLottery() {
+    if (waitlistLotteryRunning) {
+      alert("候補抽籤正在執行中，請勿重複點擊。");
+      return;
+    }
+    if (currentUser && currentUser.role === 'guest') { alert("一般住戶僅提供查詢，不允許執行抽籤。"); return; }
+    if (!cloudSyncReady && FIREBASE_DB_URL && !FIREBASE_DB_URL.includes("YOUR-FIREBASE")) { alert("【防呆攔截】尚未完成雲端資料同步，暫時禁止候補抽籤。"); return; }
+    if (!validateCurrentAllocationState().ok) return;
     const freeSeats = getLeftoverFreeSeats();
     if (freeSeats.length === 0) {
       alert("目前沒有剩餘可分配的車位（所有非作廢車位皆已分配完畢），無法執行候補抽籤。");
@@ -3037,6 +3299,9 @@
     if (!confirm(`即將從 ${candidates.length} 位候補登記住戶中，隨機抽出遞補目前剩餘的 ${freeSeats.length} 個車位。\n\n（套用與正式抽籤相同的公平性規則：尚未持有任何車位者優先、保留戶優先、A/B棟就近分配、並嘗試比對指定車位）確定執行嗎？`)) {
       return;
     }
+    waitlistLotteryRunning = true;
+    const waitlistRunBtn = document.querySelector('#page-lottery .btn-run-lottery[onclick="runWaitlistLottery()"]');
+    if (waitlistRunBtn) waitlistRunBtn.disabled = true;
 
     if (!lotteryResults["候補"]) lotteryResults["候補"] = {};
     let freeSeatsSet = new Set(freeSeats);
@@ -3133,16 +3398,27 @@
     addLog("抽籤", `執行候補抽籤，共分配 ${winners.length} 個剩餘車位`).then(ok => {
       if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
       alert(`候補抽籤完成！共分配 ${winners.length} 個剩餘車位。`);
+    }).finally(() => {
+      waitlistLotteryRunning = false;
+      if (waitlistRunBtn) waitlistRunBtn.disabled = false;
     });
   }
 
-  function forfeitSeat(residentId, roundName) {
+  async function forfeitSeat(residentId, roundName) {
     const r = residents.find(x => Number(x.id) === Number(residentId));
     if (!r) return;
     const seat = getUserSeat(roundName, r.id);
     if (!seat) return;
 
     if (!confirm(`確定要將 ${r.build}-${r.room} ${getDisplayName(r.name)} 在【${roundName}】持有的車位 ${seat}號 標記為棄權嗎？\n\n此車位將立即釋放回可用車位池，可供候補抽籤或後續調整使用。此動作不會取消該住戶「參加${roundName}」的資格勾選，僅釋放車位本身。`)) {
+      return;
+    }
+
+    // 💡 先重新確認畫面上的車位仍是該住戶目前實際持有的車位，
+    // 避免另一個分頁/裝置已先完成互換或棄權，而本頁仍拿舊資料執行刪除。
+    const latestSeat = getUserSeat(roundName, r.id);
+    if (Number(latestSeat) !== Number(seat)) {
+      alert(`【防呆攔截】住戶目前的【${roundName}】車位已變更（目前為 ${latestSeat || '無車位'}），請重新整理後再操作。`);
       return;
     }
 
@@ -3166,10 +3442,19 @@
     renderResidents();
     renderResults();
     initFloorplanSeats();
-    addLog("抽籤", `標記棄權：${r.name} (${r.build} ${r.room}) 釋放【${roundName}】車位 ${seat}號`).then(ok => {
-      if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
-      alert(`已釋放車位 ${seat}號，可供候補抽籤或後續調整使用。`);
-    });
+    // 💡 修正：棄權釋出的車位必須立即從車位互換介面移除，避免舊畫面繼續選到。
+    renderSwap();
+
+    // 💡 修正：避免 addLog() 再觸發第二次同步；先把操作紀錄留在本機，
+    // 再由這裡明確呼叫 cloudSyncPush()，確保「棄權狀態 + 操作紀錄」同一次完整寫入雲端。
+    const logMsg = `標記棄權：${r.name} (${r.build} ${r.room}) 釋放【${roundName}】車位 ${seat}號`;
+    await addLog("抽籤", logMsg, { sync: false });
+    const syncOk = await cloudSyncPush();
+    if (!syncOk) {
+      alert(CLOUD_SYNC_FAIL_MSG);
+      return;
+    }
+    alert(`已釋放車位 ${seat}號，可供候補抽籤或後續調整使用。`);
   }
 
   function clearWaitlistResults() {
@@ -3192,7 +3477,15 @@
     addLog("抽籤", "清除候補抽籤結果").then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
   }
 
-  function runLottery() {
+  async function runLottery() {
+    if (!["第一輪", "第二輪", "第三輪"].includes(currentRound)) {
+      alert("【防呆攔截】目前選取的不是正式抽籤輪次。候補請使用「執行候補抽籤」按鈕，禁止將候補誤當成第三輪執行。");
+      return;
+    }
+    if (currentUser && currentUser.role === 'guest') { alert("一般住戶僅提供查詢，不允許執行抽籤。"); return; }
+    if (!cloudSyncReady && FIREBASE_DB_URL && !FIREBASE_DB_URL.includes("YOUR-FIREBASE")) { alert("【防呆攔截】尚未完成雲端資料同步，暫時禁止執行抽籤。"); return; }
+    if (!validateCurrentAllocationState().ok) return;
+    normalizeSystemSettings();
     const rKey = currentRound === "第一輪" ? "r1" : (currentRound === "第二輪" ? "r2" : "r3");
     const plateKey = currentRound === "第一輪" ? "plate1" : (currentRound === "第二輪" ? "plate2" : "plate3");
 
@@ -3297,7 +3590,7 @@
     lotteryResults["候補"] = {};
     residents.forEach(x => { x.assignWaitlist = ""; });
 
-    let voidSeatsSet = new Set(systemSettings.voidSeats || []);
+    let voidSeatsSet = new Set((systemSettings.voidSeats || []).map(Number));
     let usedSeatsSet = new Set();
 
     let roundsToCheck = [];
@@ -3440,6 +3733,10 @@
   }
 
   function clearCurrentRound() {
+    if (!["第一輪", "第二輪", "第三輪"].includes(currentRound)) {
+      alert("【防呆攔截】目前沒有可由「清除本輪結果」處理的正式抽籤輪次。候補結果請使用「清除候補結果」。");
+      return;
+    }
     const hasWaitlistResults = getValidWinnerCount("候補") > 0;
     let msg = `確定要清除 ${currentRound} 的抽籤結果嗎？${hasWaitlistResults ? '（將一併清除【候補】已抽出的車位結果）' : ''}`;
     if (currentRound === "第一輪") msg = `警告：清除第一輪結果將會一併清除第二輪、第三輪${hasWaitlistResults ? '、候補' : ''}的抽籤結果！是否確定？`;
@@ -3643,9 +3940,9 @@
     for (let i = 0; i < table.rows.length; i++) {
       let rowData = [];
       for (let j = 0; j < table.rows[i].cells.length; j++) {
-        rowData.push(table.rows[i].cells[j].innerText.replace(/,/g, "，").replace(/\n/g, " "));
+        rowData.push(csvEscape(table.rows[i].cells[j].innerText));
       }
-      csv += rowData.join(",") + "\n";
+      csv += rowData.join(",") + "\r\n";
     }
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -3679,8 +3976,8 @@
     } else {
       swapLogs.forEach(l => {
         html += `<div style="font-size:14.5px;padding:14px 0;border-bottom:1px solid var(--border-color)">
-          <b style="color:var(--primary)">[${l.round}]</b> <span style="font-size:13px;color:var(--text-muted);margin-left:8px;font-weight:700">${l.time}</span><br>
-          <span style="color:var(--text-main);font-weight:700;display:block;margin-top:8px">${l.desc}</span>
+          <b style="color:var(--primary)">[${escapeHtml(l.round || "")}]</b> <span style="font-size:13px;color:var(--text-muted);margin-left:8px;font-weight:700">${escapeHtml(l.time || "")}</span><br>
+          <span style="color:var(--text-main);font-weight:700;display:block;margin-top:8px">${escapeHtml(l.desc || "")}</span>
         </div>`;
       });
     }
@@ -3813,9 +4110,24 @@
       `👤 住戶 B 將釋出其 <b style="color:#16a34a">${bRoundName} (${bSeat?bSeat+'號':'無'})</b> ➔ 獲得：<b style="color:var(--primary)">${aSeat?aSeat+'號':'無'}</b> (將存入 B 的${bRoundName})`;
   }
 
-  function confirmSwap() {
+  async function confirmSwap() {
     if(!systemSettings.swapEnabled) {
       alert("目前車位互換功能已鎖定或逾期！");
+      return;
+    }
+    if (systemSettings.swapDeadline) {
+      const deadline = new Date(`${systemSettings.swapDeadline}T23:59:59`);
+      if (!Number.isNaN(deadline.getTime()) && Date.now() > deadline.getTime()) {
+        alert(`目前車位互換已超過截止日期 ${systemSettings.swapDeadline}，系統禁止執行互換。`);
+        return;
+      }
+    }
+    if (currentUser && currentUser.role === 'guest') {
+      alert("一般住戶僅提供查詢，不允許執行車位互換。");
+      return;
+    }
+    if (!cloudSyncReady && FIREBASE_DB_URL && !FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
+      alert("【防呆攔截】尚未完成雲端資料同步，暫時禁止互換。請先重新整理。");
       return;
     }
     const aId = document.getElementById("swap-a-idx").value;
@@ -3826,22 +4138,62 @@
       return;
     }
 
-    let aVal = document.getElementById("swap-a-seat-select").value.split('|');
-    let bVal = document.getElementById("swap-b-seat-select").value.split('|');
+    const aVal = document.getElementById("swap-a-seat-select").value.split('|');
+    const bVal = document.getElementById("swap-b-seat-select").value.split('|');
 
-    let aRoundNum = aVal[0]; let aSeat = Number(aVal[1]) || null;
-    let bRoundNum = bVal[0]; let bSeat = Number(bVal[1]) || null;
-    
+    const aRoundNum = aVal[0];
+    const bRoundNum = bVal[0];
+    const aSeat = Number(aVal[1]) || null;
+    const bSeat = Number(bVal[1]) || null;
+
+    if (!['1','2','3'].includes(String(aRoundNum)) || !['1','2','3'].includes(String(bRoundNum))) {
+      alert("【防呆攔截】互換輪次資料無效，請重新選擇住戶與輪次。");
+      return;
+    }
+
     if (!aSeat && !bSeat) {
       alert("【防呆攔截】雙方所選的輪次皆無中籤車位，無法進行無效互換！");
       return;
     }
 
-    let aRoundName = aRoundNum == '1' ? '第一輪' : (aRoundNum == '2' ? '第二輪' : '第三輪');
-    let bRoundName = bRoundNum == '1' ? '第一輪' : (bRoundNum == '2' ? '第二輪' : '第三輪');
+    const aRoundName = aRoundNum == '1' ? '第一輪' : (aRoundNum == '2' ? '第二輪' : '第三輪');
+    const bRoundName = bRoundNum == '1' ? '第一輪' : (bRoundNum == '2' ? '第二輪' : '第三輪');
 
-    let resA = residents.find(x => Number(x.id) === Number(aId));
-    let resB = residents.find(x => Number(x.id) === Number(bId));
+    const resA = residents.find(x => Number(x.id) === Number(aId));
+    const resB = residents.find(x => Number(x.id) === Number(bId));
+    if (!resA || !resB) {
+      alert("【防呆攔截】找不到其中一位住戶的最新資料，請重新整理後再操作。");
+      return;
+    }
+
+    // 💡 防呆 1：互換前重新核對畫面選項與住戶目前實際持有狀態，
+    // 防止另一個分頁/裝置剛完成棄權、互換或其他異動後，舊畫面把過期車位寫回去。
+    const currentASeat = getUserSeat(aRoundName, resA.id);
+    const currentBSeat = getUserSeat(bRoundName, resB.id);
+    if (Number(currentASeat || 0) !== Number(aSeat || 0) || Number(currentBSeat || 0) !== Number(bSeat || 0)) {
+      alert(`【防呆攔截】目前資料已與畫面選項不同，可能已被另一個分頁或裝置更新。\n\nA：目前 ${currentASeat ? currentASeat + '號' : '無車位'}，畫面選擇 ${aSeat ? aSeat + '號' : '無車位'}\nB：目前 ${currentBSeat ? currentBSeat + '號' : '無車位'}，畫面選擇 ${bSeat ? bSeat + '號' : '無車位'}\n\n請重新整理後再進行互換。`);
+      return;
+    }
+
+    // 💡 防呆 2：selected seat 必須在合法範圍內，且作廢車位絕對不可成為互換來源/目的。
+    const totalSeats = Number(systemSettings.totalSeats) || 122;
+    const voidSeatsSet = new Set((systemSettings.voidSeats || []).map(Number));
+    const invalidSeats = [aSeat, bSeat].filter(seat => seat !== null && (seat < 1 || seat > totalSeats));
+    if (invalidSeats.length > 0) {
+      alert(`【防呆攔截】偵測到超出目前車位範圍 1~${totalSeats} 的互換車位：${[...new Set(invalidSeats)].join(', ')}號。請重新整理後再操作。`);
+      return;
+    }
+    const voidSelectedSeats = [aSeat, bSeat].filter(seat => seat !== null && voidSeatsSet.has(Number(seat)));
+    if (voidSelectedSeats.length > 0) {
+      alert(`【防呆攔截】車位 ${[...new Set(voidSelectedSeats)].join(', ')}號目前已設定為「作廢車位」，不可拿來互換、轉讓或換入。請先重新確認目前資料。`);
+      return;
+    }
+
+    // 💡 防呆 3：若兩邊都實際持有車位，不允許兩邊剛好是同一號碼，避免製造無意義的互換紀錄。
+    if (aSeat && bSeat && aSeat === bSeat) {
+      alert(`【防呆攔截】雙方目前選擇的是相同的車位 ${aSeat}號，無需進行互換。`);
+      return;
+    }
 
     if (bSeat !== null && resA['r' + aRoundNum] !== 'Y') {
       alert(`【防呆攔截】住戶 A 未參加${aRoundName}（資格為 N），無法將車位轉入該輪次！請先在住戶名單補齊車牌。`);
@@ -3852,12 +4204,12 @@
       return;
     }
 
-    // 💡 防呆：避免互換後同一位住戶在「自己其他輪次（含候補）」持有同一個實體車位號碼（等同重複佔用同一格車位）。
-    // 例如：住戶A 第一輪已持有15號、第三輪持有20號，若把B的15號換進A的第三輪，
-    // A 就會同時在第一輪與第三輪都「持有」15號，等於重複佔用同一個實體車位。
-    // 候補車位也要一併檢查，避免換入的車位剛好跟自己透過候補取得的車位重複。
+    // 💡 防呆 4：避免互換後同一位住戶在「自己其他輪次（含候補）」持有同一個實體車位號碼（等同重複佔用同一格車位）。
     if (bSeat) {
-      let aOtherSeats = [1, 2, 3].filter(n => String(n) !== String(aRoundNum)).map(n => Number(resA['assign' + n]) || null).filter(Boolean);
+      let aOtherSeats = [1, 2, 3]
+        .filter(n => String(n) !== String(aRoundNum))
+        .map(n => Number(resA['assign' + n]) || null)
+        .filter(Boolean);
       if (resA.assignWaitlist) aOtherSeats.push(Number(resA.assignWaitlist));
       if (aOtherSeats.includes(bSeat)) {
         alert(`【防呆攔截】車位 ${bSeat}號 已經是住戶 A（${resA.build}-${resA.room} ${getDisplayName(resA.name)}）在其他輪次（含候補）持有的車位，無法換入重複的車位號碼！`);
@@ -3865,7 +4217,10 @@
       }
     }
     if (aSeat) {
-      let bOtherSeats = [1, 2, 3].filter(n => String(n) !== String(bRoundNum)).map(n => Number(resB['assign' + n]) || null).filter(Boolean);
+      let bOtherSeats = [1, 2, 3]
+        .filter(n => String(n) !== String(bRoundNum))
+        .map(n => Number(resB['assign' + n]) || null)
+        .filter(Boolean);
       if (resB.assignWaitlist) bOtherSeats.push(Number(resB.assignWaitlist));
       if (bOtherSeats.includes(aSeat)) {
         alert(`【防呆攔截】車位 ${aSeat}號 已經是住戶 B（${resB.build}-${resB.room} ${getDisplayName(resB.name)}）在其他輪次（含候補）持有的車位，無法換入重複的車位號碼！`);
@@ -3887,8 +4242,8 @@
     resA['assign' + aRoundNum] = bSeat || "";
     resB['assign' + bRoundNum] = aSeat || "";
 
-    let desc = `${getDisplayName(resA.name)}(${resA.build}-${resA.room}) 的 ${aRoundName}[${aSeat?aSeat+'號':'無'}] ` +
-               `與 ${getDisplayName(resB.name)}(${resB.build}-${resB.room}) 的 ${bRoundName}[${bSeat?bSeat+'號':'無'}] 進行精準對調`;
+    const desc = `${getDisplayName(resA.name)}(${resA.build}-${resA.room}) 的 ${aRoundName}[${aSeat?aSeat+'號':'無'}] ` +
+                 `與 ${getDisplayName(resB.name)}(${resB.build}-${resB.room}) 的 ${bRoundName}[${bSeat?bSeat+'號':'無'}] 進行精準對調`;
 
     swapLogs.unshift({
       round: "進階互換",
@@ -3905,22 +4260,48 @@
     renderResults();
     renderResidents();
     initFloorplanSeats();
-    
+
     selectSwapResident('A', aId);
     selectSwapResident('B', bId);
-    
-    addLog("互換", `執行進階跨輪互換：${resA.name} 與 ${resB.name}`).then(ok => {
-      if (!ok) { alert(CLOUD_SYNC_FAIL_MSG); return; }
-      alert("進階車位互換成功並已全域同步！");
-    });
+
+    const syncOk = await addLog("互換", `執行進階跨輪互換：${resA.name} 與 ${resB.name}`);
+    if (!syncOk) {
+      alert(CLOUD_SYNC_FAIL_MSG);
+      return;
+    }
+    alert("進階車位互換成功並已全域同步！");
+  }
+
+  // 💡 RFC 4180 相容 CSV 欄位跳脫：遇到逗號、雙引號或換行，一律以雙引號包覆，
+  // 並把原本的雙引號加倍，避免 Excel / Numbers / Google Sheets 解析時欄位錯位或跳列。
+  function csvEscape(value) {
+    const str = String(value ?? "");
+    if (/[",\r\n]/.test(str)) return `"${str.replace(/"/g, '""')}"`;
+    return str;
+  }
+
+  // 💡 匯出空白住戶車位交換登記表：使用瀏覽器列印功能，可直接列印或選擇「另存為 PDF」。
+  function exportSwapRegistrationForm() {
+    const form = document.getElementById("swap-registration-form");
+    if (!form) {
+      alert("找不到車位交換空白登記表，請重新整理頁面後再試。");
+      return;
+    }
+
+    document.body.classList.add("printing-swap-form");
+    try {
+      window.print();
+      addLog("互換", "匯出空白住戶車位交換登記表");
+    } finally {
+      // 延後清除，確保部分瀏覽器在列印對話框關閉後仍能正確恢復畫面。
+      setTimeout(() => document.body.classList.remove("printing-swap-form"), 300);
+    }
   }
 
   function exportSwapLogs() {
-    let csv = "\ufeff互換時間,互換輪次,異動明細\n";
+    let csv = "\ufeff互換時間,互換輪次,異動明細\r\n";
     swapLogs.forEach(l => {
-      let safeTime = (l.time || "").replace(/,/g, " ");
-      let safeDesc = (l.desc || "").replace(/,/g, "，").replace(/\n/g, " ");
-      csv += `${safeTime},${l.round},${safeDesc}\n`;
+      csv += [l.time || "", l.round || "", l.desc || ""].map(csvEscape).join(',') + "\r\n";
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -3928,6 +4309,7 @@
     newA.href = url;
     newA.download = `稙村秀車位互換紀錄_${new Date().toISOString().slice(0,10)}.csv`;
     newA.click();
+    URL.revokeObjectURL(url);
     addLog("設定", "匯出車位互換紀錄 CSV");
   }
 
@@ -4168,6 +4550,7 @@
   }
 
   function saveSeatSettings() {
+    normalizeSystemSettings();
     const tSeats = parseInt(document.getElementById("set-total-seats").value);
     const b1Lim = parseInt(document.getElementById("set-b1-limit").value);
     const voidVal = document.getElementById("set-void-seats").value;
@@ -4216,12 +4599,13 @@
       }
     }
 
-    systemSettings.totalSeats = tSeats;
-    systemSettings.b1Limit = b1Lim;
-    systemSettings.abStart = abStart;
-    systemSettings.abEnd = abEnd;
-
-    const arr = voidVal.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x) && x > 0 && x <= tSeats);
+    const rawVoidTokens = voidVal.split(',').map(x => x.trim()).filter(Boolean);
+    const invalidVoidTokens = rawVoidTokens.filter(x => !/^\d+$/.test(x) || Number(x) < 1 || Number(x) > tSeats);
+    if (invalidVoidTokens.length > 0) {
+      alert(`【設定錯誤】以下作廢車位輸入無效或超出 1~${tSeats} 範圍：\n\n• ${invalidVoidTokens.join('\n• ')}\n\n請修正後再儲存。`);
+      return;
+    }
+    const arr = rawVoidTokens.map(Number);
     const uniqueInputSeats = [...new Set(arr)];
 
     let conflictedSeats = [];
@@ -4718,7 +5102,7 @@
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.36 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.40 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -4757,14 +5141,14 @@
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.36 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.40 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
   }
 
 
-  async function addLog(type, msg) {
+  async function addLog(type, msg, options = {}) {
     systemLogs.unshift({
       time: new Date().toLocaleString(),
       type,
@@ -4777,6 +5161,9 @@
     if (systemLogs.length > 300) {
       systemLogs = systemLogs.slice(0, 300);
     }
+    // options.sync=false：只新增本機操作紀錄，不立即觸發同步。
+    // 由呼叫端在完成整個狀態變更後明確呼叫 cloudSyncPush()，避免同一操作重複寫入兩次。
+    if (options.sync === false) return true;
     // 💡 回傳雲端同步結果 (true/false)，讓關鍵操作（抽籤、互換、車位/名單異動等）可以偵測同步是否真的成功，
     // 並在失敗時提醒操作者，避免誤以為資料已經安全存到雲端。既有未使用回傳值的呼叫方式仍照常運作（fire-and-forget）。
     return await cloudSyncPush();
@@ -4845,15 +5232,8 @@
       let s3 = getUserSeat("第三輪", r.id) || (getValidWinnerCount("第三輪") > 0 ? (r.r3 === 'Y' ? "未中籤" : "未參加") : "未執行");
       let sW = getUserSeat("候補", r.id) || (r.waitlist === 'Y' ? "候補中" : "未登記");
       
-      let safeName = getDisplayName(r.name).replace(/,/g, "，").replace(/\n/g, " ");
-      let safeRoom = (r.room || "").replace(/,/g, "，").replace(/\n/g, " ");
-      let safeBuild = (r.build || "").replace(/,/g, "，").replace(/\n/g, " ");
-      let safeP1 = (r.plate1 || "").replace(/,/g, "，").replace(/\n/g, " ");
-      let safeP2 = (r.plate2 || "").replace(/,/g, "，").replace(/\n/g, " ");
-      let safeP3 = (r.plate3 || "").replace(/,/g, "，").replace(/\n/g, " ");
-      let safePW = (r.plateWaitlist || "").replace(/,/g, "，").replace(/\n/g, " ");
-
-      csv += `${r.id},${safeBuild},${safeRoom},${safeName},${r.reserve === 'Y' ? '保留戶' : '一般戶'},${s1},${s2},${s3},${r.pref1 || ''},${r.pref2 || ''},${r.pref3 || ''},${safeP1},${safeP2},${safeP3},${r.waitlist === 'Y' ? '已登記' : '未登記'},${sW},${safePW}\n`;
+      const row = [r.id, r.build || "", r.room || "", getDisplayName(r.name), r.reserve === 'Y' ? '保留戶' : '一般戶', s1, s2, s3, r.pref1 || '', r.pref2 || '', r.pref3 || '', r.plate1 || '', r.plate2 || '', r.plate3 || '', r.waitlist === 'Y' ? '已登記' : '未登記', sW, r.plateWaitlist || ''];
+      csv += row.map(csvEscape).join(',') + "\r\n";
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
