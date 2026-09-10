@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.54</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.57</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
@@ -407,7 +407,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.54</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.57</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -763,7 +763,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.54 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.57 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -985,7 +985,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.54">
+        <input type="text" id="set-app-version" value="v2.57">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1288,19 +1288,17 @@
   const PENDING_PLATE_LABEL = "新戶待補";
   // 台灣目前一般汽機車新式號牌：前三後四碼。I、O 與數字 4 不使用。
   // 允許輸入 ABC1234 或 ABC-1234，儲存時一律標準化成 ABC-1234。
-  // 💡 車牌格式驗證涵蓋歷史規則：台灣汽機車車牌歷經多次改版，尤其機車車牌格式，
-  // 舊制（2012年以前）多為「兩碼英文+三碼數字」或「兩碼英文+四碼數字」，
-  // 新制（2012年以後）機車為「三碼英文+三碼數字」、汽車為「三碼英文+四碼數字」，
-  // 更早期甚至有「數字在前、英文在後」的格式（如 DDD-LL、DDDD-LL、DD-LLLL）。
-  // 先前的規則只接受最新的「三碼英文+四碼數字」單一格式，導致大量合法的舊式機車車牌
-  // （尤其是兩碼英文開頭的）被誤判為格式異常。
-  // 數字部分也不再排除「4」——民國80幾年以前的舊車牌確實可能含有4，
-  // 過度限制數字4只會讓真正的舊車牌被誤判，而不是防呆。
-  // 英文字母仍排除 I、O（避免與數字1、0混淆），這是長期以來的通用慣例，各世代車牌皆遵循。
+  // 💡 特殊用途車輛車牌說明：租賃車(R開頭)、身心障礙車(W開頭)、電動車(E開頭)、計程車(T開頭)
+  // 自2012年新制車牌上路後，本身就是標準的「英文+數字」格式，只是開頭字母有特定意義，
+  // 並沒有額外的排列規則，因此已經被下方的一般格式規則正確涵蓋，不需要另外設計特例。
+  // 「公司車」在台灣監理制度下沒有專屬車牌格式，公司名義登記的車輛使用與一般自用車相同的
+  // 標準車牌，同樣已被下方規則涵蓋。
+  // 另外補上極早期（1992年以前）曾出現過的純數字車牌格式（不含英文字母）。
   const TAIWAN_PLATE_PATTERNS = [
-    /^[A-HJ-NP-Z]{2,3}\d{3,5}$/,   // 英文在前：涵蓋舊機車(2+3/2+4)、新機車(3+3)、新汽車(3+4)、微型電動二輪車(2+5，本身無連字號)
+    /^[A-HJ-NP-Z]{2,3}\d{3,5}$/,   // 英文在前：涵蓋舊機車(2+3/2+4)、新機車(3+3)、新汽車(3+4)、微型電動二輪車(2+5，本身無連字號)，亦涵蓋新式R/W/E/T開頭特殊車輛車牌
     /^\d{3,4}[A-HJ-NP-Z]{2,3}$/,  // 數字在前：涵蓋較早期 DDD-LL / DDDD-LL / DDD-LLL 等格式
-    /^\d{2}[A-HJ-NP-Z]{4}$/       // 更早期：DD-LLLL
+    /^\d{2}[A-HJ-NP-Z]{4}$/,      // 更早期：DD-LLLL
+    /^\d{5,6}$/                    // 極早期純數字車牌（1992年以前，尚未加入英文字母時期）
   ];
 
   function normalizePlateValue(value) {
@@ -1426,7 +1424,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.54",
+    appVersion: "v2.57",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -2687,7 +2685,12 @@
         <td class="text-center col-group-start"><button class="yn-btn ${r.r1==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r1')">${r.r1}</button></td>
         <td class="text-center"><button class="yn-btn ${r.r2==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r2')">${r.r2}</button></td>
         <td class="text-center"><button class="yn-btn ${r.r3==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r3')">${r.r3}</button></td>
-        <td class="text-center"><button class="yn-btn ${r.waitlist==='Y'?'yes':'no'}" onclick="toggleWaitlist(${r.id})" title="登記候補：第三輪後若有剩餘車位或住戶棄權，將優先從候補名單中抽出">${r.waitlist||'N'}</button></td>
+        <td class="text-center"><button class="yn-btn ${r.waitlist==='Y'?'yes':'no'}" onclick="toggleWaitlist(${r.id})" title="登記候補：第三輪後若有剩餘車位或住戶棄權，將優先從候補名單中抽出">${r.waitlist||'N'}</button>${(() => {
+          const fc = getForfeitCount(r.id, "候補");
+          if (fc < 2) return '';
+          if (r.waitlistExclusionOverride) return `<br><span class="badge badge-blue" style="margin-top:4px;cursor:pointer" onclick="toggleWaitlistExclusionOverride(${r.id})" title="點擊取消解除，恢復候補限制">✅已解除限制</span>`;
+          return `<br><span class="badge badge-red" style="margin-top:4px;cursor:pointer" onclick="toggleWaitlistExclusionOverride(${r.id})" title="已棄權候補${fc}次，暫時排除候補資格，點擊可由管理員手動解除">⛔候補已限制(${fc}次)</span>`;
+        })()}</td>
         <td class="text-center col-group-start">${r.reserve==='Y'?'<span class="badge badge-purple">保留戶</span>':'<span class="badge badge-gray">一般戶</span>'}</td>
         <td class="text-center col-group-start">${r.pref1 ? `<b style="color:var(--primary)">${r.pref1}號</b>` : '-'}</td>
         <td class="text-center">${r.pref2 ? `<b style="color:var(--primary)">${r.pref2}號</b>` : '-'}</td>
@@ -3037,6 +3040,18 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       return;
     }
 
+    // 💡 提醒（非強制）：一般戶本來就可以合法填寫指定車位（見欄位說明「選填，保留戶必填」），
+    // 這裡不是在阻擋或判定「破壞公平性」，純粹是當住戶「從保留戶降級為一般戶」時，
+    // 給管理員一個明確的提醒與選擇，避免舊資格殘留的指定車位在管理員沒注意到的情況下被誤解，
+    // 而不是自動幫管理員決定要不要清空。
+    const oldResForReserveCheck = id !== "" ? residents.find(x => Number(x.id) === Number(id)) : null;
+    if (oldResForReserveCheck && oldResForReserveCheck.reserve === 'Y' && reserve === 'N' && (pref1 !== "" || pref2 !== "" || pref3 !== "")) {
+      const keepPrefs = confirm(`【提醒】${name} 的身分即將從「保留戶」改為「一般戶」，但指定車位欄位仍保留原本的設定（${[pref1, pref2, pref3].filter(v => v !== "").map(v => v + '號').join('、')}）。\n\n一般戶本來就可以合法填寫指定車位，若這是您刻意保留的設定，請按「確定」保留；若只是忘記清空、不希望這位住戶繼續帶著原保留戶的指定車位參與抽籤，請按「取消」，系統會自動清空後再儲存。`);
+      if (!keepPrefs) {
+        pref1 = ""; pref2 = ""; pref3 = "";
+      }
+    }
+
     if (currentUser.role === 'director') {
       // 💡 修正：比對「本次提交」與「該住戶目前已核准存檔」的指定車位是否真的不同，
       // 避免社區主任僅編輯姓名/車牌等其他欄位時，被誤判為「變更指定車位」而重複送審，
@@ -3113,6 +3128,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       data.id = newId;
       data.assign1 = ""; data.assign2 = ""; data.assign3 = "";
       data.waitlist = waitlist; data.assignWaitlist = "";
+      data.waitlistExclusionOverride = false;
       residents.push(data);
     } else {
       const idx = residents.findIndex(x => Number(x.id) === Number(id));
@@ -3155,6 +3171,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
         data.assign3 = r3 === 'Y' ? (oldRes.assign3 || "") : "";
         data.waitlist = waitlist;
         data.assignWaitlist = waitlist === 'Y' ? (oldRes.assignWaitlist || "") : "";
+        // 💡 修正：data 是從編輯表單重新組裝的物件，表單本身沒有「解除候補限制」這個欄位，
+        // 若不明確保留，管理員手動解除限制後，只要再編輯這位住戶的任何資料（例如改個電話、車牌），
+        // 剛才手動解除的標記就會被整個覆蓋歸零，住戶又會立刻變回「候補已限制」狀態。
+        data.waitlistExclusionOverride = oldRes.waitlistExclusionOverride || false;
         residents[idx] = data;
 
         if (releasedSeats.length > 0) {
@@ -3457,9 +3477,42 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
 
   // 💡 候補資格：登記候補（waitlist='Y'）且目前完全沒有任何車位（含候補）的住戶優先；
   // 已持有車位者若也登記候補，排在沒有車位者之後（透過 toggleWaitlist 提醒過，非強制擋下）
+  // 💡 候補資格排除規則（依需求調整為更彈性的版本）：
+  // 1. 範圍限定：只計算「候補本身」的棄權次數，不計入第一~三輪的棄權
+  //    （棄權正式輪次車位跟候補資格是兩件事，不應該互相牽連）。
+  // 2. 次數門檻：允許棄權候補一次（給一次改變心意的機會），達到第二次（含）以上才會被排除，
+  //    避免單次合理棄權就被永久擋在候補名單之外。
+  // 3. 管理員手動解除：若管理員認為某位住戶的棄權有正當理由，可透過住戶資料上的
+  //    `waitlistExclusionOverride` 標記手動解除限制，不需要更動全域規則。
+  function getForfeitCount(residentId, roundName) {
+    const id = Number(residentId);
+    if (!Array.isArray(forfeitRecords)) return 0;
+    return forfeitRecords.filter(x => Number(x.residentId) === id && x.round === roundName).length;
+  }
+
   function hasActiveForfeitRecord(residentId) {
     const id = Number(residentId);
-    return Array.isArray(forfeitRecords) && forfeitRecords.some(x => Number(x.residentId) === id);
+    const res = residents.find(r => Number(r.id) === id);
+    if (res && res.waitlistExclusionOverride) return false; // 管理員已手動解除此住戶的候補限制
+    return getForfeitCount(id, "候補") >= 2;
+  }
+
+  async function toggleWaitlistExclusionOverride(residentId) {
+    if (currentUser.role !== 'admin') {
+      alert("權限不足，僅系統管理員可解除候補限制！");
+      return;
+    }
+    const r = residents.find(x => Number(x.id) === Number(residentId));
+    if (!r) return;
+    const forfeitCount = getForfeitCount(r.id, "候補");
+    const newState = !r.waitlistExclusionOverride;
+    if (newState && !confirm(`確定要手動解除 ${r.build}-${r.room} ${r.name} 的候補資格限制嗎？\n\n此住戶目前已棄權候補 ${forfeitCount} 次（達2次以上會被系統自動排除），解除後即可重新登記候補、參與候補抽籤。`)) {
+      return;
+    }
+    r.waitlistExclusionOverride = newState;
+    renderResidents();
+    updateWaitlistPanel();
+    addLog("抽籤", `${newState ? '手動解除' : '取消解除'} ${r.name} (${r.build} ${r.room}) 的候補資格限制`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
   }
 
   function getWaitlistCandidates() {
@@ -3639,11 +3692,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     const excludedForfeited = residents.filter(r => r.waitlist === 'Y' && !getUserSeat("候補", r.id) && hasActiveForfeitRecord(r.id)).length;
     if (candidates.length === 0) {
       alert(excludedForfeited > 0
-        ? `目前沒有符合候補資格的住戶。另有 ${excludedForfeited} 位曾主動棄權的住戶已依規則排除。`
+        ? `目前沒有符合候補資格的住戶。另有 ${excludedForfeited} 位因候補棄權達2次（含）以上，已依規則暫時排除（管理員可於住戶名單手動解除）。`
         : "目前沒有登記候補、且尚未透過候補取得車位的住戶。請先到「住戶名單」頁面為有意願候補的住戶勾選「候補登記」。");
       return;
     }
-    if (!confirm(`即將從 ${candidates.length} 位符合候補資格的住戶中，隨機抽出遞補目前剩餘的 ${freeSeats.length} 個車位。${excludedForfeited > 0 ? `\n\n另有 ${excludedForfeited} 位曾主動棄權者已依規則排除。` : ''}\n\n（套用與正式抽籤相同的公平性規則：尚未持有任何車位者優先、保留戶優先、A/B棟就近分配、並嘗試比對指定車位）確定執行嗎？`)) {
+    if (!confirm(`即將從 ${candidates.length} 位符合候補資格的住戶中，隨機抽出遞補目前剩餘的 ${freeSeats.length} 個車位。${excludedForfeited > 0 ? `\n\n另有 ${excludedForfeited} 位因候補棄權達2次（含）以上已依規則排除。` : ''}\n\n（套用與正式抽籤相同的公平性規則：尚未持有任何車位者優先、保留戶優先、A/B棟就近分配、並嘗試比對指定車位）確定執行嗎？`)) {
       return;
     }
     waitlistLotteryRunning = true;
@@ -5779,7 +5832,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.54 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.57 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -5818,7 +5871,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.54 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.57 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
