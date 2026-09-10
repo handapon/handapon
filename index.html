@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.53</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.54</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
@@ -407,7 +407,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.53</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.54</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -763,7 +763,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.53 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.54 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -985,7 +985,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.53">
+        <input type="text" id="set-app-version" value="v2.54">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1288,13 +1288,26 @@
   const PENDING_PLATE_LABEL = "新戶待補";
   // 台灣目前一般汽機車新式號牌：前三後四碼。I、O 與數字 4 不使用。
   // 允許輸入 ABC1234 或 ABC-1234，儲存時一律標準化成 ABC-1234。
-  const TAIWAN_PLATE_CORE_RE = /^[A-HJ-NP-Z]{3}[0-35-9]{4}$/;
+  // 💡 車牌格式驗證涵蓋歷史規則：台灣汽機車車牌歷經多次改版，尤其機車車牌格式，
+  // 舊制（2012年以前）多為「兩碼英文+三碼數字」或「兩碼英文+四碼數字」，
+  // 新制（2012年以後）機車為「三碼英文+三碼數字」、汽車為「三碼英文+四碼數字」，
+  // 更早期甚至有「數字在前、英文在後」的格式（如 DDD-LL、DDDD-LL、DD-LLLL）。
+  // 先前的規則只接受最新的「三碼英文+四碼數字」單一格式，導致大量合法的舊式機車車牌
+  // （尤其是兩碼英文開頭的）被誤判為格式異常。
+  // 數字部分也不再排除「4」——民國80幾年以前的舊車牌確實可能含有4，
+  // 過度限制數字4只會讓真正的舊車牌被誤判，而不是防呆。
+  // 英文字母仍排除 I、O（避免與數字1、0混淆），這是長期以來的通用慣例，各世代車牌皆遵循。
+  const TAIWAN_PLATE_PATTERNS = [
+    /^[A-HJ-NP-Z]{2,3}\d{3,5}$/,   // 英文在前：涵蓋舊機車(2+3/2+4)、新機車(3+3)、新汽車(3+4)、微型電動二輪車(2+5，本身無連字號)
+    /^\d{3,4}[A-HJ-NP-Z]{2,3}$/,  // 數字在前：涵蓋較早期 DDD-LL / DDDD-LL / DDD-LLL 等格式
+    /^\d{2}[A-HJ-NP-Z]{4}$/       // 更早期：DD-LLLL
+  ];
 
   function normalizePlateValue(value) {
     return String(value ?? '')
       .trim()
       .toUpperCase()
-      // 輸入端一併容許常見全形/長破折號；儲存後仍統一為 ABC-1234。
+      // 輸入端一併容許常見全形/長破折號、以及完全不輸入連字號；儲存後統一自動補上正確位置的 "-"。
       .replace(/[\s\-\u2010-\u2015\u2212\uFF0D]+/g, '');
   }
 
@@ -1302,22 +1315,26 @@
     const normalized = normalizePlateValue(value);
     if (!normalized) return false;
     if (allowPending && normalized === normalizePlateValue(PENDING_PLATE_LABEL)) return true;
-    return TAIWAN_PLATE_CORE_RE.test(normalized);
+    return TAIWAN_PLATE_PATTERNS.some(re => re.test(normalized));
   }
 
   function formatTaiwanPlate(value) {
     const normalized = normalizePlateValue(value);
     if (normalized === normalizePlateValue(PENDING_PLATE_LABEL)) return PENDING_PLATE_LABEL;
-    if (!TAIWAN_PLATE_CORE_RE.test(normalized)) return '';
-    return normalized.slice(0, 3) + '-' + normalized.slice(3);
+    if (!isValidTaiwanPlate(normalized, false)) return '';
+    // 💡 自動找出英文／數字的交界點插入 "-"，不再假設固定「前3碼英文」的位置，
+    // 才能正確處理兩碼英文、數字在前等各種舊式格式的自動補上分隔號。
+    const m = normalized.match(/^([A-HJ-NP-Z]+)(\d+)$/) || normalized.match(/^(\d+)([A-HJ-NP-Z]+)$/);
+    if (m) return m[1] + '-' + m[2];
+    return normalized;
   }
 
   function getPlateValidationMessage(value) {
     const raw = String(value ?? '').trim();
     if (!raw) return '請輸入車牌號碼。';
     if (normalizePlateValue(raw) === normalizePlateValue(PENDING_PLATE_LABEL)) return '';
-    if (!TAIWAN_PLATE_CORE_RE.test(normalizePlateValue(raw))) {
-      return '車牌格式錯誤：請輸入目前台灣一般汽機車新式號牌格式「ABC-1234」；英文字母 I、O 與數字 4 不使用。若尚無車牌，請勾選「新戶待補」。';
+    if (!isValidTaiwanPlate(raw, false)) {
+      return '車牌格式錯誤：請輸入台灣汽機車車牌號碼（新式或舊式格式皆可，例如 ABC-1234、AB-123，中間的「-」可省略）；英文字母 I、O 不使用。若尚無車牌，請勾選「新戶待補」。';
     }
     return '';
   }
@@ -1409,7 +1426,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.53",
+    appVersion: "v2.54",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -5183,7 +5200,19 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       renderSwap();
       renderResults();
       updateLotteryCards();
-      renderSystemSettings && renderSystemSettings();
+      // 💡 修正：先前呼叫的 renderSystemSettings() 從未被定義過（呼叫沒有崩潰是因為前面的 && 短路），
+      // 導致設定儲存失敗回滾時，畫面上的輸入框仍然停留在剛才儲存失敗、已回滾的舊數值，
+      // 讓管理員誤以為畫面顯示的就是目前生效的設定。改為直接把回滾後的正確數值寫回各個輸入框。
+      const totalSeatsInput = document.getElementById("set-total-seats");
+      const b1LimitInput = document.getElementById("set-b1-limit");
+      const abStartInput = document.getElementById("set-ab-start");
+      const abEndInput = document.getElementById("set-ab-end");
+      const voidSeatsInput = document.getElementById("set-void-seats");
+      if (totalSeatsInput) totalSeatsInput.value = systemSettings.totalSeats;
+      if (b1LimitInput) b1LimitInput.value = systemSettings.b1Limit;
+      if (abStartInput) abStartInput.value = systemSettings.abStart;
+      if (abEndInput) abEndInput.value = systemSettings.abEnd;
+      if (voidSeatsInput) voidSeatsInput.value = (systemSettings.voidSeats || []).join(',');
       alert(`${CLOUD_SYNC_FAIL_MSG}\n\n本次車位設定已在本機回滾。`);
       return;
     }
@@ -5750,7 +5779,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.53 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.54 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -5789,7 +5818,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.53 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.54 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
@@ -5873,7 +5902,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   // ================= 11. 匯出工具 =================
   function getForfeitLabel(residentId, roundName, fallback) {
     const id = Number(residentId);
-    const rec = Array.isArray(forfeitRecords) ? forfeitRecords.find(x => Number(x.residentId) === id && x.round === roundName) : null;
+    // 💡 修正：forfeitRecords 是用 push() 新增（舊紀錄在前、新紀錄在後），
+    // 但先前用 find() 從頭開始找，若同一位住戶對同一輪次有多筆棄權紀錄
+    // （例如候補中籤後棄權、重新登記又中籤又再次棄權），會抓到「最舊」的那一筆，
+    // 顯示錯誤的棄權車位號碼。改為從陣列尾端開始找，取得「最新」的一筆棄權紀錄。
+    const rec = Array.isArray(forfeitRecords) ? forfeitRecords.slice().reverse().find(x => Number(x.residentId) === id && x.round === roundName) : null;
     if (!rec) return fallback;
     const seat = Number(rec.seat);
     return Number.isInteger(seat) && seat > 0 ? `已棄權（原${seat}號）` : '已棄權';
