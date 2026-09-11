@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.57</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.58</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root {
     --primary: #2563eb;
@@ -407,7 +408,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.57</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.58</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -525,6 +526,7 @@
       <button class="btn btn-primary" id="btn-add-resident" onclick="openAddModal()">新增住戶</button>
       <button class="btn" onclick="exportCSV()">匯出全資料 CSV</button>
       <button class="btn btn-success" onclick="exportExcel('residents-table', '住戶名單')">匯出名單 Excel</button>
+      <button class="btn btn-primary" onclick="exportResidentRegistrationFormsWord()">📝 匯出住戶機車位登記表 Word</button>
       <label class="btn" style="display:inline-block;margin:0;cursor:pointer">
         匯入 CSV <input type="file" accept=".csv" style="display:none" onchange="importCSV(this)">
       </label>
@@ -553,6 +555,9 @@
     <div style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.25rem;font-weight:800" id="resident-count"></div>
     <div id="waitlist-col-hint" style="font-size:13px;color:#c2410c;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;margin-bottom:1.25rem;font-weight:700">
       💡 「候補登記」欄位說明：三輪抽籤結束後若仍有剩餘車位或住戶棄權，會優先從此欄位勾選「Y」的住戶中抽出遞補。（此說明因應手機/平板無法顯示滑鼠提示文字而額外加註）
+    </div>
+    <div style="font-size:13px;color:#1d4ed8;background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:10px 14px;margin-bottom:1.25rem;font-weight:700">
+      📝 「住戶機車位登記表 Word」會依 A～E 棟分成 5 個頁面；姓名自動去識別化，第一～三輪車號欄位預留空白供住戶手寫或編輯。
     </div>
     
     <div class="table-scroll-hint">👉 表格可左右滑動查看更多欄位</div>
@@ -763,7 +768,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.57 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.58 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -985,7 +990,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.57">
+        <input type="text" id="set-app-version" value="v2.58">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1135,7 +1140,7 @@
       </div>
       <div>
         <label>身分</label>
-        <select id="res-reserve">
+        <select id="res-reserve" onchange="handleResidentReserveChange()">
           <option value="N">一般戶</option>
           <option value="Y">保留戶</option>
         </select>
@@ -1154,7 +1159,10 @@
       <div><label>指定車位2</label><input type="number" id="res-pref2" min="1" placeholder="選填"></div>
       <div><label>指定車位3</label><input type="number" id="res-pref3" min="1" placeholder="選填"></div>
     </div>
-    <div id="pref-range-hint" style="font-size:12.5px;color:var(--text-muted);font-weight:700;margin-top:-10px;margin-bottom:16px"></div>
+    <div id="pref-range-hint" style="font-size:12.5px;color:var(--text-muted);font-weight:700;margin-top:-10px;margin-bottom:8px"></div>
+    <div id="new-general-pref-hint" style="font-size:12.5px;color:#c2410c;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:9px 12px;margin-bottom:16px;font-weight:700;display:none">
+      ⚠️ 新增「一般戶」若填寫指定車位，儲存時會再次確認，請確認此指定是否已有管理單位核准。
+    </div>
     <div class="form-row-3">
       <div><label>車牌 1 (自動勾第1輪)</label><input type="text" id="res-plate1" placeholder="例: ABC-1234" maxlength="8" inputmode="latin" pattern="[A-HJ-NP-Z]{3}-?[0-35-9]{4}" oninput="onPlateInput(this)">
         <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:700;font-size:12.5px;color:#c2410c;cursor:pointer">
@@ -1298,7 +1306,7 @@
     /^[A-HJ-NP-Z]{2,3}\d{3,5}$/,   // 英文在前：涵蓋舊機車(2+3/2+4)、新機車(3+3)、新汽車(3+4)、微型電動二輪車(2+5，本身無連字號)，亦涵蓋新式R/W/E/T開頭特殊車輛車牌
     /^\d{3,4}[A-HJ-NP-Z]{2,3}$/,  // 數字在前：涵蓋較早期 DDD-LL / DDDD-LL / DDD-LLL 等格式
     /^\d{2}[A-HJ-NP-Z]{4}$/,      // 更早期：DD-LLLL
-    /^\d{5,6}$/                    // 極早期純數字車牌（1992年以前，尚未加入英文字母時期）
+    /^\d{5,6}$/                    // 極早期純數字車牌：嚴格限制為 5～6 碼，不接受 7 碼以上
   ];
 
   function normalizePlateValue(value) {
@@ -1424,7 +1432,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.57",
+    appVersion: "v2.58",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -2875,6 +2883,10 @@
     document.getElementById("res-pref1").value = "";
     document.getElementById("res-pref2").value = "";
     document.getElementById("res-pref3").value = "";
+    const generalPrefHint = document.getElementById("new-general-pref-hint");
+    if (generalPrefHint) generalPrefHint.style.display = "block";
+    const reserveSelect = document.getElementById("res-reserve");
+    if (reserveSelect) reserveSelect.dataset.mode = "add";
     document.getElementById("res-plate1").value = "";
     document.getElementById("res-plate2").value = "";
     document.getElementById("res-plate3").value = "";
@@ -2891,6 +2903,10 @@
     const r = residents.find(x => Number(x.id) === Number(id));
     if(!r) return;
     document.getElementById("modal-title").innerText = "編輯住戶資料";
+    const reserveSelect = document.getElementById("res-reserve");
+    if (reserveSelect) reserveSelect.dataset.mode = "edit";
+    const generalPrefHint = document.getElementById("new-general-pref-hint");
+    if (generalPrefHint) generalPrefHint.style.display = "none";
     document.getElementById("edit-id").value = r.id;
     document.getElementById("res-build").value = r.build;
     document.getElementById("res-room").value = r.room;
@@ -2913,6 +2929,16 @@
     syncPendingPlateCheckbox('W', r.plateWaitlist || "");
     document.getElementById("pref-range-hint").innerText = `有效範圍：1 ~ ${systemSettings.totalSeats}`;
     document.getElementById("resident-modal").classList.add("show");
+  }
+
+  function handleResidentReserveChange() {
+    const reserveSelect = document.getElementById("res-reserve");
+    const hint = document.getElementById("new-general-pref-hint");
+    const isAddMode = document.getElementById("edit-id").value === "";
+    const isGeneralAdd = isAddMode && reserveSelect && reserveSelect.value === "N";
+    if (hint) hint.style.display = isGeneralAdd ? "block" : "none";
+    if (isAddMode && reserveSelect) reserveSelect.dataset.mode = "add";
+    if (isGeneralAdd && hint) hint.style.color = "#c2410c";
   }
 
   function closeModal() {
@@ -3038,6 +3064,14 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     if (reserve === 'Y' && pref1 === "" && pref2 === "" && pref3 === "") {
       alert("【保留戶防呆警告】該住戶身分設定為「保留戶」，必須填寫至少一個指定車位！");
       return;
+    }
+
+    // 💡 新增戶特別防呆：一般戶若一開始就填入指定車位，要求管理員再次確認，
+    // 避免誤把未核准的自選車位帶入正式資料；保留戶則依原規則處理。
+    const isNewResident = id === "";
+    if (isNewResident && reserve === 'N' && (pref1 !== "" || pref2 !== "" || pref3 !== "")) {
+      const okGeneralPref = confirm(`【新增一般戶指定車位提醒】目前新增的是「一般戶」，但您填寫了指定車位：${[pref1, pref2, pref3].filter(v => v !== "").map(v => v + '號').join('、')}。\n\n請確認這些指定車位已經過管理單位核准；若只是住戶自行填寫而尚未核准，請按「取消」回去清空指定車位。\n\n仍要繼續儲存嗎？`);
+      if (!okGeneralPref) return;
     }
 
     // 💡 提醒（非強制）：一般戶本來就可以合法填寫指定車位（見欄位說明「選填，保留戶必填」），
@@ -3509,10 +3543,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     if (newState && !confirm(`確定要手動解除 ${r.build}-${r.room} ${r.name} 的候補資格限制嗎？\n\n此住戶目前已棄權候補 ${forfeitCount} 次（達2次以上會被系統自動排除），解除後即可重新登記候補、參與候補抽籤。`)) {
       return;
     }
+    const previousState = !!r.waitlistExclusionOverride;
     r.waitlistExclusionOverride = newState;
     renderResidents();
     updateWaitlistPanel();
-    addLog("抽籤", `${newState ? '手動解除' : '取消解除'} ${r.name} (${r.build} ${r.room}) 的候補資格限制`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
+    const ok = await addLog("抽籤", `${newState ? '手動解除' : '取消解除'} ${r.name} (${r.build} ${r.room}) 的候補資格限制`);
+    if (!ok) {
+      r.waitlistExclusionOverride = previousState;
+      renderResidents();
+      updateWaitlistPanel();
+      alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次手動解除/取消限制已在本機回滾，避免未同步狀態被拿去執行候補抽籤。");
+    }
   }
 
   function getWaitlistCandidates() {
@@ -5832,7 +5873,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.57 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.58 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -5871,7 +5912,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.57 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.58 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
@@ -5983,6 +6024,123 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     newA.download = `稙村秀社區機車位資料彙整_${getLocalDateStamp()}.csv`;
     newA.click();
     addLog("設定", `匯出住戶全資料 CSV 報表`);
+  }
+
+  function xmlEscape(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+  }
+
+  // 姓名去識別化：每位共同持有人的姓名個別遮罩；3字以上保留首尾，中間字全部改為 O。
+  function maskRegistrationOwnerNames(name) {
+    const raw = String(name ?? "").trim();
+    if (!raw) return "";
+    const parts = raw.split(/(、|，|,|\/|／|;|；|&|＆|\+|\n)/);
+    return parts.map(part => {
+      if (/^(、|，|,|\/|／|;|；|&|＆|\+|\n)$/.test(part)) return part;
+      const s = part.trim();
+      if (!s) return part;
+      if (s.length <= 2) return s;
+      return s[0] + "O".repeat(s.length - 2) + s[s.length - 1];
+    }).join("");
+  }
+
+  function registrationBuildingKey(build) {
+    const s = String(build ?? "").trim().toUpperCase();
+    const m = s.match(/^[A-E]/);
+    return m ? m[0] : "OTHER";
+  }
+
+  function registrationRoomLabel(r) {
+    return `${r.build || ""}-${r.room || ""}`.replace(/^-|-$/g, "");
+  }
+
+  function registrationSort(a, b) {
+    const ak = `${a.build || ""}-${a.room || ""}`;
+    const bk = `${b.build || ""}-${b.room || ""}`;
+    return ak.localeCompare(bk, 'zh-Hant', {numeric:true, sensitivity:'base'});
+  }
+
+  function buildWordParagraph(text, {bold=false, size=22, align="left"} = {}) {
+    const jc = align === "center" ? "<w:jc w:val=\"center\"/>" : align === "right" ? "<w:jc w:val=\"right\"/>" : "";
+    return `<w:p><w:pPr>${jc}<w:spacing w:after=\"80\"/></w:pPr><w:r><w:rPr>${bold ? '<w:b/>' : ''}<w:sz w:val=\"${size}\"/><w:szCs w:val=\"${size}\"/><w:rFonts w:ascii=\"Microsoft JhengHei\" w:hAnsi=\"Microsoft JhengHei\" w:eastAsia=\"Microsoft JhengHei\"/></w:rPr><w:t xml:space=\"preserve\">${xmlEscape(text)}</w:t></w:r></w:p>`;
+  }
+
+  function buildWordCell(text, width, {bold=false, align="center", blank=false} = {}) {
+    const jc = align === "left" ? "left" : align === "right" ? "right" : "center";
+    const content = blank ? "<w:p><w:pPr><w:jc w:val=\"center\"/><w:spacing w:after=\"0\"/></w:pPr><w:r><w:t xml:space=\"preserve\"> </w:t></w:r></w:p>" : `<w:p><w:pPr><w:jc w:val=\"${jc}\"/><w:spacing w:after=\"0\"/></w:pPr><w:r><w:rPr>${bold ? '<w:b/>' : ''}<w:sz w:val=\"21\"/><w:szCs w:val=\"21\"/><w:rFonts w:ascii=\"Microsoft JhengHei\" w:hAnsi=\"Microsoft JhengHei\" w:eastAsia=\"Microsoft JhengHei\"/></w:rPr><w:t xml:space=\"preserve\">${xmlEscape(text)}</w:t></w:r></w:p>`;
+    return `<w:tc><w:tcPr><w:tcW w:w=\"${width}\" w:type=\"dxa\"/><w:tcMar><w:top w:w=\"80\" w:type=\"dxa\"/><w:left w:w=\"90\" w:type=\"dxa\"/><w:bottom w:w=\"80\" w:type=\"dxa\"/><w:right w:w=\"90\" w:type=\"dxa\"/></w:tcMar></w:tcPr>${content}</w:tc>`;
+  }
+
+  function buildWordTable(headers, rows) {
+    const widths = [2100, 3000, 1650, 1650, 1650];
+    let xml = `<w:tbl><w:tblPr><w:tblW w:w=\"10050\" w:type=\"dxa\"/><w:tblLayout w:type=\"fixed\"/><w:tblBorders><w:top w:val=\"single\" w:sz=\"6\" w:space=\"0\" w:color=\"777777\"/><w:left w:val=\"single\" w:sz=\"6\" w:space=\"0\" w:color=\"777777\"/><w:bottom w:val=\"single\" w:sz=\"6\" w:space=\"0\" w:color=\"777777\"/><w:right w:val=\"single\" w:sz=\"6\" w:space=\"0\" w:color=\"777777\"/><w:insideH w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"aaaaaa\"/><w:insideV w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"aaaaaa\"/></w:tblBorders></w:tblPr>`;
+    xml += `<w:tr>${headers.map((h,i)=>buildWordCell(h,widths[i],{bold:true})).join('')}</w:tr>`;
+    rows.forEach(row => {
+      xml += `<w:tr>${row.map((v,i)=>buildWordCell(v,widths[i],{blank:!v})).join('')}</w:tr>`;
+    });
+    xml += `</w:tbl>`;
+    return xml;
+  }
+
+  function createResidentRegistrationDocumentXml() {
+    const buildingKeys = ['A','B','C','D','E'];
+    const pages = [];
+    const note = '姓名已自動去識別化；第一～三輪車號欄位預留空白，供住戶自行填寫或編輯。';
+    buildingKeys.forEach((key, pageIndex) => {
+      const rows = residents
+        .filter(r => registrationBuildingKey(r.build) === key)
+        .slice()
+        .sort(registrationSort)
+        .map(r => [
+          registrationRoomLabel(r),
+          maskRegistrationOwnerNames(r.name),
+          '', '', ''
+        ]);
+      let body = '';
+      if (pageIndex > 0) body += '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+      body += buildWordParagraph(`稙村秀社區住戶機車位登記表－${key}棟`, {bold:true,size:30,align:'center'});
+      body += buildWordParagraph(`填表日期：________________　　${note}`, {size:18,align:'center'});
+      body += buildWordTable(['棟別－戶別','住戶姓名','第一輪車號','第二輪車號','第三輪車號'], rows);
+      if (rows.length === 0) body += buildWordParagraph('本棟目前無住戶資料。', {size:20,align:'center'});
+      body += buildWordParagraph('備註：車號請由住戶確認後自行填寫；共同持有者姓名均已個別去識別化。', {size:18});
+      pages.push(body);
+    });
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n`+
+      `<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">`+
+      `<w:body>${pages.join('')}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="360" w:footer="360" w:gutter="0"/><w:cols w:num="1"/><w:docGrid w:linePitch="360"/></w:sectPr></w:body></w:document>`;
+  }
+
+  async function exportResidentRegistrationFormsWord() {
+    if (currentUser && currentUser.role === 'guest') {
+      alert('一般住戶僅提供查詢，不允許匯出住戶後台登記表。');
+      return;
+    }
+    const docXml = createResidentRegistrationDocumentXml();
+    const date = getLocalDateStamp();
+    if (typeof JSZip === 'undefined') {
+      // fallback：即使外部 JSZip CDN 尚未載入，也提供 Word 可直接開啟/編輯的 .doc。
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>稙村秀社區住戶機車位登記表</title><style>@page{size:A4 portrait;margin:15mm}body{font-family:"Microsoft JhengHei",sans-serif;font-size:11pt}h1{text-align:center;font-size:20pt}table{width:100%;border-collapse:collapse;margin:12pt 0}th,td{border:1px solid #777;padding:8pt}th{text-align:center;background:#f0f0f0}td{text-align:center}.page{page-break-after:always}</style></head><body>${['A','B','C','D','E'].map((key,idx)=>{const rs=residents.filter(r=>registrationBuildingKey(r.build)===key).slice().sort(registrationSort);return `<div class="page"><h1>稙村秀社區住戶機車位登記表－${key}棟</h1><p style="text-align:center">填表日期：________________　　姓名已自動去識別化；第一～三輪車號欄位預留空白。</p><table><tr><th>棟別－戶別</th><th>住戶姓名</th><th>第一輪車號</th><th>第二輪車號</th><th>第三輪車號</th></tr>${rs.map(r=>`<tr><td>${escapeHtml(registrationRoomLabel(r))}</td><td>${escapeHtml(maskRegistrationOwnerNames(r.name))}</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`).join('')}</table><p>備註：車號請由住戶確認後自行填寫；共同持有者姓名均已個別去識別化。</p></div>`}).join('')}</body></html>`;
+      const blob = new Blob([html], {type:'application/msword'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`稙村秀社區住戶機車位登記表_${date}.doc`; a.click(); URL.revokeObjectURL(url);
+      addLog('住戶', '匯出住戶機車位登記表 Word（.doc）');
+      return;
+    }
+
+    const zip = new JSZip();
+    zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`);
+    zip.folder('_rels').file('.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+    const word = zip.folder('word');
+    word.file('document.xml', docXml);
+    word.file('styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Microsoft JhengHei" w:hAnsi="Microsoft JhengHei" w:eastAsia="Microsoft JhengHei"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="80"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>`);
+    word.folder('_rels').file('document.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`);
+    const blob = await zip.generateAsync({type:'blob', compression:'DEFLATE'});
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`稙村秀社區住戶機車位登記表_${date}.docx`; a.click(); URL.revokeObjectURL(url);
+    addLog('住戶', '匯出住戶機車位登記表 Word（.docx）');
   }
 
   function exportExcel(tableId, titleName) {
