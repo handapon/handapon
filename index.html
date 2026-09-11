@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.65</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.66</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -408,7 +408,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.65</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.66</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -764,7 +764,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.65 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.66 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -986,7 +986,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.65">
+        <input type="text" id="set-app-version" value="v2.66">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1430,7 +1430,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.65",
+    appVersion: "v2.66",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1654,6 +1654,11 @@
   }
 
   async function cloudSyncPush() {
+    // 核心資料寫入必須由已登入的管理員或社區主任執行；未登入／訪客一律只允許查詢。
+    if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
+      updateSyncStatusUI(false, "未登入／僅查詢");
+      return false;
+    }
     if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
       updateSyncStatusUI(false, "僅本機");
       return false;
@@ -2660,7 +2665,7 @@
   }
 
   async function saveVoidFromDash() {
-    if (currentUser && currentUser.role !== 'admin') {
+    if (!currentUser || currentUser.role !== 'admin') {
       alert("權限不足，僅系統管理員可設定作廢車位！");
       return;
     }
@@ -3789,6 +3794,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   let waitlistLotteryRunning = false;
 
   async function runWaitlistLottery() {
+    if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
+      alert("權限不足！候補抽籤僅限系統管理員與社區主任執行。");
+      return;
+    }
     if (waitlistLotteryRunning) {
       alert("候補抽籤正在執行中，請勿重複點擊。");
       return;
@@ -4050,6 +4059,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   }
 
   async function clearWaitlistResults() {
+    if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
+      alert("權限不足！清除候補結果僅限系統管理員與社區主任執行。");
+      return;
+    }
     if (getValidWinnerCount("候補") === 0 && !residents.some(r => Number(r.assignWaitlist) > 0)) {
       alert("目前沒有候補抽籤結果可以清除。");
       return;
@@ -4130,6 +4143,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   }
 
   async function runLottery() {
+    if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
+      alert("權限不足！正式抽籤僅限系統管理員與社區主任執行。");
+      return;
+    }
     if (!["第一輪", "第二輪", "第三輪"].includes(currentRound)) {
       alert("【防呆攔截】目前選取的不是正式抽籤輪次。候補請使用「執行候補抽籤」按鈕，禁止將候補誤當成第三輪執行。");
       return;
@@ -4253,6 +4270,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   }
 
   function executeLotteryAllocation(round, eligible) {
+    if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
+      throw new Error("權限不足：正式抽籤分配僅限系統管理員與社區主任執行。");
+    }
     if (!['第一輪','第二輪','第三輪'].includes(round)) {
       throw new Error(`不支援的正式抽籤輪次：${round}`);
     }
@@ -4507,6 +4527,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   }
 
   async function clearCurrentRound() {
+    if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
+      alert("權限不足！清除正式輪次結果僅限系統管理員與社區主任執行。");
+      return;
+    }
     if (!["第一輪", "第二輪", "第三輪"].includes(currentRound)) {
       alert("【防呆攔截】目前沒有可由「清除本輪結果」處理的正式抽籤輪次。候補結果請使用「清除候補結果」。");
       return;
@@ -5471,7 +5495,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       Object.assign(systemSettings, snapshot);
       applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
-      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.65";
+      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.66";
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || '';
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次系統標題/版次/導覽設定已回滾。");
       return;
@@ -6196,7 +6220,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.65 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.66 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -6235,7 +6259,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.65 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.66 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
