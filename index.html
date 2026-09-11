@@ -6035,53 +6035,62 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       .replace(/'/g, "&apos;");
   }
 
-  // 姓名去識別化：每位共同持有人的姓名個別遮罩；3字以上保留首尾，中間字全部改為 O。
+  // 姓名去識別化：每位共同持有人個別遮罩；共同持有人統一以「/」分隔。
   function maskRegistrationOwnerNames(name) {
-    const raw = String(name ?? "").trim();
-    if (!raw) return "";
-    const parts = raw.split(/(、|，|,|\/|／|;|；|&|＆|\+|\n)/);
-    return parts.map(part => {
-      if (/^(、|，|,|\/|／|;|；|&|＆|\+|\n)$/.test(part)) return part;
-      const s = part.trim();
-      if (!s) return part;
-      if (s.length <= 2) return s;
-      return s[0] + "O".repeat(s.length - 2) + s[s.length - 1];
-    }).join("");
+    const raw = String(name ?? '').trim();
+    if (!raw) return '';
+
+    // 將常見共同持有人分隔符統一為「/」，並去掉分隔符兩側多餘空白。
+    const parts = raw
+      .split(/(?:、|，|,|\/|／|;|；|&|＆|\+|\n)+/)
+      .map(x => x.trim())
+      .filter(Boolean);
+
+    const masked = parts.map(s => {
+      if (s.length <= 1) return s;
+      if (s.length === 2) return s[0] + 'O';
+      return s[0] + 'O'.repeat(s.length - 2) + s[s.length - 1];
+    });
+
+    return masked.join('/');
   }
 
   function registrationBuildingKey(build) {
-    const s = String(build ?? "").trim().toUpperCase();
+    const s = String(build ?? '').trim().toUpperCase();
     const m = s.match(/^[A-E]/);
-    return m ? m[0] : "OTHER";
+    return m ? m[0] : 'OTHER';
   }
 
   function registrationRoomLabel(r) {
-    return `${r.build || ""}-${r.room || ""}`.replace(/^-|-$/g, "");
+    return `${r.build || ''}-${r.room || ''}`.replace(/^-|-$/g, '');
   }
 
   function registrationSort(a, b) {
-    const ak = `${a.build || ""}-${a.room || ""}`;
-    const bk = `${b.build || ""}-${b.room || ""}`;
+    const ak = `${a.build || ''}-${a.room || ''}`;
+    const bk = `${b.build || ''}-${b.room || ''}`;
     return ak.localeCompare(bk, 'zh-Hant', {numeric:true, sensitivity:'base'});
   }
 
-  function buildWordParagraph(text, {bold=false, size=22, align="left"} = {}) {
-    const jc = align === "center" ? "<w:jc w:val=\"center\"/>" : align === "right" ? "<w:jc w:val=\"right\"/>" : "";
-    return `<w:p><w:pPr>${jc}<w:spacing w:after=\"80\"/></w:pPr><w:r><w:rPr>${bold ? '<w:b/>' : ''}<w:sz w:val=\"${size}\"/><w:szCs w:val=\"${size}\"/><w:rFonts w:ascii=\"Microsoft JhengHei\" w:hAnsi=\"Microsoft JhengHei\" w:eastAsia=\"Microsoft JhengHei\"/></w:rPr><w:t xml:space=\"preserve\">${xmlEscape(text)}</w:t></w:r></w:p>`;
+  function buildWordParagraph(text, {bold=false, size=22, align='left', after=40} = {}) {
+    const jc = align === 'center' ? '<w:jc w:val="center"/>' : align === 'right' ? '<w:jc w:val="right"/>' : '';
+    return `<w:p><w:pPr>${jc}<w:spacing w:after="${after}"/></w:pPr><w:r><w:rPr>${bold ? '<w:b/>' : ''}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/><w:rFonts w:ascii="Microsoft JhengHei" w:hAnsi="Microsoft JhengHei" w:eastAsia="Microsoft JhengHei"/></w:rPr><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r></w:p>`;
   }
 
-  function buildWordCell(text, width, {bold=false, align="center", blank=false} = {}) {
-    const jc = align === "left" ? "left" : align === "right" ? "right" : "center";
-    const content = blank ? "<w:p><w:pPr><w:jc w:val=\"center\"/><w:spacing w:after=\"0\"/></w:pPr><w:r><w:t xml:space=\"preserve\"> </w:t></w:r></w:p>" : `<w:p><w:pPr><w:jc w:val=\"${jc}\"/><w:spacing w:after=\"0\"/></w:pPr><w:r><w:rPr>${bold ? '<w:b/>' : ''}<w:sz w:val=\"21\"/><w:szCs w:val=\"21\"/><w:rFonts w:ascii=\"Microsoft JhengHei\" w:hAnsi=\"Microsoft JhengHei\" w:eastAsia=\"Microsoft JhengHei\"/></w:rPr><w:t xml:space=\"preserve\">${xmlEscape(text)}</w:t></w:r></w:p>`;
-    return `<w:tc><w:tcPr><w:tcW w:w=\"${width}\" w:type=\"dxa\"/><w:tcMar><w:top w:w=\"80\" w:type=\"dxa\"/><w:left w:w=\"90\" w:type=\"dxa\"/><w:bottom w:w=\"80\" w:type=\"dxa\"/><w:right w:w=\"90\" w:type=\"dxa\"/></w:tcMar></w:tcPr>${content}</w:tc>`;
+  function buildWordCell(text, width, {bold=false, align='center', blank=false} = {}) {
+    const jc = align === 'left' ? 'left' : align === 'right' ? 'right' : 'center';
+    const content = blank
+      ? '<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="0"/></w:pPr><w:r><w:rPr><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t xml:space="preserve"> </w:t></w:r></w:p>'
+      : `<w:p><w:pPr><w:jc w:val="${jc}"/><w:spacing w:after="0"/></w:pPr><w:r><w:rPr>${bold ? '<w:b/>' : ''}<w:sz w:val="20"/><w:szCs w:val="20"/><w:rFonts w:ascii="Microsoft JhengHei" w:hAnsi="Microsoft JhengHei" w:eastAsia="Microsoft JhengHei"/></w:rPr><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r></w:p>`;
+    return `<w:tc><w:tcPr><w:tcW w:w="${width}" w:type="dxa"/><w:tcMar><w:top w:w="45" w:type="dxa"/><w:left w:w="60" w:type="dxa"/><w:bottom w:w="45" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tcMar></w:tcPr>${content}</w:tc>`;
   }
 
   function buildWordTable(headers, rows) {
-    const widths = [2100, 3000, 1650, 1650, 1650];
-    let xml = `<w:tbl><w:tblPr><w:tblW w:w=\"10050\" w:type=\"dxa\"/><w:tblLayout w:type=\"fixed\"/><w:tblBorders><w:top w:val=\"single\" w:sz=\"6\" w:space=\"0\" w:color=\"777777\"/><w:left w:val=\"single\" w:sz=\"6\" w:space=\"0\" w:color=\"777777\"/><w:bottom w:val=\"single\" w:sz=\"6\" w:space=\"0\" w:color=\"777777\"/><w:right w:val=\"single\" w:sz=\"6\" w:space=\"0\" w:color=\"777777\"/><w:insideH w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"aaaaaa\"/><w:insideV w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"aaaaaa\"/></w:tblBorders></w:tblPr>`;
-    xml += `<w:tr>${headers.map((h,i)=>buildWordCell(h,widths[i],{bold:true})).join('')}</w:tr>`;
+    const widths = [700, 1900, 2500, 1650, 1650, 1650];
+    let xml = `<w:tbl><w:tblPr><w:tblW w:w="10050" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblBorders><w:top w:val="single" w:sz="6" w:space="0" w:color="777777"/><w:left w:val="single" w:sz="6" w:space="0" w:color="777777"/><w:bottom w:val="single" w:sz="6" w:space="0" w:color="777777"/><w:right w:val="single" w:sz="6" w:space="0" w:color="777777"/><w:insideH w:val="single" w:sz="4" w:space="0" w:color="aaaaaa"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="aaaaaa"/></w:tblBorders></w:tblPr>`;
+    xml += `<w:tblGrid>${widths.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>`;
+    xml += `<w:tr><w:trPr><w:tblHeader/></w:trPr>${headers.map((h,i)=>buildWordCell(h,widths[i],{bold:true})).join('')}</w:tr>`;
     rows.forEach(row => {
-      xml += `<w:tr>${row.map((v,i)=>buildWordCell(v,widths[i],{blank:!v})).join('')}</w:tr>`;
+      xml += `<w:tr><w:trPr><w:cantSplit/></w:trPr>${row.map((v,i)=>buildWordCell(v,widths[i],{blank:!v})).join('')}</w:tr>`;
     });
     xml += `</w:tbl>`;
     return xml;
@@ -6090,29 +6099,47 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   function createResidentRegistrationDocumentXml() {
     const buildingKeys = ['A','B','C','D','E'];
     const pages = [];
-    const note = '姓名已自動去識別化；第一～三輪車號欄位預留空白，供住戶自行填寫或編輯。';
-    buildingKeys.forEach((key, pageIndex) => {
-      const rows = residents
+    const note = '姓名已自動去識別化；共同持有人以「/」分隔；第一～三輪車號欄位預留空白。';
+    const headers = ['序號','棟別－戶別','住戶姓名','第一輪車號','第二輪車號','第三輪車號'];
+    const maxRowsPerPage = 22;
+
+    buildingKeys.forEach((key, buildingIndex) => {
+      const rs = residents
         .filter(r => registrationBuildingKey(r.build) === key)
         .slice()
-        .sort(registrationSort)
-        .map(r => [
+        .sort(registrationSort);
+
+      // 每頁最多 22 戶；若該棟超過容量，自動續頁並重複表頭。
+      const chunks = [];
+      if (rs.length === 0) chunks.push([]);
+      else for (let i = 0; i < rs.length; i += maxRowsPerPage) chunks.push(rs.slice(i, i + maxRowsPerPage));
+
+      chunks.forEach((chunk, chunkIndex) => {
+        const globalIndex = pages.length;
+        let body = '';
+        if (globalIndex > 0) body += '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+        const suffix = chunks.length > 1 ? `（第 ${chunkIndex + 1}/${chunks.length} 頁）` : '';
+        body += buildWordParagraph(`稙村秀社區住戶機車位登記表－${key}棟${suffix}`, {bold:true,size:28,align:'center',after:50});
+        body += buildWordParagraph(`填表日期：________________　　${note}`, {size:17,align:'center',after:70});
+
+        const rows = chunk.map((r, idx) => [
+          String(chunkIndex * maxRowsPerPage + idx + 1),
           registrationRoomLabel(r),
           maskRegistrationOwnerNames(r.name),
           '', '', ''
         ]);
-      let body = '';
-      if (pageIndex > 0) body += '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
-      body += buildWordParagraph(`稙村秀社區住戶機車位登記表－${key}棟`, {bold:true,size:30,align:'center'});
-      body += buildWordParagraph(`填表日期：________________　　${note}`, {size:18,align:'center'});
-      body += buildWordTable(['棟別－戶別','住戶姓名','第一輪車號','第二輪車號','第三輪車號'], rows);
-      if (rows.length === 0) body += buildWordParagraph('本棟目前無住戶資料。', {size:20,align:'center'});
-      body += buildWordParagraph('備註：車號請由住戶確認後自行填寫；共同持有者姓名均已個別去識別化。', {size:18});
-      pages.push(body);
+        body += buildWordTable(headers, rows);
+        if (chunk.length === 0) {
+          body += buildWordParagraph('本棟目前無住戶資料。', {size:19,align:'center',after:50});
+        }
+        body += buildWordParagraph('備註：車號請由住戶確認後自行填寫；共同持有人姓名已逐一去識別化並以「/」分隔。', {size:16,after:0});
+        pages.push(body);
+      });
     });
+
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n`+
       `<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">`+
-      `<w:body>${pages.join('')}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="360" w:footer="360" w:gutter="0"/><w:cols w:num="1"/><w:docGrid w:linePitch="360"/></w:sectPr></w:body></w:document>`;
+      `<w:body>${pages.join('')}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="600" w:right="680" w:bottom="600" w:left="680" w:header="300" w:footer="300" w:gutter="0"/><w:cols w:num="1"/><w:docGrid w:linePitch="300"/></w:sectPr></w:body></w:document>`;
   }
 
   async function exportResidentRegistrationFormsWord() {
@@ -6124,7 +6151,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     const date = getLocalDateStamp();
     if (typeof JSZip === 'undefined') {
       // fallback：即使外部 JSZip CDN 尚未載入，也提供 Word 可直接開啟/編輯的 .doc。
-      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>稙村秀社區住戶機車位登記表</title><style>@page{size:A4 portrait;margin:15mm}body{font-family:"Microsoft JhengHei",sans-serif;font-size:11pt}h1{text-align:center;font-size:20pt}table{width:100%;border-collapse:collapse;margin:12pt 0}th,td{border:1px solid #777;padding:8pt}th{text-align:center;background:#f0f0f0}td{text-align:center}.page{page-break-after:always}</style></head><body>${['A','B','C','D','E'].map((key,idx)=>{const rs=residents.filter(r=>registrationBuildingKey(r.build)===key).slice().sort(registrationSort);return `<div class="page"><h1>稙村秀社區住戶機車位登記表－${key}棟</h1><p style="text-align:center">填表日期：________________　　姓名已自動去識別化；第一～三輪車號欄位預留空白。</p><table><tr><th>棟別－戶別</th><th>住戶姓名</th><th>第一輪車號</th><th>第二輪車號</th><th>第三輪車號</th></tr>${rs.map(r=>`<tr><td>${escapeHtml(registrationRoomLabel(r))}</td><td>${escapeHtml(maskRegistrationOwnerNames(r.name))}</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`).join('')}</table><p>備註：車號請由住戶確認後自行填寫；共同持有者姓名均已個別去識別化。</p></div>`}).join('')}</body></html>`;
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>稙村秀社區住戶機車位登記表</title><style>@page{size:A4 portrait;margin:12mm}body{font-family:"Microsoft JhengHei",sans-serif;font-size:10pt}h1{text-align:center;font-size:18pt;margin:0 0 6pt}.page{page-break-after:always}.meta{text-align:center;font-size:9pt;margin-bottom:6pt}table{width:100%;border-collapse:collapse;margin:6pt 0 8pt;table-layout:fixed}th,td{border:1px solid #777;padding:4pt;text-align:center;vertical-align:middle;line-height:1.25}th{background:#f0f0f0}th:nth-child(1){width:7%}th:nth-child(2){width:18%}th:nth-child(3){width:25%}th:nth-child(4),th:nth-child(5),th:nth-child(6){width:16.67%}.note{font-size:8.5pt}.page-break-note{font-size:8pt;color:#555}</style></head><body>${['A','B','C','D','E'].map((key)=>{
+        const rs=residents.filter(r=>registrationBuildingKey(r.build)===key).slice().sort(registrationSort);
+        const chunks=[]; if(!rs.length) chunks.push([]); else for(let i=0;i<rs.length;i+=22) chunks.push(rs.slice(i,i+22));
+        return chunks.map((chunk,ci)=>`<div class="page"><h1>稙村秀社區住戶機車位登記表－${key}棟${chunks.length>1?`（第 ${ci+1}/${chunks.length} 頁）`:''}</h1><div class="meta">填表日期：________________　　姓名已自動去識別化；共同持有人以「/」分隔；第一～三輪車號欄位預留空白。</div><table><thead><tr><th>序號</th><th>棟別－戶別</th><th>住戶姓名</th><th>第一輪車號</th><th>第二輪車號</th><th>第三輪車號</th></tr></thead><tbody>${chunk.map((r,i)=>`<tr><td>${ci*22+i+1}</td><td>${escapeHtml(registrationRoomLabel(r))}</td><td>${escapeHtml(maskRegistrationOwnerNames(r.name))}</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`).join('')}</tbody></table>${!chunk.length?'<p style="text-align:center">本棟目前無住戶資料。</p>':''}<p class="note">備註：車號請由住戶確認後自行填寫；共同持有人姓名已逐一去識別化並以「/」分隔。</p></div>`).join('');
+      }).join('')}</body></html>`;
       const blob = new Blob([html], {type:'application/msword'});
       const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`稙村秀社區住戶機車位登記表_${date}.doc`; a.click(); URL.revokeObjectURL(url);
       addLog('住戶', '匯出住戶機車位登記表 Word（.doc）');
