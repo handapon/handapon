@@ -1287,7 +1287,7 @@
     { name: "逄錦麟", username: "director2", password: "$pbkdf2$102030405060708090a0b0c0d0e0f001$08bee883d99c13c02e34bc40c20933fdf427d2f602720c0d8504dba796534fa5", role: "director" }
   ];
 
-  const defaultQuickGuide = "歡迎使用稙村秀社區機車位電腦抽籤系統。\n\n【電腦亂數抽籤邏輯說明】\n1. 分層公平亂數：本系統在各既定規則層級內使用 Fisher-Yates 洗牌搭配瀏覽器 Math.random() 進行隨機排序；不同身分／資格層級並非享有完全相同的中籤優先權。\n2. 保留戶優先：正式抽籤先處理保留戶，再處理一般戶；候補則依「尚無正式車位且為保留戶」→「尚無正式車位的一般戶」→「已有正式車位的保留戶」→「已有正式車位的一般戶」分層處理。\n3. 棟別區間優先：為便利住戶停放，A/B 棟住戶優先使用 A/B 區間（預設為 19~56 號），非 A/B 棟住戶則優先使用其他區間；這是就近分配規則，不是凌駕保留戶／順位的絕對優先權。\n4. 多車位分輪：住戶可依參加資格分別參與第一、二、三輪；後輪會扣除前輪已使用的車位，避免同一實體車位跨輪重複分配。\n5. 嚴密防衝突機制：系統在抽籤、候補、雲端同步前後都會檢查資格、車位範圍、作廢車位、住戶欄位與抽籤結果是否一致，發現異常會中止或回滾。";
+  const defaultQuickGuide = "歡迎使用稙村秀社區機車位電腦抽籤系統。\n\n【電腦亂數抽籤邏輯說明】\n1. 分層公平亂數：本系統在各既定規則層級內使用 Fisher-Yates 洗牌搭配瀏覽器密碼學安全亂數進行隨機排序；不同身分／資格層級並非享有完全相同的中籤優先權。\n2. 保留戶優先：正式抽籤先處理保留戶，再處理一般戶；候補則依「尚無正式車位且為保留戶」→「尚無正式車位的一般戶」→「已有正式車位的保留戶」→「已有正式車位的一般戶」分層處理。\n3. 棟別區間優先：為便利住戶停放，A/B 棟住戶優先使用 A/B 區間（預設為 19~56 號），非 A/B 棟住戶則優先使用其他區間；這是就近分配規則，不是凌駕保留戶／順位的絕對優先權。\n4. 多車位分輪：住戶可依參加資格分別參與第一、二、三輪；後輪會扣除前輪已使用的車位，避免同一實體車位跨輪重複分配。\n5. 嚴密防衝突機制：系統在抽籤、候補、雲端同步前後都會檢查資格、車位範圍、作廢車位、住戶欄位與抽籤結果是否一致，發現異常會中止或回滾。";
 
   // 💡 新增：買賣交屋期間，新屋主尚未購置機車/完成過戶而無車牌號碼時，可用此標記暫代車牌，
   // 保留抽籤資格；車牌到位後，管理員只需編輯住戶資料，把此標記換成真實車牌即可。
@@ -1609,8 +1609,25 @@
 
   function shuffleArray(array) {
     let arr = [...array];
+    // 抽籤核心採用瀏覽器的密碼學安全亂數，並以 rejection sampling 排除取模偏差。
+    // 動畫顯示的數字可使用 Math.random()，但不得影響實際中籤結果。
+    function secureRandomIndex(maxExclusive) {
+      if (!Number.isSafeInteger(maxExclusive) || maxExclusive <= 0) {
+        throw new Error('隨機範圍無效');
+      }
+      if (!globalThis.crypto || typeof globalThis.crypto.getRandomValues !== 'function') {
+        throw new Error('此瀏覽器不支援安全亂數，為維持抽籤公平性已中止抽籤');
+      }
+      const range = 0x100000000;
+      const limit = range - (range % maxExclusive);
+      const randomValue = new Uint32Array(1);
+      do {
+        globalThis.crypto.getRandomValues(randomValue);
+      } while (randomValue[0] >= limit);
+      return randomValue[0] % maxExclusive;
+    }
     for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = secureRandomIndex(i + 1);
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
@@ -4469,14 +4486,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     processPreferencePass(res => res.pref2, false);
     processPreferencePass(res => res.pref3, false);
 
-    // ===== 階段四：一般戶保底（A/B 棟優先區間隨機分配）=====
-    remainingEligible = shuffleArray(remainingEligible);
-    remainingEligible.sort((a, b) => {
-      let aIsAB = (isABBuilding(a.build)) ? 1 : 0;
-      let bIsAB = (isABBuilding(b.build)) ? 1 : 0;
-      return bIsAB - aIsAB;
-    });
-    generalPoolAssign(remainingEligible, {allowAbFallback:true});
+    // ===== 階段四：一般戶保底（先各自分配優先區，再公平競爭剩餘位） =====
+    // 不可將 A/B 棟固定排在前面；若 A/B 優先區已滿，該排序會讓 A/B 棟先取得
+    // 非 A/B 區車位，使非 A/B 棟住戶在同一資格層級失去公平的抽籤機會。
+    // 先讓兩類住戶各自抽取其優先區，再將尚未中籤者混合洗牌，競爭全部剩餘車位。
+    const generalMembers = shuffleArray(remainingEligible);
+    const generalAB = generalMembers.filter(res => isABBuilding(res.build));
+    const generalOther = generalMembers.filter(res => !isABBuilding(res.build));
+    generalPoolAssign(generalAB, {allowAbFallback:false});
+    generalPoolAssign(generalOther, {allowAbFallback:false});
+    const unresolvedGeneral = shuffleArray(generalMembers.filter(res => !lotteryResults[round][res.id]));
+    generalPoolAssign(unresolvedGeneral, {allowAbFallback:true});
 
     // 最終一致性檢查：任何跨輪重複車位、資格矛盾、map／住戶欄位不一致都直接回滾。
     const postAllocationCheck = validateCurrentAllocationState({alert:false});
