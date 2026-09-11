@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.60</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.61</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -408,7 +408,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.60</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.61</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -445,11 +445,11 @@
     <h3 id="login-modal-title" style="margin-bottom:1.75rem;text-align:center;font-size:24px;color:var(--text-main);font-weight:900;letter-spacing:-0.5px">稙村秀社區機車位電腦抽籤系統</h3>
     <div style="margin-bottom:1.25rem">
       <label>管理帳號</label>
-      <input type="text" id="login-user" placeholder="請輸入帳號" value="admin">
+      <input type="text" id="login-user" placeholder="請輸入管理帳號">
     </div>
     <div style="margin-bottom:1.5rem">
       <label>密碼</label>
-      <input type="password" id="login-pw" placeholder="請輸入密碼" value="1234">
+      <input type="password" id="login-pw" placeholder="請輸入密碼">
     </div>
     <div id="login-error" style="color:#dc2626;font-size:14px;font-weight:900;margin-bottom:1.25rem;display:none;text-align:center">帳號或密碼錯誤！</div>
     <button class="btn btn-primary" style="width:100%;padding:1.2rem;margin-bottom:1rem;font-size:17px;font-weight:900;box-shadow:0 4px 10px rgba(37,99,235,0.3)" onclick="doLogin()">登入系統</button>
@@ -768,7 +768,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.60 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.61 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -990,7 +990,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.60">
+        <input type="text" id="set-app-version" value="v2.61">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1432,7 +1432,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.60",
+    appVersion: "v2.61",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -4265,36 +4265,68 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     processPreferencePass(res => res.pref2, true);
     processPreferencePass(res => res.pref3, true);
 
-    // ===== 階段二：保留戶保障 =====
-    // 非 A/B 棟保留戶先限用非 A/B 車位，避免搶先吃掉 A/B 優先區。
-    // A/B 棟保留戶仍可優先使用 A/B 區。
-    let stillEligibleReserve = shuffleArray(remainingEligible.filter(res => res.reserve === 'Y'));
-    let stillEligibleNonReserve = remainingEligible.filter(res => res.reserve !== 'Y');
-    const reserveAB = stillEligibleReserve.filter(res => res.build.startsWith("A") || res.build.startsWith("B"));
-    const reserveNonAB = stillEligibleReserve.filter(res => !res.build.startsWith("A") && !res.build.startsWith("B"));
-    generalPoolAssign(reserveAB, {allowAbFallback:true});
-    generalPoolAssign(reserveNonAB, {allowAbFallback:false});
-    const reserveStillUnassigned = reserveAB.concat(reserveNonAB).filter(res => !lotteryResults[round][res.id]);
-    remainingEligible = stillEligibleNonReserve.filter(res => !lotteryResults[round][res.id]);
+    // ===== 階段二：保留戶完整優先分配 =====
+    // 核心公平原則：只要還有可用車位，保留戶必須在任何一般戶之前完成分配。
+    // 非 A/B 棟保留戶優先使用非 A/B 區；只有「非 A/B 區不足以容納全部剩餘保留戶」
+    // 時，才允許保留戶使用 A/B 優先區。如此可同時滿足「保留戶 100% 優先」與
+    // 「非 A/B 保留戶不應無必要占用 A/B 優先區」兩項規則。
+    let remainingReserve = shuffleArray(remainingEligible.filter(res => res.reserve === 'Y'));
+    let remainingNonReserve = remainingEligible.filter(res => res.reserve !== 'Y');
 
-    // ===== 階段三：一般戶（指定車位比對，此時已先排除保留戶的保底競爭） =====
+    function assignReservePool(list) {
+      // 先按建棟分組：非 A/B 保留戶先用一般區；A/B 保留戶先用 A/B 優先區。
+      const reserveNonAB = shuffleArray(list.filter(res => !res.build.startsWith('A') && !res.build.startsWith('B')));
+      const reserveAB = shuffleArray(list.filter(res => res.build.startsWith('A') || res.build.startsWith('B')));
+
+      // 第一階段：非 A/B 保留戶只使用非 A/B 車位。
+      reserveNonAB.forEach(res => {
+        if (freeSeatsSet.size === 0) return;
+        const otherFree = Array.from(freeSeatsSet).filter(s => s < abStart || s > abEnd);
+        if (otherFree.length > 0) assignSeatToRes(res.id, shuffleArray(otherFree)[0]);
+      });
+
+      // 第二階段：A/B 保留戶優先使用 A/B 區。
+      reserveAB.forEach(res => {
+        if (freeSeatsSet.size === 0) return;
+        const abFree = Array.from(freeSeatsSet).filter(s => s >= abStart && s <= abEnd);
+        const otherFree = Array.from(freeSeatsSet).filter(s => s < abStart || s > abEnd);
+        const assigned = abFree.length > 0 ? shuffleArray(abFree)[0] : (otherFree.length > 0 ? shuffleArray(otherFree)[0] : null);
+        if (assigned !== null) assignSeatToRes(res.id, assigned);
+      });
+
+      // 第三階段：若非 A/B 保留戶因非 A/B 區不足而仍未取得，現在才能退避到 A/B 區。
+      // 此時尚未進入一般戶，因此不會有一般戶搶走保留戶保障車位的問題。
+      reserveNonAB.forEach(res => {
+        if (lotteryResults[round][res.id] || freeSeatsSet.size === 0) return;
+        const abFree = Array.from(freeSeatsSet).filter(s => s >= abStart && s <= abEnd);
+        const otherFree = Array.from(freeSeatsSet).filter(s => s < abStart || s > abEnd);
+        const assigned = abFree.length > 0 ? shuffleArray(abFree)[0] : (otherFree.length > 0 ? shuffleArray(otherFree)[0] : null);
+        if (assigned !== null) assignSeatToRes(res.id, assigned);
+      });
+    }
+
+    // 先完成所有剩餘保留戶；若可用車位總數不足，所有剩餘車位也一律優先給保留戶。
+    // 這避免「保留戶還沒分完，一般戶就把車位抽光」的重大防呆漏洞。
+    assignReservePool(remainingReserve);
+
+    // ===== 階段三：一般戶（指定車位比對）=====
+    remainingEligible = remainingNonReserve.filter(res => !lotteryResults[round][res.id]);
     processPreferencePass(res => res.pref1, false);
     processPreferencePass(res => res.pref2, false);
     processPreferencePass(res => res.pref3, false);
 
-    // ===== 階段四：一般戶保底（A/B 棟優先區間） =====
+    // ===== 階段四：一般戶保底（A/B 棟優先區間隨機分配）=====
     remainingEligible = shuffleArray(remainingEligible);
     remainingEligible.sort((a, b) => {
-      let aIsAB = (a.build.startsWith("A") || a.build.startsWith("B")) ? 1 : 0;
-      let bIsAB = (b.build.startsWith("A") || b.build.startsWith("B")) ? 1 : 0;
+      let aIsAB = (a.build.startsWith('A') || a.build.startsWith('B')) ? 1 : 0;
+      let bIsAB = (b.build.startsWith('A') || b.build.startsWith('B')) ? 1 : 0;
       return bIsAB - aIsAB;
     });
     generalPoolAssign(remainingEligible, {allowAbFallback:true});
 
-    // ===== 階段五：若非 A/B 保留戶前面因公平性保護暫時未取得車位，現在才使用剩餘車位 =====
-    // 此時 A/B 一般戶已完成指定/保底分配，不再受到非 A/B 保留戶的保底競爭影響。
-    const finalReserveFallback = reserveStillUnassigned.filter(res => !lotteryResults[round][res.id]);
-    generalPoolAssign(finalReserveFallback, {allowAbFallback:true});
+    // 不再設置「一般戶先抽、保留戶最後補選」的階段。
+    // 保留戶在本函式中已完整優先處理；剩餘車位才屬一般戶。
+
   }
 
   async function clearCurrentRound() {
@@ -5233,7 +5265,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       Object.assign(systemSettings, snapshot);
       applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
-      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.60";
+      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.61";
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || '';
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次系統標題/版次/導覽設定已回滾。");
       return;
@@ -5956,7 +5988,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.60 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.61 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -5995,7 +6027,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.60 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.61 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
@@ -6132,21 +6164,33 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     const raw = String(name ?? '').trim();
     if (!raw) return '';
 
+    // 共同持有人先拆開，再統一用「/」連接。
     const parts = raw
       .split(/(?:、|，|,|\/|／|;|；|&|＆|\+|\n)+/)
       .map(x => x.trim())
       .filter(Boolean);
 
-    const masked = parts.map(s => {
-      if (s.length <= 1) return s;
-      // 將已被遮罩的舊資料（例如「蕭OOOOOO文」）先收斂成單一 O，避免重複遮罩越遮越長。
-      const normalized = s.replace(/[Ｏoｏ]/g, 'O');
-      if (/^.{1}O+.{1}$/u.test(normalized)) return normalized[0] + 'O' + normalized[normalized.length - 1];
-      if (normalized.length === 2) return normalized[0] + 'O';
-      return normalized[0] + 'O'.repeat(normalized.length - 2) + normalized[normalized.length - 1];
-    });
+    const maskOne = (value) => {
+      // 清理常見的半形/全形 O 與遮罩空白；避免舊版本已經產生的
+      // 「蕭OOOOOO文」「蕭O O O文」「蕭ＯＯＯ文」再次被當成原始姓名重複遮罩。
+      const compact = value
+        .replace(/[\s　]/g, '')
+        .replace(/[ＯOoｏ]/g, 'O');
 
-    return masked.join('/');
+      if (compact.length <= 1) return compact;
+
+      // 只要已呈現「首字 + O 遮罩 + 尾字」型態，就直接收斂成一個 O。
+      if (/^(.)(?:O)+(.)$/u.test(compact)) {
+        const m = compact.match(/^(.)(?:O)+(.)$/u);
+        return m ? `${m[1]}O${m[2]}` : compact;
+      }
+
+      // 3 字以上的正常姓名：首字＋適量 O＋末字。
+      if (compact.length === 2) return compact[0] + 'O';
+      return compact[0] + 'O'.repeat(compact.length - 2) + compact[compact.length - 1];
+    };
+
+    return parts.map(maskOne).join('/');
   }
 
   function registrationBuildingKey(build) {
