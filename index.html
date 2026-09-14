@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.74</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.75</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -191,7 +191,7 @@
   /* 登入背景輪播專用 */
   .bg-fade { transition: background-image 1.5s ease-in-out; }
 
-  /* v2.74：專業控制台視覺層級 */
+  /* v2.75：專業控制台視覺層級 */
   .guest-entry-note{text-align:center;margin-top:9px;color:#475569;font-size:13px;font-weight:800;letter-spacing:.2px}
   .guest-entry-btn{min-height:54px}.guest-entry-btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(37,99,235,.24)}
   .dashboard-command-card{background:linear-gradient(135deg,#eff6ff 0%,#ecfdf5 100%);color:#0f172a;border:1px solid #bfdbfe;border-radius:18px;padding:18px 20px;margin-bottom:1.5rem;box-shadow:0 12px 24px rgba(37,99,235,.08);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
@@ -199,7 +199,7 @@
   .lottery-step[role="button"]{cursor:pointer}.lottery-step:focus{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}
   @media(max-width:1024px){.dashboard-command-card{grid-template-columns:1fr;padding:16px}.dashboard-command-title{font-size:20px}.dashboard-next-action{display:inline-block;margin-top:10px}.dashboard-command-actions{justify-content:stretch}.dashboard-command-actions .btn{flex:1 1 140px;min-height:42px}}
 
-  /* ===== v2.74：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
+  /* ===== v2.75：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
   .mobile-view-toggle{display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap}
   .mobile-view-toggle .btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
   .mobile-card-list{display:none}
@@ -312,6 +312,15 @@
   }
   .table-scroll-hint{display:none;font-size:12.5px;color:var(--text-muted);font-weight:800;margin-bottom:.5rem;text-align:right}
 
+
+  /* ===== v2.75：管理警示中心、平面圖搜尋與 Firebase 同步狀態 ===== */
+  .dashboard-alert-card{margin-bottom:1.5rem;border:1px solid #fecaca;background:#fff7f7;border-radius:16px;padding:16px 18px;box-shadow:0 8px 18px rgba(127,29,29,.05)}
+  .dashboard-alert-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.dashboard-alert-title{font-size:17px;font-weight:900;color:#991b1b}.dashboard-alert-count{font-size:12px;font-weight:900;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:999px;padding:5px 9px}
+  .dashboard-alert-list{display:grid;gap:8px;margin-top:12px}.dashboard-alert-item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #fecaca;border-radius:10px;padding:9px 11px;font-size:13px;font-weight:800;color:#7f1d1d}.dashboard-alert-item .alert-main{flex:1}.dashboard-alert-item .alert-action{white-space:nowrap}
+  .floorplan-toolbar{display:grid;grid-template-columns:1fr 180px auto;gap:10px;align-items:center;margin-bottom:14px}.floorplan-toolbar .btn{min-height:44px}
+  .sync-lock-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;font-size:12px;font-weight:900}
+  @media(max-width:1024px){.floorplan-toolbar{grid-template-columns:1fr 1fr}.floorplan-toolbar .btn{grid-column:1/-1}.dashboard-alert-item{align-items:flex-start;flex-direction:column}.dashboard-alert-item .alert-action{width:100%}.dashboard-alert-item .alert-action .btn{width:100%}}
+
   /* 💡 新增：列印專用樣式。先前「列印報表」/「匯出PDF」直接呼叫 window.print()，
      會把整個畫面（深色導覽列、漢堡選單、按鈕、彩色陰影、輸入框等）原封不動印出來，
      既浪費紙墨、深色區塊印出來又是一大片黑，非常不好讀也不專業。
@@ -382,7 +391,7 @@
 </div>
 
 <!-- 💡 個人中籤通知單，畫面上不顯示，只有點擊「列印個人中籤通知單」時才會出現並印出 -->
-<!-- v2.74 車位平面圖互動明細 Modal -->
+<!-- v2.75 車位平面圖互動明細 Modal -->
 <div class="modal-overlay seat-detail-modal" id="seat-detail-modal" onclick="if(event.target===this) closeSeatDetailModal()">
   <div class="modal">
     <div class="flex-between" style="margin-bottom:1rem">
@@ -470,7 +479,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.74</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.75</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -562,7 +571,9 @@
       <div class="dashboard-next-action" id="dash-next-action">下一步：第一輪抽籤</div>
     </div>
     <div class="dashboard-command-actions" id="dash-command-actions"></div>
-  </div>
+  </div>  <div class="dashboard-alert-card" id="dashboard-alert-center" style="display:none"></div>
+
+
 
   <div class="stats-grid" id="dash-stats"></div>
   <div class="grid-2">
@@ -855,7 +866,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.74 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.75 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -975,6 +986,14 @@
     </div>
   </div>
 
+  <div class="floorplan-toolbar">
+    <input type="text" id="floorplan-search" placeholder="搜尋車位號碼／姓名／門牌／車牌" oninput="filterFloorplanView()">
+    <select id="floorplan-status-filter" onchange="filterFloorplanView()">
+      <option value="all">全部車位狀態</option><option value="free">空車位</option><option value="used">已分配</option><option value="waitlist">候補分配</option><option value="void">作廢車位</option>
+    </select>
+    <button class="btn btn-sm" onclick="clearFloorplanFilter()">清除篩選</button>
+  </div>
+
   <div class="round-tabs">
     <div class="round-tab active" id="fp-tab-1" onclick="switchFloorplan(1)">B1 區車位圖</div>
     <div class="round-tab" id="fp-tab-2" onclick="switchFloorplan(2)">B2 區車位圖</div>
@@ -1077,7 +1096,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.74">
+        <input type="text" id="set-app-version" value="v2.75">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1562,7 +1581,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.74",
+    appVersion: "v2.75",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1785,7 +1804,73 @@
     return core;
   }
 
-  async function cloudSyncPush() {
+  async function acquireCloudWriteLock(maxAttempts=3) {
+    const url=`${FIREBASE_DB_URL}parkingData/_syncLock.json`;
+    const token=`${currentUser?.username||'user'}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    for(let attempt=1; attempt<=maxAttempts; attempt++){
+      try{
+        const res=await fetch(`${url}?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache','Pragma':'no-cache'}});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const etag=res.headers.get('ETag') || 'null_etag';
+        const existing=await res.json();
+        const active=existing && existing.token && Number(existing.expiresAt||0)>Date.now() && existing.token!==token;
+        if(active){
+          updateSyncStatusUI(false,'其他管理裝置正在寫入，請稍候');
+          return null;
+        }
+        const payload={token, user:(currentUser&&currentUser.name)||'', acquiredAt:{'.sv':'timestamp'}, expiresAt:Date.now()+60000};
+        const put=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json','if-match':etag},body:JSON.stringify(payload)});
+        if(put.status===412){
+          if(attempt<maxAttempts) await new Promise(r=>setTimeout(r,250*attempt));
+          continue;
+        }
+        if(!put.ok) throw new Error('HTTP '+put.status);
+        const verify=await fetch(`${url}?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
+        if(!verify.ok) throw new Error('HTTP '+verify.status);
+        const verifyData=await verify.json();
+        if(!verifyData || verifyData.token!==token) {
+          if(verifyData && verifyData.token===token) {
+            const verifyEtag = verify.headers.get('ETag');
+            if(verifyEtag) { try { await fetch(url,{method:'DELETE',headers:{'if-match':verifyEtag}}); } catch(_){} }
+          }
+          if(attempt<maxAttempts) continue;
+          return null;
+        }
+        const verifyEtag=verify.headers.get('ETag');
+        activeCloudWriteLockToken={token,etag:verifyEtag};
+        return token;
+      }catch(e){
+        console.warn('取得 Firebase 寫入鎖失敗：',e);
+        if(attempt<maxAttempts) await new Promise(r=>setTimeout(r,250*attempt));
+      }
+    }
+    updateSyncStatusUI(false,'無法取得雲端寫入鎖');
+    return null;
+  }
+
+  async function releaseCloudWriteLock(){
+    const lock=activeCloudWriteLockToken; if(!lock) return;
+    activeCloudWriteLockToken=null;
+    try{
+      const url=`${FIREBASE_DB_URL}parkingData/_syncLock.json`;
+      const res=await fetch(`${url}?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
+      if(!res.ok) return;
+      const data=await res.json(); const etag=res.headers.get('ETag');
+      if(data && data.token===lock.token && etag){
+        const del=await fetch(url,{method:'DELETE',headers:{'if-match':etag}});
+        if(!del.ok && del.status!==412) console.warn('釋放 Firebase 寫入鎖失敗：HTTP '+del.status);
+      }
+    }catch(e){ console.warn('釋放 Firebase 寫入鎖失敗：',e); }
+  }
+
+  function cloudSyncPush(){
+    const run=()=>cloudSyncPushCore();
+    const next=cloudPushChain.then(run,run);
+    cloudPushChain=next.catch(()=>false);
+    return next;
+  }
+
+  async function cloudSyncPushCore() {
     // 核心資料寫入必須由已登入的管理員或社區主任執行；未登入／訪客一律只允許查詢。
     if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
       updateSyncStatusUI(false, "未登入／僅查詢");
@@ -1821,7 +1906,21 @@
     }
 
     pendingPushCount++;
+    let writeLockAcquired = false;
     try {
+      const lockToken = await acquireCloudWriteLock();
+      if(!lockToken){
+        return false;
+      }
+      writeLockAcquired = true;
+      // 取得全域寫入鎖後，再次驗證本機資料；避免等待取得鎖期間，畫面上的其他事件修改了即將寫入的內容。
+      const lockedPreflight = validateCurrentAllocationState({alert:false});
+      if (!lockedPreflight.ok) {
+        updateSyncStatusUI(false,'資料不一致，已阻止寫入');
+        alert(`【防呆攔截】寫入鎖取得後發現資料一致性異常，已取消寫入。\n\n${lockedPreflight.errors.slice(0, 12).map(x => '• ' + x).join('\n')}`);
+        return false;
+      }
+      // 取得全域寫入鎖後，再做雲端版本檢查；這一段是在鎖內執行，會阻止遵守本鎖的其他管理裝置同時寫入。
       try {
         const checkRes = await fetch(`${FIREBASE_DB_URL}parkingData/_meta/lastModified.json?_t=${Date.now()}`, {
           cache: "no-store",
@@ -1908,6 +2007,7 @@
       updateSyncStatusUI(false, "同步失敗");
       return false;
     } finally {
+      if(writeLockAcquired) await releaseCloudWriteLock();
       pendingPushCount--;
     }
   }
@@ -1915,16 +2015,19 @@
   // 💡 封存資料採「按需同步」模式（跟大型檔案media同樣的獨立路徑做法），
   // 不放進每次登入/自動同步都會拉取的主要路徑，避免封存紀錄累積後拖慢日常同步速度。
   let archives = [];
+  let archivesCloudEtag = null;
 
   async function loadArchivesFromCloud() {
+    if (!currentUser || !['admin','director'].includes(currentUser.role)) return false;
     if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
       archives = [];
       return true;
     }
     try {
-      const res = await fetch(`${FIREBASE_DB_URL}parkingData/archives.json?_t=${new Date().getTime()}`, { cache: "no-store" });
+      const res = await fetch(`${FIREBASE_DB_URL}parkingData/archives.json?_t=${new Date().getTime()}`, { cache: "no-store", headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'} });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
+      archivesCloudEtag = res.headers.get('ETag') || 'null_etag';
       archives = Array.isArray(data) ? data : (data ? Object.values(data) : []);
       return true;
     } catch (e) {
@@ -1934,14 +2037,24 @@
   }
 
   async function pushArchivesToCloud() {
+    if (!currentUser || !['admin','director'].includes(currentUser.role)) return false;
     if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) return false;
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (archivesCloudEtag) headers['if-match'] = archivesCloudEtag;
       const res = await fetch(`${FIREBASE_DB_URL}parkingData/archives.json`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(archives)
       });
+      if (res.status === 412) {
+        throw new Error('封存資料版本衝突：其他管理裝置已更新，請先重新載入封存清單後再試。');
+      }
       if (!res.ok) throw new Error("HTTP " + res.status);
+      try {
+        const verify = await fetch(`${FIREBASE_DB_URL}parkingData/archives.json?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
+        if(verify.ok) archivesCloudEtag = verify.headers.get('ETag') || archivesCloudEtag;
+      } catch(_){}
       return true;
     } catch (e) {
       console.error("寫入封存紀錄失敗：", e);
@@ -1950,6 +2063,14 @@
   }
 
   async function cloudSyncPushMedia() {
+    if (!currentUser || !['admin','director'].includes(currentUser.role)) {
+      updateSyncStatusUI(false, '未登入／僅查詢');
+      return false;
+    }
+    if (lotteryRunning || waitlistLotteryRunning) {
+      updateSyncStatusUI(false, '抽籤進行中，檔案寫入暫停');
+      return false;
+    }
     // 💡 專門用來同步大型檔案（登入背景圖、平面圖、操作手冊PDF）的獨立函式，
     // 只在真正上傳/刪除這些檔案時才會被呼叫，不會影響一般資料（例如抽籤結果）的同步速度。
     if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
@@ -1987,6 +2108,10 @@
   }
 
   async function cloudSyncPull() {
+    if (lotteryRunning || waitlistLotteryRunning) {
+      console.warn('正式／候補抽籤執行中，暫緩雲端資料拉取。');
+      return false;
+    }
     if (pendingPushCount > 0) {
       console.warn("目前有雲端寫入進行中，暫緩資料拉取以避免覆蓋尚未完成的本機變更。");
       updateSyncStatusUI(false, "寫入中，重新整理已暫緩");
@@ -2192,7 +2317,7 @@
   }
 
   function getDisplayName(name) {
-    return (currentUser.role === 'guest') ? maskName(name) : name;
+    return (currentUser && currentUser.role === 'guest') ? maskName(name) : name;
   }
 
   window.onload = async function() {
@@ -2234,7 +2359,7 @@
     if (!loginOverlay || loginOverlay.style.display !== "none") return; // 尚未登入（登入畫面還顯示著）不處理
     const anyModalOpen = document.querySelector('.modal-overlay.show');
     if (anyModalOpen) return;
-    if (pendingPushCount > 0) return; // 💡 有寫入正在進行中時暫緩，避免蓋掉尚未送達雲端的變更
+    if (pendingPushCount > 0 || lotteryRunning || waitlistLotteryRunning) return; // 💡 有抽籤／寫入正在進行中時暫緩，避免蓋掉尚未送達雲端的變更
     visibilitySyncLock = true;
     try {
       updateSyncStatusUI(false, "偵測到回到頁面，同步最新資料中...");
@@ -2261,6 +2386,10 @@
   // 保留這個就足以涵蓋「切回分頁時自動更新最新資料」的需求，且不會有這個副作用。
 
   async function refreshCloudData() {
+    if (lotteryRunning || waitlistLotteryRunning) {
+      alert('抽籤執行期間禁止手動重新整理，請待抽籤及雲端同步完成後再操作。');
+      return;
+    }
     if (pendingPushCount > 0) {
       alert('目前仍有資料正在寫入雲端，為避免把尚未送出的變更蓋掉，請待同步完成後再重新整理。');
       return;
@@ -2535,6 +2664,8 @@
     await cloudSyncPull();
 
     currentUser = { name: "社區住戶", role: "guest", username: "guest", password: "" };
+    // 住戶模式不需要管理端帳號、稽核紀錄與操作紀錄；即使這些資料曾在同步回應中存在，也不再長期留在前端記憶體。
+    accountsList = []; pendingAudits = []; systemLogs = [];
     localStorage.setItem("lottery_user", JSON.stringify(currentUser));
     document.getElementById("login-overlay").style.display = "none";
     if(bgCarouselTimer) clearInterval(bgCarouselTimer);
@@ -2758,7 +2889,31 @@
     }
   }
 
+  function updateAdminAlertCenter() {
+    const box = document.getElementById('dashboard-alert-center');
+    if (!box) return;
+    const staff = currentUser && ['admin','director'].includes(currentUser.role);
+    if (!staff) { box.style.display='none'; box.innerHTML=''; return; }
+    const issues=[];
+    residents.forEach(r=>{
+      [[1,'r1','plate1'],[2,'r2','plate2'],[3,'r3','plate3']].forEach(([n,rk,pk])=>{
+        if(r[rk]==='Y' && !isValidTaiwanPlate(r[pk], true)) issues.push({text:`${r.build}-${r.room} ${getDisplayName(r.name)}：第${n}輪車牌缺失或格式異常`,action:`openEditModal(${Number(r.id)})`});
+      });
+      const plates=[r.plate1,r.plate2,r.plate3,r.plateWaitlist].filter(p=>p && p!==PENDING_PLATE_LABEL);
+      const seen=new Set(); plates.forEach(p=>{ const k=normalizePlateValue(p); if(seen.has(k)) issues.push({text:`${r.build}-${r.room} ${getDisplayName(r.name)}：同一住戶重複登記車牌 ${p}`}); seen.add(k); });
+    });
+    const dedup=[]; const seenText=new Set(); issues.forEach(x=>{if(!seenText.has(x.text)){seenText.add(x.text);dedup.push(x);}});
+    if (dedup.length===0 && (!pendingAudits || pendingAudits.length===0)) { box.style.display='none'; box.innerHTML=''; return; }
+    const total=dedup.length+(pendingAudits||[]).length;
+    let html=`<div class="dashboard-alert-head"><div class="dashboard-alert-title">🔴 管理警示中心</div><span class="dashboard-alert-count">${total} 項待處理</span></div><div style="font-size:12.5px;color:#7f1d1d;font-weight:700;margin-top:4px">僅管理員與社區主任可見；建議抽籤前先完成處理。</div><div class="dashboard-alert-list">`;
+    dedup.slice(0,6).forEach(x=>{html+=`<div class="dashboard-alert-item"><div class="alert-main">⚠️ ${escapeHtml(x.text)}</div>${x.action?`<div class="alert-action"><button class="btn btn-sm" onclick="${x.action}">查看住戶</button></div>`:''}</div>`;});
+    if(dedup.length>6) html+=`<div style="font-size:12px;color:#7f1d1d;font-weight:800">另有 ${dedup.length-6} 項車牌資料異常，請至「住戶名單」處理。</div>`;
+    if((pendingAudits||[]).length) html+=`<div class="dashboard-alert-item"><div class="alert-main">📝 尚有 ${(pendingAudits||[]).length} 筆待審核資料</div><div class="alert-action"><button class="btn btn-sm" onclick="showPage('residents')">前往處理</button></div></div>`;
+    html+='</div>'; box.innerHTML=html; box.style.display='block';
+  }
+
   function renderDashboard() {
+    updateAdminAlertCenter();
     const total = residents.length;
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
     const availableSeats = systemSettings.totalSeats - voidCount;
@@ -2817,6 +2972,7 @@
     for(let i=1; i<=systemSettings.totalSeats; i++) {
       let isVoid = systemSettings.voidSeats && systemSettings.voidSeats.includes(i);
       let occupant = getSeatOccupant(i);
+      if(!floorplanSeatVisible(i, isVoid, occupant)) { continue; }
       let cls = "seat seat-free";
       let label = `${i}號`;
       let hoverTitle = `車位 ${i}號 (空位)`;
@@ -4092,6 +4248,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
 
   let lotteryRunning = false;
   let waitlistLotteryRunning = false;
+  let floorplanSearchText = '';
+  let floorplanStatusFilter = 'all';
+  let cloudPushChain = Promise.resolve();
+  let activeCloudWriteLockToken = null;
   // 備份還原是管理員明確要求的完整覆蓋操作；僅在還原流程期間略過版本衝突檢查。
   let restoreForcePush = false;
 
@@ -5082,7 +5242,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const host=document.getElementById('results-card-list'); if(!host) return;
     let html='';
     rows.forEach(({r,seat1,seat2,seat3,seatW})=>{
-      html+=`<article class="data-card"><div class="data-card-head"><div><div class="data-card-title">${escapeHtml(r.build)} 棟 ${escapeHtml(r.room)} · ${escapeHtml(getDisplayName(r.name))}</div><div class="data-card-sub">${r.reserve==='Y'?'保留戶':'一般戶'}</div></div></div><div class="data-card-grid"><div class="data-card-item"><span class="data-card-label">第一輪</span><span class="data-card-value">${seat1?seat1+'號':(r.r1==='Y'?'未中籤':'未參加')}</span></div><div class="data-card-item"><span class="data-card-label">第二輪</span><span class="data-card-value">${seat2?seat2+'號':(r.r2==='Y'?'未中籤':'未參加')}</span></div><div class="data-card-item"><span class="data-card-label">第三輪</span><span class="data-card-value">${seat3?seat3+'號':(r.r3==='Y'?'未中籤':'未參加')}</span></div><div class="data-card-item"><span class="data-card-label">候補</span><span class="data-card-value">${seatW?seatW+'號':(r.waitlist==='Y'?'候補中':'未登記')}</span></div><div class="data-card-item full"><span class="data-card-label">車牌</span><span class="data-card-value">${escapeHtml([r.plate1,r.plate2,r.plate3,r.plateWaitlist].map(renderPlateText).join(' / '))}</span></div></div>${resultCardActions(r)}</article>`;
+      html+=`<article class="data-card"><div class="data-card-head"><div><div class="data-card-title">${escapeHtml(r.build)} 棟 ${escapeHtml(r.room)} · ${escapeHtml(getDisplayName(r.name))}</div><div class="data-card-sub">${r.reserve==='Y'?'保留戶':'一般戶'}</div></div></div><div class="data-card-grid"><div class="data-card-item"><span class="data-card-label">第一輪</span><span class="data-card-value">${seat1?seat1+'號':(r.r1==='Y'?'未中籤':'未參加')}</span></div><div class="data-card-item"><span class="data-card-label">第二輪</span><span class="data-card-value">${seat2?seat2+'號':(r.r2==='Y'?'未中籤':'未參加')}</span></div><div class="data-card-item"><span class="data-card-label">第三輪</span><span class="data-card-value">${seat3?seat3+'號':(r.r3==='Y'?'未中籤':'未參加')}</span></div><div class="data-card-item"><span class="data-card-label">候補</span><span class="data-card-value">${seatW?seatW+'號':(r.waitlist==='Y'?'候補中':'未登記')}</span></div>${(currentUser && currentUser.role === 'guest') ? '' : `<div class="data-card-item full"><span class="data-card-label">車牌</span><span class="data-card-value">${escapeHtml([r.plate1,r.plate2,r.plate3,r.plateWaitlist].map(renderPlateText).join(' / '))}</span></div>`}</div>${resultCardActions(r)}</article>`;
     });
     host.innerHTML=html || '<div class="empty">目前沒有符合條件的結果。</div>';
   }
@@ -5103,7 +5263,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const tbody = document.getElementById("result-tbody");
 
     if (currentResultRound === "全部輪次") {
-      thElem.innerHTML = `<th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'build',renderResults)">棟別 ${sortIcon(resultSortState,'build')}</th><th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'room',renderResults)">門牌 ${sortIcon(resultSortState,'room')}</th><th style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'name',renderResults)">姓名 ${sortIcon(resultSortState,'name')}</th><th class="text-center col-group-start">身分</th><th class="text-center col-group-start" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'seat1',renderResults)">第一輪 ${sortIcon(resultSortState,'seat1')}</th><th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'seat2',renderResults)">第二輪 ${sortIcon(resultSortState,'seat2')}</th><th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'seat3',renderResults)">第三輪 ${sortIcon(resultSortState,'seat3')}</th><th class="text-center">候補</th><th class="text-center col-group-start">車牌1</th><th class="text-center">車牌2</th><th class="text-center">車牌3</th><th class="text-center">車牌(候補)</th>`;
+      const guestResultsView = currentUser && currentUser.role === 'guest';
+      thElem.innerHTML = `<th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'build',renderResults)">棟別 ${sortIcon(resultSortState,'build')}</th><th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'room',renderResults)">門牌 ${sortIcon(resultSortState,'room')}</th><th style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'name',renderResults)">姓名 ${sortIcon(resultSortState,'name')}</th><th class="text-center col-group-start">身分</th><th class="text-center col-group-start" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'seat1',renderResults)">第一輪 ${sortIcon(resultSortState,'seat1')}</th><th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'seat2',renderResults)">第二輪 ${sortIcon(resultSortState,'seat2')}</th><th class="text-center" style="cursor:pointer;user-select:none" onclick="toggleSort(resultSortState,'seat3',renderResults)">第三輪 ${sortIcon(resultSortState,'seat3')}</th><th class="text-center">候補</th>${guestResultsView?'':'<th class="text-center col-group-start">車牌1</th><th class="text-center">車牌2</th><th class="text-center">車牌3</th><th class="text-center">車牌(候補)</th>'}`;
       let html = "";
       let rowsData = residents.map(r => ({
         r,
@@ -5148,10 +5309,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           <td class="text-center">${s2}</td>
           <td class="text-center">${s3}</td>
           <td class="text-center">${sW}</td>
-          <td class="text-center col-group-start">${renderPlateCell(r.plate1)}</td>
-          <td class="text-center">${renderPlateCell(r.plate2)}</td>
-          <td class="text-center">${renderPlateCell(r.plate3)}</td>
-          <td class="text-center">${renderPlateCell(r.plateWaitlist)}</td>
+          ${guestResultsView ? '' : `<td class="text-center col-group-start">${renderPlateCell(r.plate1)}</td><td class="text-center">${renderPlateCell(r.plate2)}</td><td class="text-center">${renderPlateCell(r.plate3)}</td><td class="text-center">${renderPlateCell(r.plateWaitlist)}</td>`}
         </tr>`;
       });
       tbody.innerHTML = html;
@@ -5901,6 +6059,24 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     reader.readAsDataURL(file);
   }
 
+  function filterFloorplanView(){
+    floorplanSearchText=String(document.getElementById('floorplan-search')?.value||'').trim().toLowerCase();
+    floorplanStatusFilter=document.getElementById('floorplan-status-filter')?.value||'all';
+    initFloorplanSeats();
+  }
+  function clearFloorplanFilter(){
+    floorplanSearchText=''; floorplanStatusFilter='all';
+    const q=document.getElementById('floorplan-search'); const f=document.getElementById('floorplan-status-filter');
+    if(q) q.value=''; if(f) f.value='all'; initFloorplanSeats();
+  }
+  function floorplanSeatVisible(i, isVoid, occupant){
+    let status=isVoid?'void':(occupant ? (isSeatFromWaitlist(i)?'waitlist':'used') : 'free');
+    if(floorplanStatusFilter!=='all' && floorplanStatusFilter!==status) return false;
+    if(!floorplanSearchText) return true;
+    const hay=[String(i), occupant?.build||'', occupant?.room||'', getDisplayName(occupant?.name||''), occupant?.plate1||'', occupant?.plate2||'', occupant?.plate3||'', occupant?.plateWaitlist||''].join(' ').toLowerCase();
+    return hay.includes(floorplanSearchText);
+  }
+
   function initFloorplanSeats() {
     let b1Html = "";
     let b2Html = "";
@@ -5911,6 +6087,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     for(let i = 1; i <= b1Limit; i++) {
       let isVoid = vSeats.includes(i);
       let occupant = getSeatOccupant(i);
+      if(!floorplanSeatVisible(i, isVoid, occupant)) { continue; }
       let cls = "seat seat-free";
       let label = `${i}號`;
       let hoverTitle = `車位 ${i}號 (空位)`;
@@ -5948,6 +6125,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       b2Html += `<div class="${cls}" role="button" tabindex="0" onclick="openSeatDetail(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){openSeatDetail(${i})}" title="點擊查看車位 ${i}號詳細資料：${escapeHtml(hoverTitle)}">${label}</div>`;
     }
 
+    if (b1Html === '') b1Html = '<div class="empty" style="grid-column:1/-1;padding:2rem">目前沒有符合篩選條件的車位。</div>';
+    if (b2Html === '') b2Html = '<div class="empty" style="grid-column:1/-1;padding:2rem">目前沒有符合篩選條件的車位。</div>';
     const b1Grid = document.getElementById("fp-b1-grid");
     const b2Grid = document.getElementById("fp-b2-grid");
     if(b1Grid) b1Grid.innerHTML = b1Html;
@@ -5976,7 +6155,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       Object.assign(systemSettings, snapshot);
       applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
-      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.74";
+      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.75";
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || '';
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次系統標題/版次/導覽設定已回滾。");
       return;
@@ -6498,6 +6677,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       alert(`✅ 還原完成！已套用備份檔案（建立於 ${backupTimeText}）的內容，並成功同步到雲端。`);
       addLog("設定", `管理員還原備份檔案（備份建立時間：${backupTimeText}）`);
     } catch (e) {
+      restoreForcePush = false;
       // 💡 還原失敗時完整回滾，確保不會停留在「本機已改、雲端沒改」的不一致狀態。
       residents = preRestoreSnapshot.residents;
       lotteryResults = preRestoreSnapshot.lotteryResults;
@@ -6655,6 +6835,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   async function resetSystemData() {
+    if (lotteryRunning || waitlistLotteryRunning) { alert('抽籤執行期間不可重置系統資料，請待抽籤完成並同步後再操作。'); return; }
     if(!currentUser || currentUser.role !== 'admin') {
       alert("權限不足，僅系統管理員可重置資料！");
       return;
@@ -6818,7 +6999,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.74 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.75 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -6857,7 +7038,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.74 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.75 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
