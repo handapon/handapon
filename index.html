@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.67</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.68</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -191,7 +191,15 @@
   /* 登入背景輪播專用 */
   .bg-fade { transition: background-image 1.5s ease-in-out; }
 
-  /* ===== v2.67：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
+  /* v2.68：專業控制台視覺層級 */
+  .guest-entry-note{text-align:center;margin-top:9px;color:#475569;font-size:13px;font-weight:800;letter-spacing:.2px}
+  .guest-entry-btn{min-height:54px}.guest-entry-btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(37,99,235,.24)}
+  .dashboard-command-card{background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);color:#fff;border-radius:18px;padding:18px 20px;margin-bottom:1.5rem;box-shadow:0 16px 30px rgba(15,23,42,.16);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+  .dashboard-eyebrow{font-size:12px;font-weight:900;letter-spacing:1px;opacity:.78}.dashboard-command-title{font-size:24px;font-weight:950;line-height:1.3;margin-top:3px}.dashboard-command-sub{font-size:13.5px;opacity:.86;margin-top:5px;font-weight:700}.dashboard-next-action{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);padding:9px 12px;border-radius:10px;font-size:13px;font-weight:900;white-space:nowrap}.dashboard-command-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.dashboard-command-actions .btn{border:1px solid rgba(255,255,255,.35);background:#fff;color:#0f172a;box-shadow:none}.dashboard-command-actions .btn.btn-primary{background:#60a5fa;border-color:#60a5fa;color:#082f49}
+  .lottery-step[role="button"]{cursor:pointer}.lottery-step:focus{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}
+  @media(max-width:1024px){.dashboard-command-card{grid-template-columns:1fr;padding:16px}.dashboard-command-title{font-size:20px}.dashboard-next-action{display:inline-block;margin-top:10px}.dashboard-command-actions{justify-content:stretch}.dashboard-command-actions .btn{flex:1 1 140px;min-height:42px}}
+
+  /* ===== v2.68：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
   .mobile-view-toggle{display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap}
   .mobile-view-toggle .btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
   .mobile-card-list{display:none}
@@ -374,7 +382,7 @@
 </div>
 
 <!-- 💡 個人中籤通知單，畫面上不顯示，只有點擊「列印個人中籤通知單」時才會出現並印出 -->
-<!-- v2.67 車位平面圖互動明細 Modal -->
+<!-- v2.68 車位平面圖互動明細 Modal -->
 <div class="modal-overlay seat-detail-modal" id="seat-detail-modal" onclick="if(event.target===this) closeSeatDetailModal()">
   <div class="modal">
     <div class="flex-between" style="margin-bottom:1rem">
@@ -462,7 +470,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.67</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.68</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -511,7 +519,7 @@
        <hr style="border:none;border-top:2px solid #cbd5e1;">
        <span style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#fff;padding:0 14px;font-size:14px;color:#475569;font-weight:800">或</span>
     </div>
-    <button class="btn" style="width:100%;padding:1.2rem;color:var(--primary);border-color:#93c5fd;background:#eff6ff;font-size:16px;font-weight:900" onclick="guestLogin()">進入社區住戶查詢入口</button>
+    <button class="guest-entry-btn btn" style="width:100%;padding:1.25rem;color:var(--primary);border-color:#60a5fa;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);font-size:17px;font-weight:900;box-shadow:0 8px 18px rgba(37,99,235,.18);" onclick="guestLogin()">🏠 進入社區住戶查詢入口</button><div class="guest-entry-note">（社區芳鄰請由此處登入）</div>
   </div>
 </div>
 
@@ -542,6 +550,18 @@
       <button class="btn btn-primary" id="staff-quick-nav-logs" style="display:none;padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('logs')">📋<br>操作紀錄</button>
       <button class="btn btn-primary" id="staff-quick-nav-settings" style="display:none;padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('settings')">⚙️<br>系統設定</button>
     </div>
+  </div>
+
+  <div class="dashboard-command-card" id="dashboard-command-card">
+    <div class="dashboard-command-main">
+      <div>
+        <div class="dashboard-eyebrow">目前系統狀態</div>
+        <div class="dashboard-command-title" id="dash-command-title">第一輪尚未執行</div>
+        <div class="dashboard-command-sub" id="dash-command-sub">請依序完成第一輪 → 第二輪 → 第三輪 → 候補。</div>
+      </div>
+      <div class="dashboard-next-action" id="dash-next-action">下一步：第一輪抽籤</div>
+    </div>
+    <div class="dashboard-command-actions" id="dash-command-actions"></div>
   </div>
 
   <div class="stats-grid" id="dash-stats"></div>
@@ -665,10 +685,10 @@
   </div>
 
   <div class="lottery-stepper" id="lottery-stepper">
-    <div class="lottery-step" data-step="1">① 第一輪<small>正式抽籤</small></div>
-    <div class="lottery-step" data-step="2">② 第二輪<small>需先完成第一輪</small></div>
-    <div class="lottery-step" data-step="3">③ 第三輪<small>需先完成第二輪</small></div>
-    <div class="lottery-step" data-step="4">④ 候補<small>三輪完成後執行</small></div>
+    <div class="lottery-step" data-step="1" role="button" tabindex="0" onclick="selectLotteryRound('第一輪')" onkeydown="if(event.key==='Enter'||event.key===' '){selectLotteryRound('第一輪')}">① 第一輪<small>正式抽籤</small></div>
+    <div class="lottery-step" data-step="2" role="button" tabindex="0" onclick="selectLotteryRound('第二輪')" onkeydown="if(event.key==='Enter'||event.key===' '){selectLotteryRound('第二輪')}">② 第二輪<small>需先完成第一輪</small></div>
+    <div class="lottery-step" data-step="3" role="button" tabindex="0" onclick="selectLotteryRound('第三輪')" onkeydown="if(event.key==='Enter'||event.key===' '){selectLotteryRound('第三輪')}">③ 第三輪<small>需先完成第二輪</small></div>
+    <div class="lottery-step" data-step="4" role="button" tabindex="0" onclick="selectLotteryRound('候補')" onkeydown="if(event.key==='Enter'||event.key===' '){selectLotteryRound('候補')}">④ 候補<small>三輪完成後執行</small></div>
   </div>
   <div class="lottery-lock-note" id="lottery-lock-note"></div>
   <div class="lrs-grid">
@@ -835,7 +855,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.67 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.68 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -1057,7 +1077,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.67">
+        <input type="text" id="set-app-version" value="v2.68">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1363,19 +1383,16 @@
   // 💡 新增：買賣交屋期間，新屋主尚未購置機車/完成過戶而無車牌號碼時，可用此標記暫代車牌，
   // 保留抽籤資格；車牌到位後，管理員只需編輯住戶資料，把此標記換成真實車牌即可。
   const PENDING_PLATE_LABEL = "新戶待補";
-  // 台灣目前一般汽機車新式號牌：前三後四碼。I、O 與數字 4 不使用。
-  // 允許輸入 ABC1234 或 ABC-1234，儲存時一律標準化成 ABC-1234。
-  // 💡 特殊用途車輛車牌說明：租賃車(R開頭)、身心障礙車(W開頭)、電動車(E開頭)、計程車(T開頭)
-  // 自2012年新制車牌上路後，本身就是標準的「英文+數字」格式，只是開頭字母有特定意義，
-  // 並沒有額外的排列規則，因此已經被下方的一般格式規則正確涵蓋，不需要另外設計特例。
-  // 「公司車」在台灣監理制度下沒有專屬車牌格式，公司名義登記的車輛使用與一般自用車相同的
-  // 標準車牌，同樣已被下方規則涵蓋。
-  // 另外補上極早期（1992年以前）曾出現過的純數字車牌格式（不含英文字母）。
+  // 台灣目前一般汽機車號牌及既有舊式號牌格式。I、O 不作為英文字母代碼使用。
+  // 微型電動二輪車是獨立規則：2 個英文字母 + 5 個數字，官方號牌如 AB50001，牌面本身不含連字號。
+  // 一般汽機車、特殊用途車輛等則依既有新式/舊式規則驗證。
+  const MICRO_E2W_PLATE_PATTERN = /^[A-HJ-NP-Z]{2}\d{5}$/;
   const TAIWAN_PLATE_PATTERNS = [
-    /^[A-HJ-NP-Z]{2,3}\d{3,5}$/,   // 英文在前：涵蓋舊機車(2+3/2+4)、新機車(3+3)、新汽車(3+4)、微型電動二輪車(2+5，本身無連字號)，亦涵蓋新式R/W/E/T開頭特殊車輛車牌
-    /^\d{3,4}[A-HJ-NP-Z]{2,3}$/,  // 數字在前：涵蓋較早期 DDD-LL / DDDD-LL / DDD-LLL 等格式
-    /^\d{2}[A-HJ-NP-Z]{4}$/,      // 更早期：DD-LLLL
-    /^\d{5,6}$/                    // 極早期純數字車牌：嚴格限制為 5～6 碼，不接受 7 碼以上
+    /^[A-HJ-NP-Z]{3}\d{3,4}$/,    // 新式普通機車 / 汽車等：ABC123、ABC1234
+    /^[A-HJ-NP-Z]{2}\d{3,4}$/,    // 舊式二輪車等：AB123 / AB1234（2+5 改由微型電動二輪車專用規則處理）
+    /^\d{3,4}[A-HJ-NP-Z]{2,3}$/,  // 較早期數字在前格式
+    /^\d{2}[A-HJ-NP-Z]{4}$/,      // 更早期 DD-LLLL
+    /^\d{5,6}$/                    // 極早期純數字車牌
   ];
 
   function normalizePlateValue(value) {
@@ -1390,15 +1407,16 @@
     const normalized = normalizePlateValue(value);
     if (!normalized) return false;
     if (allowPending && normalized === normalizePlateValue(PENDING_PLATE_LABEL)) return true;
-    return TAIWAN_PLATE_PATTERNS.some(re => re.test(normalized));
+    return MICRO_E2W_PLATE_PATTERN.test(normalized) || TAIWAN_PLATE_PATTERNS.some(re => re.test(normalized));
   }
 
   function formatTaiwanPlate(value) {
     const normalized = normalizePlateValue(value);
     if (normalized === normalizePlateValue(PENDING_PLATE_LABEL)) return PENDING_PLATE_LABEL;
     if (!isValidTaiwanPlate(normalized, false)) return '';
-    // 💡 自動找出英文／數字的交界點插入 "-"，不再假設固定「前3碼英文」的位置，
-    // 才能正確處理兩碼英文、數字在前等各種舊式格式的自動補上分隔號。
+    // 微型電動二輪車官方格式為 2 英文 + 5 數字，牌面不含連字號。
+    if (MICRO_E2W_PLATE_PATTERN.test(normalized)) return normalized;
+    // 其他格式自動找出英數交界，補上系統慣用的顯示連字號。
     const m = normalized.match(/^([A-HJ-NP-Z]+)(\d+)$/) || normalized.match(/^(\d+)([A-HJ-NP-Z]+)$/);
     if (m) return m[1] + '-' + m[2];
     return normalized;
@@ -1409,7 +1427,7 @@
     if (!raw) return '請輸入車牌號碼。';
     if (normalizePlateValue(raw) === normalizePlateValue(PENDING_PLATE_LABEL)) return '';
     if (!isValidTaiwanPlate(raw, false)) {
-      return '車牌格式錯誤：請輸入台灣汽機車車牌號碼（新式或舊式格式皆可，例如 ABC-1234、AB-123，中間的「-」可省略）；英文字母 I、O 不使用。若尚無車牌，請勾選「新戶待補」。';
+      return '車牌格式錯誤：請輸入台灣汽機車或微型電動二輪車車牌（例如 ABC-1234、AB-123、AB12345；微型電動二輪車為 2 英文＋5 數字，牌面不含連字號；中間的「-」可省略）；英文字母 I、O 不使用。若尚無車牌，請勾選「新戶待補」。';
     }
     return '';
   }
@@ -1500,6 +1518,7 @@
 
   let currentFloorplan = 1;
   let fpZoomLevel = 1.0;
+  let activeSeatDetail = null;
   let bgCarouselTimer = null; 
   let cloudSyncReady = false; // 💡 新增：是否已成功從雲端完整下載過一次資料
   let autoSyncTimer = null; // 💡 新增：背景自動同步計時器
@@ -1527,7 +1546,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.67",
+    appVersion: "v2.68",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -2101,12 +2120,29 @@
 
   function maskName(name) {
     if (!name) return "";
-    const str = name.trim();
-    if (str.length <= 1) return str;
-    if (str.length === 2) return str[0] + "O";
-    if (str.length === 3) return str[0] + "O" + str[2];
-    if (str.length === 4) return str[0] + "OO" + str[3];
-    return str[0] + "O".repeat(str.length - 2) + str[str.length - 1];
+    // 共同持有人必須先拆分，再各自遮罩；否則「甲/乙」會被當成一個長姓名，
+    // 導致訪客看到「莊OOOOO慧」這類錯誤顯示。
+    const rawName = String(name).trim();
+    // 舊版曾把兩位共同持有人先串接後整串遮罩，若留下「首字 + 5 個 O + 尾字」的 7 字元舊產物，
+    // 依目前已知的共同持有人遮罩規則，還原成「首字O尾字／首字O尾字」的匿名顯示格式，避免看起來像一個人。
+    const legacyTwoOwnerMasked = rawName.match(/^(.)(O{5})(.)$/u);
+    if (legacyTwoOwnerMasked) return `${legacyTwoOwnerMasked[1]}O${legacyTwoOwnerMasked[3]}/${legacyTwoOwnerMasked[1]}O${legacyTwoOwnerMasked[3]}`;
+    const parts = rawName
+      .replace(/、|，|／|;|；|&|＆|\+/g, '/')
+      .split('/')
+      .map(x => x.trim().replace(/[\s　]/g, ''))
+      .filter(Boolean);
+    const maskOne = (str) => {
+      if (!str) return '';
+      if (str.length <= 1) return str;
+      const alreadyMasked = str.match(/^(.)(O+)(.)$/u);
+      if (alreadyMasked) return `${alreadyMasked[1]}O${alreadyMasked[3]}`;
+      if (str.length === 2) return str[0] + 'O';
+      if (str.length === 3) return str[0] + 'O' + str[2];
+      if (str.length === 4) return str[0] + 'OO' + str[3];
+      return str[0] + 'O'.repeat(str.length - 2) + str[str.length - 1];
+    };
+    return parts.map(maskOne).filter(Boolean).join('/');
   }
 
   // 💡 HTML escape 工具：所有插入 innerHTML 的使用者可控文字欄位（住戶姓名、棟別、門牌、
@@ -2217,17 +2253,19 @@
   function startAutoSync() {
     if (autoSyncTimer) clearInterval(autoSyncTimer);
     autoSyncTimer = setInterval(async () => {
-      const anyModalOpen = document.querySelector('.modal-overlay.show');
+      const seatModalOpen = document.querySelector('.seat-detail-modal.show');
+      const otherModalOpen = document.querySelector('.modal-overlay.show:not(.seat-detail-modal)');
       const activeTag = document.activeElement ? document.activeElement.tagName : '';
       const isTyping = (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT');
-      // 💡 若目前有寫入正在進行中（pendingPushCount > 0），暫緩這次背景同步，
-      // 避免背景讀取到「還沒寫入新結果」的舊資料，反而把畫面上剛做的變更蓋掉。
-      if (anyModalOpen || isTyping || pendingPushCount > 0) return;
+      // 車位明細 Modal 本身允許背景同步；其他互動 Modal 仍暫緩，避免打斷輸入。
+      if (otherModalOpen || isTyping || pendingPushCount > 0) return;
       if (Date.now() - lastManualMutationAt < 3000) return;
       const ok = await cloudSyncPull();
       if (ok) {
+        const seatToRefresh = activeSeatDetail;
         initApp();
         checkPlateWarnings();
+        if (seatModalOpen && seatToRefresh) openSeatDetail(seatToRefresh);
       }
     }, 15000);
   }
@@ -2655,7 +2693,7 @@
         ['plateWaitlist', r.plateWaitlist, '候補']
       ].forEach(([field, value, label]) => {
         if (value && !isValidTaiwanPlate(value, true)) {
-          anomalies.push(`[${r.build}] ${r.room} ${r.name}：${label}車牌「${value}」格式不符合台灣目前 ABC-1234 標準`);
+          anomalies.push(`[${r.build}] ${r.room} ${r.name}：${label}車牌「${value}」格式不符合台灣汽機車／微型電動二輪車牌照格式`);
         }
       });
 
@@ -2694,6 +2732,22 @@
     let gotR1 = getValidWinnerCount("第一輪");
     let gotR2 = getValidWinnerCount("第二輪");
     let gotR3 = getValidWinnerCount("第三輪");
+
+    const commandTitle = gotR3 > 0 ? (getValidWinnerCount("候補") > 0 ? "候補抽籤已完成" : "三輪正式抽籤已完成") : (gotR2 > 0 ? "目前進度：等待第三輪" : (gotR1 > 0 ? "目前進度：等待第二輪" : "第一輪尚未執行"));
+    const commandSub = gotR3 > 0 ? "正式三輪已完成；如有剩餘或棄權車位，再執行候補。" : (gotR2 > 0 ? "第一、二輪已完成，現在可進行第三輪。" : (gotR1 > 0 ? "第一輪已完成，現在可進行第二輪。" : "請先完成第一輪，再依序進行後續輪次。"));
+    const nextAction = gotR3 > 0 ? (getValidWinnerCount("候補") > 0 ? "流程完成" : "下一步：候補抽籤") : (gotR2 > 0 ? "下一步：第三輪抽籤" : (gotR1 > 0 ? "下一步：第二輪抽籤" : "下一步：第一輪抽籤"));
+    const titleEl = document.getElementById("dash-command-title"), subEl = document.getElementById("dash-command-sub"), nextEl = document.getElementById("dash-next-action"), actionsEl = document.getElementById("dash-command-actions");
+    if(titleEl) titleEl.innerText = commandTitle;
+    if(subEl) subEl.innerText = commandSub;
+    if(nextEl) nextEl.innerText = nextAction;
+    if(actionsEl) {
+      if(currentUser && ['admin','director'].includes(currentUser.role)) {
+        const nextRound = gotR3 === 0 ? (gotR2 === 0 ? (gotR1 === 0 ? '第一輪' : '第二輪') : '第三輪') : (getValidWinnerCount('候補') === 0 ? '候補' : null);
+        actionsEl.innerHTML = `${nextRound ? `<button class="btn btn-primary" onclick="showPage('lottery');selectLotteryRound('${nextRound}')">${nextRound==='候補'?'🎟️ 執行候補':'🎲 前往下一步'}</button>` : ''}<button class="btn" onclick="showPage('results')">📊 查看結果</button><button class="btn" onclick="showPage('floorplan')">🗺️ 車位平面圖</button>`;
+      } else {
+        actionsEl.innerHTML = '<button class="btn" onclick="showPage(\'results\')">📊 查看抽籤結果</button><button class="btn" onclick="showPage(\'inquiry\')">🔍 中籤查詢</button>';
+      }
+    }
 
     document.getElementById("dash-stats").innerHTML = `
       <div class="stat"><div class="stat-label">總住戶登記數</div><div class="stat-value blue">${total}</div></div>
@@ -2743,7 +2797,7 @@
         label = `${i}號<br><b style="font-size:15px">${occupant.build} ${occupant.room}</b>${isWL ? '<br><span style="font-size:10.5px;font-weight:800">🎟️候補</span>' : ''}`;
         hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}${isWL ? '（候補分配）' : ''}`;
       }
-      seatHtml += `<div class="${cls}" title="${hoverTitle}">${label}</div>`;
+      seatHtml += `<div class="${cls}" role="button" tabindex="0" onclick="openSeatDetail(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){openSeatDetail(${i})}" title="點擊查看車位 ${i}號詳細資料：${escapeHtml(hoverTitle)}">${label}</div>`;
     }
     seatHtml += '</div>';
     document.getElementById("dash-seatmap").innerHTML = seatHtml;
@@ -3638,8 +3692,26 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   }
 
   function selectLotteryRound(round) {
-    const done1=isLotteryRoundCompleted("第一輪"), done2=isLotteryRoundCompleted("第二輪");
-    if((round==='第二輪'&&!done1)||(round==='第三輪'&&!done2)){ alert(round==='第二輪'?'請先完成第一輪抽籤，才能進入第二輪。':'請先完成第二輪抽籤，才能進入第三輪。'); return; }
+    const done1=isLotteryRoundCompleted("第一輪"), done2=isLotteryRoundCompleted("第二輪"), done3=isLotteryRoundCompleted("第三輪");
+    if(round === '候補'){
+      if(!done1 || !done2 || !done3){
+        showAppToast('請先完成前三輪正式抽籤，才能進入候補流程。','warn',3600);
+        updateLotteryCards();
+        return;
+      }
+      currentRound = '第三輪';
+      document.querySelectorAll('.lrs-card').forEach(c => c.classList.remove('active'));
+      const waitCard = document.getElementById('waitlist-stats');
+      if(waitCard) waitCard.closest('.card')?.scrollIntoView({behavior:'smooth',block:'start'});
+      showAppToast('前三輪已完成，已帶您前往候補抽籤區。','info',2600);
+      updateLotteryCards();
+      return;
+    }
+    if((round==='第二輪'&&!done1)||(round==='第三輪'&&!done2)){
+      showAppToast(round==='第二輪'?'請先完成第一輪抽籤，才能進入第二輪。':'請先完成第二輪抽籤，才能進入第三輪。','warn',3600);
+      updateLotteryCards();
+      return;
+    }
     currentRound = round;
     document.querySelectorAll(".lrs-card").forEach(c => {
       if(c.getAttribute("data-round") === round) c.classList.add("active");
@@ -3648,7 +3720,6 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     document.getElementById("lottery-round-label").innerText = `${round}抽籤控制台`;
     updateLotteryCards();
   }
-
   function updateLotteryCards() {
     normalizeSystemSettings();
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
@@ -4755,13 +4826,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       lotteryResults: JSON.parse(JSON.stringify(lotteryResults)),
       swapLogs: JSON.parse(JSON.stringify(swapLogs || [])),
       forfeitRecords: JSON.parse(JSON.stringify(forfeitRecords || [])),
-      assigns: new Map(residents.map(r => [Number(r.id), {assign1:r.assign1, assign2:r.assign2, assign3:r.assign3, assignWaitlist:r.assignWaitlist, waitlistExclusionOverride:!!r.waitlistExclusionOverride}]))
+      assigns: new Map(residents.map(r => [Number(r.id), {assign1:r.assign1, assign2:r.assign2, assign3:r.assign3, assignWaitlist:r.assignWaitlist, waitlistExclusionOverride:!!r.waitlistExclusionOverride}])),
+      currentRound
     };
     lotteryResults = { "第一輪": {}, "第二輪": {}, "第三輪": {}, "候補": {} };
     swapLogs = [];
     forfeitRecords = [];
     residents.forEach(r => { r.assign1 = ""; r.assign2 = ""; r.assign3 = ""; r.assignWaitlist = ""; r.waitlistExclusionOverride = false; });
-    updateLotteryCards(); renderDashboard(); renderResidents(); renderSwap(); renderResults(); initFloorplanSeats();
+    currentRound = "第一輪";
+    updateLotteryCards();
+    selectLotteryRound("第一輪");
+    renderDashboard(); renderResidents(); renderSwap(); renderResults(); initFloorplanSeats();
     const ok = await addLog("抽籤", "重置全部輪次結果與互換紀錄", {sync:false}) && await cloudSyncPush();
     if (!ok) {
       lotteryResults = snapshot.lotteryResults;
@@ -4772,10 +4847,14 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
         if (old) Object.assign(r, old);
         else r.waitlistExclusionOverride = false;
       });
+      currentRound = snapshot.currentRound || "第一輪";
       renderResults(); updateLotteryCards(); renderDashboard(); renderResidents(); renderSwap(); initFloorplanSeats();
+      selectLotteryRound(currentRound);
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次重置已完整回滾，避免本機與雲端資料不一致。");
       return;
     }
+    updateLotteryCards(); renderDashboard(); renderResidents(); renderResults(); renderSwap(); initFloorplanSeats();
+    selectLotteryRound("第一輪");
     alert("全部輪次結果與互換紀錄已重置並同步成功！");
   }
 
@@ -5571,7 +5650,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
 
   // ================= 8. 平面圖功能 =================
   function openSeatDetail(seatNum){
-    const seat=Number(seatNum); if(!Number.isInteger(seat) || seat<1) return;
+    const seat=Number(seatNum);
+    activeSeatDetail = seat; if(!Number.isInteger(seat) || seat<1) return;
     const modal=document.getElementById('seat-detail-modal'); const content=document.getElementById('seat-detail-content'); const title=document.getElementById('seat-detail-title');
     if(!modal||!content) return;
     const isVoid=(systemSettings.voidSeats||[]).map(Number).includes(seat);
@@ -5587,7 +5667,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     content.innerHTML=`<div class="seat-detail-hero"><div><div class="seat-detail-number">${seat}號</div><div class="seat-detail-status">${escapeHtml(status)}</div></div><span class="badge ${isSeatFromWaitlist(seat)?'badge-orange':'badge-blue'}">${isSeatFromWaitlist(seat)?'🎟️ 候補':'已分配'}</span></div><div class="seat-detail-grid"><div class="seat-detail-item"><span class="seat-detail-label">棟別</span><span class="seat-detail-value">${escapeHtml(occupant.build)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">門牌</span><span class="seat-detail-value">${escapeHtml(occupant.room)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">住戶姓名</span><span class="seat-detail-value">${escapeHtml(getDisplayName(occupant.name))}</span></div><div class="seat-detail-item"><span class="seat-detail-label">身分</span><span class="seat-detail-value">${occupant.reserve==='Y'?'保留戶':'一般戶'}</span></div><div class="seat-detail-item" style="grid-column:1/-1"><span class="seat-detail-label">持有車位與車牌</span><div class="seat-detail-grid" style="margin-top:6px">${detailRows || '<div class="seat-detail-item">目前沒有其他輪次車位資料</div>'}</div></div></div><div class="mobile-secondary-actions"><button class="btn btn-sm btn-primary" onclick="closeSeatDetailModal();showPage('results');selectResultRound('全部輪次')">前往全部抽籤結果</button><button class="btn btn-sm" onclick="closeSeatDetailModal();openSwapFromSeat(${Number(occupant.id)})">🔄 前往車位互換</button></div>`;
     modal.classList.add('show');
   }
-  function closeSeatDetailModal(){ const modal=document.getElementById('seat-detail-modal'); if(modal) modal.classList.remove('show'); }
+  function closeSeatDetailModal(){ const modal=document.getElementById('seat-detail-modal'); if(modal) modal.classList.remove('show'); activeSeatDetail=null; }
   function openSwapFromSeat(residentId){
     if(!currentUser || !['admin','director'].includes(currentUser.role)){ alert('權限不足！車位互換僅限管理人員操作。'); return; }
     showPage('swap');
@@ -5719,7 +5799,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       Object.assign(systemSettings, snapshot);
       applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
-      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.67";
+      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.68";
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || '';
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次系統標題/版次/導覽設定已回滾。");
       return;
@@ -6444,7 +6524,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.67 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.68 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -6483,7 +6563,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.67 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.68 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
