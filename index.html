@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.70</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.72</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -191,15 +191,15 @@
   /* 登入背景輪播專用 */
   .bg-fade { transition: background-image 1.5s ease-in-out; }
 
-  /* v2.70：專業控制台視覺層級 */
+  /* v2.72：專業控制台視覺層級 */
   .guest-entry-note{text-align:center;margin-top:9px;color:#475569;font-size:13px;font-weight:800;letter-spacing:.2px}
   .guest-entry-btn{min-height:54px}.guest-entry-btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(37,99,235,.24)}
-  .dashboard-command-card{background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);color:#fff;border-radius:18px;padding:18px 20px;margin-bottom:1.5rem;box-shadow:0 16px 30px rgba(15,23,42,.16);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
-  .dashboard-eyebrow{font-size:12px;font-weight:900;letter-spacing:1px;opacity:.78}.dashboard-command-title{font-size:24px;font-weight:950;line-height:1.3;margin-top:3px}.dashboard-command-sub{font-size:13.5px;opacity:.86;margin-top:5px;font-weight:700}.dashboard-next-action{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);padding:9px 12px;border-radius:10px;font-size:13px;font-weight:900;white-space:nowrap}.dashboard-command-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.dashboard-command-actions .btn{border:1px solid rgba(255,255,255,.35);background:#fff;color:#0f172a;box-shadow:none}.dashboard-command-actions .btn.btn-primary{background:#60a5fa;border-color:#60a5fa;color:#082f49}
+  .dashboard-command-card{background:linear-gradient(135deg,#eff6ff 0%,#ecfdf5 100%);color:#0f172a;border:1px solid #bfdbfe;border-radius:18px;padding:18px 20px;margin-bottom:1.5rem;box-shadow:0 12px 24px rgba(37,99,235,.08);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+  .dashboard-eyebrow{font-size:12px;font-weight:900;letter-spacing:1px;color:#2563eb}.dashboard-command-title{font-size:24px;font-weight:950;line-height:1.3;margin-top:3px;color:#0f172a}.dashboard-command-sub{font-size:13.5px;color:#475569;margin-top:5px;font-weight:700}.dashboard-next-action{background:#fff;border:1px solid #93c5fd;color:#1d4ed8;padding:9px 12px;border-radius:10px;font-size:13px;font-weight:900;white-space:nowrap}.dashboard-command-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.dashboard-command-actions .btn{border:1px solid #cbd5e1;background:#fff;color:#0f172a;box-shadow:none}.dashboard-command-actions .btn.btn-primary{background:#2563eb;border-color:#2563eb;color:#fff}
   .lottery-step[role="button"]{cursor:pointer}.lottery-step:focus{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}
   @media(max-width:1024px){.dashboard-command-card{grid-template-columns:1fr;padding:16px}.dashboard-command-title{font-size:20px}.dashboard-next-action{display:inline-block;margin-top:10px}.dashboard-command-actions{justify-content:stretch}.dashboard-command-actions .btn{flex:1 1 140px;min-height:42px}}
 
-  /* ===== v2.70：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
+  /* ===== v2.72：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
   .mobile-view-toggle{display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap}
   .mobile-view-toggle .btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
   .mobile-card-list{display:none}
@@ -382,7 +382,7 @@
 </div>
 
 <!-- 💡 個人中籤通知單，畫面上不顯示，只有點擊「列印個人中籤通知單」時才會出現並印出 -->
-<!-- v2.70 車位平面圖互動明細 Modal -->
+<!-- v2.72 車位平面圖互動明細 Modal -->
 <div class="modal-overlay seat-detail-modal" id="seat-detail-modal" onclick="if(event.target===this) closeSeatDetailModal()">
   <div class="modal">
     <div class="flex-between" style="margin-bottom:1rem">
@@ -470,7 +470,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.70</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.72</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -855,7 +855,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.70 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.72 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -1077,7 +1077,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.70">
+        <input type="text" id="set-app-version" value="v2.72">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1251,29 +1251,29 @@
       ⚠️ 新增「一般戶」若填寫指定車位，儲存時會再次確認，請確認此指定是否已有管理單位核准。
     </div>
     <div class="form-row-3">
-      <div><label>車牌 1 (自動勾第1輪)</label><input type="text" id="res-plate1" placeholder="例: ABC-1234" maxlength="8" inputmode="latin" pattern="[A-HJ-NP-Z]{3}-?[0-35-9]{4}" oninput="onPlateInput(this)">
+      <div><label>車牌 1 (自動勾第1輪)</label><input type="text" id="res-plate1" placeholder="例: ABC-1234" maxlength="8" inputmode="latin" oninput="onPlateInput(this)">
         <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:700;font-size:12.5px;color:#c2410c;cursor:pointer">
           <input type="checkbox" id="res-plate1-pending" onchange="onPendingPlateToggle(1)" style="width:auto"> 新戶待補（尚無車牌）
         </label>
       </div>
-      <div><label>車牌 2 (自動勾第2輪)</label><input type="text" id="res-plate2" placeholder="選填：ABC-1234" maxlength="8" inputmode="latin" pattern="[A-HJ-NP-Z]{3}-?[0-35-9]{4}" oninput="onPlateInput(this)">
+      <div><label>車牌 2 (自動勾第2輪)</label><input type="text" id="res-plate2" placeholder="選填：ABC-1234" maxlength="8" inputmode="latin" oninput="onPlateInput(this)">
         <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:700;font-size:12.5px;color:#c2410c;cursor:pointer">
           <input type="checkbox" id="res-plate2-pending" onchange="onPendingPlateToggle(2)" style="width:auto"> 新戶待補（尚無車牌）
         </label>
       </div>
-      <div><label>車牌 3 (自動勾第3輪)</label><input type="text" id="res-plate3" placeholder="選填：ABC-1234" maxlength="8" inputmode="latin" pattern="[A-HJ-NP-Z]{3}-?[0-35-9]{4}" oninput="onPlateInput(this)">
+      <div><label>車牌 3 (自動勾第3輪)</label><input type="text" id="res-plate3" placeholder="選填：ABC-1234" maxlength="8" inputmode="latin" oninput="onPlateInput(this)">
         <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:700;font-size:12.5px;color:#c2410c;cursor:pointer">
           <input type="checkbox" id="res-plate3-pending" onchange="onPendingPlateToggle(3)" style="width:auto"> 新戶待補（尚無車牌）
         </label>
       </div>
     </div>
     <div style="max-width:340px">
-      <label>車牌 (候補用，自動勾候補登記)</label><input type="text" id="res-plateW" placeholder="選填：ABC-1234" maxlength="8" inputmode="latin" pattern="[A-HJ-NP-Z]{3}-?[0-35-9]{4}" oninput="onPlateInput(this)">
+      <label>車牌 (候補用，自動勾候補登記)</label><input type="text" id="res-plateW" placeholder="選填：ABC-1234" maxlength="8" inputmode="latin" oninput="onPlateInput(this)">
         <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:700;font-size:12.5px;color:#c2410c;cursor:pointer">
           <input type="checkbox" id="res-plateW-pending" onchange="onPendingPlateToggle('W')" style="width:auto"> 新戶待補（尚無車牌）
         </label>
     </div>
-    <div style="font-size:12.5px;color:#475569;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;margin-top:14px;font-weight:700;line-height:1.6">💡 車牌格式：目前台灣一般汽機車新式號牌為「ABC-1234」三碼英文字母＋四碼數字；I、O 及數字 4 不使用。輸入 ABC1234 也會自動整理成 ABC-1234。尚無車牌請勾選「新戶待補」。</div>
+    <div style="font-size:12.5px;color:#475569;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;margin-top:14px;font-weight:700;line-height:1.6">💡 車牌格式：支援台灣現行各型機車（含燃油機車新舊式號牌、電動機車、大型重型機車、微型電動二輪車等）。英文字母 I、O 不使用；數字沒有限制，可以包含 4。中間連字號「-」可省略，系統會自動排版。尚無車牌請勾選「新戶待補」。</div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal()">取消</button>
       <button class="btn btn-primary" onclick="saveResident()">儲存</button>
@@ -1387,12 +1387,25 @@
   // 微型電動二輪車是獨立規則：2 個英文字母 + 5 個數字，官方號牌如 AB50001，牌面本身不含連字號。
   // 一般汽機車、特殊用途車輛等則依既有新式/舊式規則驗證。
   const MICRO_E2W_PLATE_PATTERN = /^[A-HJ-NP-Z]{2}\d{5}$/;
+  // 💡 車牌規則全面查核後的補充（含舊式重機／輕型機車／軍公用車等歷史格式）：
+  // - 舊式大型重型機車（黃牌／紅牌舊制）：2碼英文+2碼數字，或2碼數字+2碼英文，如 AA-12、12-AA。
+  // - 舊式50cc輕型機車（綠牌舊制）：1碼英文+3或4碼數字，或3、4碼數字+1碼英文，如 T-123、T-1234、123-T、1234-T。
+  //   （早期綠牌僅用單一英文字母標示監理所轄區，字母碼數比其他車種更少，先前規則要求至少2碼英文會誤擋這類舊牌。）
+  // - 身心障礙機車：新式（3碼英文+4碼數字）與舊式過渡期特殊位數配比，皆已被下方一般規則的
+  //   英文1~3碼、數字2~5碼範圍涵蓋，不需要另外設計專屬格式。
+  // - 軍用／公務車號牌：常見4碼純數字（如「軍1234」的數字部分），已將純數字規則下限
+  //   從5碼放寬到4碼涵蓋；車牌前綴的中文字樣（如「軍」）不在監理機關核發的英數號碼本身編碼內，
+  //   系統車牌欄位僅登記監理編碼部分，不需要額外容納中文字元。
   const TAIWAN_PLATE_PATTERNS = [
     /^[A-HJ-NP-Z]{3}\d{3,4}$/,    // 新式普通機車 / 汽車等：ABC123、ABC1234
     /^[A-HJ-NP-Z]{2}\d{3,4}$/,    // 舊式二輪車等：AB123 / AB1234（2+5 改由微型電動二輪車專用規則處理）
+    /^[A-HJ-NP-Z]{2}\d{2}$/,      // 舊式大型重型機車（黃牌/紅牌）：2碼英文+2碼數字，如 AA-12
+    /^[A-HJ-NP-Z]\d{3,4}$/,       // 舊式50cc輕型機車（綠牌）：1碼英文+3或4碼數字，如 T-123、T-1234
     /^\d{3,4}[A-HJ-NP-Z]{2,3}$/,  // 較早期數字在前格式
+    /^\d{2}[A-HJ-NP-Z]{2}$/,      // 舊式大型重型機車：2碼數字+2碼英文，如 12-AA
+    /^\d{3,4}[A-HJ-NP-Z]$/,       // 舊式50cc輕型機車：3或4碼數字+1碼英文，如 123-T、1234-T
     /^\d{2}[A-HJ-NP-Z]{4}$/,      // 更早期 DD-LLLL
-    /^\d{5,6}$/                    // 極早期純數字車牌
+    /^\d{4,6}$/                    // 純數字車牌：4~6碼（4碼涵蓋軍/公務車等純數字車牌，5~6碼為極早期民用車牌）
   ];
 
   function normalizePlateValue(value) {
@@ -1546,7 +1559,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.70",
+    appVersion: "v2.72",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -2743,9 +2756,9 @@
     if(actionsEl) {
       if(currentUser && ['admin','director'].includes(currentUser.role)) {
         const nextRound = gotR3 === 0 ? (gotR2 === 0 ? (gotR1 === 0 ? '第一輪' : '第二輪') : '第三輪') : (getValidWinnerCount('候補') === 0 ? '候補' : null);
-        actionsEl.innerHTML = `${nextRound ? `<button class="btn btn-primary" onclick="showPage('lottery');selectLotteryRound('${nextRound}')">${nextRound==='候補'?'🎟️ 執行候補':'🎲 前往下一步'}</button>` : ''}<button class="btn" onclick="showPage('results')">📊 查看結果</button><button class="btn" onclick="showPage('floorplan')">🗺️ 車位平面圖</button>`;
+        actionsEl.innerHTML = `${nextRound ? `<button class="btn btn-primary" onclick="showPage('lottery');selectLotteryRound('${nextRound}')">${nextRound==='候補'?'執行候補':'前往下一步'}</button>` : ''}<button class="btn" onclick="showPage('results')">查看結果</button><button class="btn" onclick="showPage('floorplan')">車位平面圖</button>`;
       } else {
-        actionsEl.innerHTML = '<button class="btn" onclick="showPage(\'results\')">📊 查看抽籤結果</button><button class="btn" onclick="showPage(\'inquiry\')">🔍 中籤查詢</button>';
+        actionsEl.innerHTML = '<button class="btn" onclick="showPage(\'results\')">查看抽籤結果</button><button class="btn" onclick="showPage(\'inquiry\')">中籤查詢</button>';
       }
     }
 
@@ -3232,7 +3245,7 @@
     if (plateErrors.length > 0) {
       alert(`【車牌格式錯誤】
 
-${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機車號牌格式輸入「ABC-1234」；I、O 及數字 4 不使用。若尚無車牌，請勾選「新戶待補」。`);
+${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格式輸入（新式或舊式皆可，如 ABC-1234、AB-123、AA-12 等）；英文字母 I、O 不使用，數字沒有限制，可以包含 4。若尚無車牌，請勾選「新戶待補」。`);
       return;
     }
     const plate1 = formatTaiwanPlate(rawPlate1);
@@ -4147,6 +4160,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
 
       remaining = remaining.filter(res => !lotteryResults["候補"][res.id]);
       }
+
+      // 💡 修正：先前這段事後一致性檢查寫在 try/catch 區塊外面，若檢查失敗觸發的 throw
+      // 完全不會被上面的 catch 攔截到——因為這是 async function，未被攔截的例外會變成
+      // 「沒有人處理的 Promise rejection」，管理員畫面上不會看到任何錯誤提示，
+      // 而且 waitlistLotteryRunning 永遠不會被重設回 false，候補抽籤按鈕會一直卡在停用狀態，
+      // 直到重新整理整個頁面為止。修正為把這段檢查移進同一個 try 區塊內，確保失敗時
+      // 走一樣的回滾＋重新渲染＋解除按鈕鎖定＋清楚提示錯誤的完整流程。
+      const postWaitlistCheck = validateCurrentAllocationState({alert:false});
+      if (!postWaitlistCheck.ok) {
+        throw new Error(`候補分配後的一致性檢查失敗：${postWaitlistCheck.errors.slice(0,6).join('；')}`);
+      }
     } catch (e) {
       lotteryResults["候補"] = waitlistSnapshot.map;
       residents.forEach(r => { r.assignWaitlist = waitlistSnapshot.assigns.get(Number(r.id)) ?? ""; });
@@ -4160,13 +4184,6 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       console.error("候補抽籤執行失敗：", e);
       alert(`【候補抽籤執行失敗】${e && e.message ? e.message : e}\n\n本次候補結果已回滾，未留下不完整資料。`);
       return;
-    }
-
-    const postWaitlistCheck = validateCurrentAllocationState({alert:false});
-    if (!postWaitlistCheck.ok) {
-      lotteryResults["候補"] = waitlistSnapshot.map;
-      residents.forEach(r => { r.assignWaitlist = waitlistSnapshot.assigns.get(Number(r.id)) ?? ""; });
-      throw new Error(`候補分配後的一致性檢查失敗：${postWaitlistCheck.errors.slice(0,6).join('；')}`);
     }
 
     updateLotteryCards();
@@ -5812,7 +5829,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       Object.assign(systemSettings, snapshot);
       applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
-      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.70";
+      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.72";
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || '';
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次系統標題/版次/導覽設定已回滾。");
       return;
@@ -6537,7 +6554,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.70 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.72 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -6576,7 +6593,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.70 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.72 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
