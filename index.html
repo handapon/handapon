@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.72</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.73</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -191,7 +191,7 @@
   /* 登入背景輪播專用 */
   .bg-fade { transition: background-image 1.5s ease-in-out; }
 
-  /* v2.72：專業控制台視覺層級 */
+  /* v2.73：專業控制台視覺層級 */
   .guest-entry-note{text-align:center;margin-top:9px;color:#475569;font-size:13px;font-weight:800;letter-spacing:.2px}
   .guest-entry-btn{min-height:54px}.guest-entry-btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(37,99,235,.24)}
   .dashboard-command-card{background:linear-gradient(135deg,#eff6ff 0%,#ecfdf5 100%);color:#0f172a;border:1px solid #bfdbfe;border-radius:18px;padding:18px 20px;margin-bottom:1.5rem;box-shadow:0 12px 24px rgba(37,99,235,.08);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
@@ -199,7 +199,7 @@
   .lottery-step[role="button"]{cursor:pointer}.lottery-step:focus{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}
   @media(max-width:1024px){.dashboard-command-card{grid-template-columns:1fr;padding:16px}.dashboard-command-title{font-size:20px}.dashboard-next-action{display:inline-block;margin-top:10px}.dashboard-command-actions{justify-content:stretch}.dashboard-command-actions .btn{flex:1 1 140px;min-height:42px}}
 
-  /* ===== v2.72：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
+  /* ===== v2.73：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
   .mobile-view-toggle{display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap}
   .mobile-view-toggle .btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
   .mobile-card-list{display:none}
@@ -382,7 +382,7 @@
 </div>
 
 <!-- 💡 個人中籤通知單，畫面上不顯示，只有點擊「列印個人中籤通知單」時才會出現並印出 -->
-<!-- v2.72 車位平面圖互動明細 Modal -->
+<!-- v2.73 車位平面圖互動明細 Modal -->
 <div class="modal-overlay seat-detail-modal" id="seat-detail-modal" onclick="if(event.target===this) closeSeatDetailModal()">
   <div class="modal">
     <div class="flex-between" style="margin-bottom:1rem">
@@ -470,7 +470,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.72</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.73</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -855,7 +855,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.72 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.73 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -1077,7 +1077,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.72">
+        <input type="text" id="set-app-version" value="v2.73">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1185,6 +1185,9 @@
       <button class="btn btn-success" onclick="downloadFullBackup()">💾 立即完整備份（下載）</button>
       <button class="btn btn-primary" onclick="createArchive()">📦 封存本年度資料</button>
       <button class="btn" onclick="showArchiveList()">📂 檢視歷史封存紀錄</button>
+      <label class="btn btn-danger" style="display:inline-block;margin:0;cursor:pointer">
+        ♻️ 還原備份檔案（JSON） <input type="file" accept=".json" style="display:none" onchange="restoreFromBackupFile(this)">
+      </label>
     </div>
     <div id="archive-list-box" style="display:none;margin-top:1.5rem"></div>
   </div>
@@ -1559,7 +1562,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.72",
+    appVersion: "v2.73",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1858,7 +1861,12 @@
       // 這些大型欄位改成只有在真正上傳/變更設定時，才透過 cloudSyncPushMedia() 完整同步到另一個獨立路徑。
       const systemSettingsCore = splitSystemSettingsForSync(systemSettings);
 
-      const newModifiedTs = Date.now();
+      // 💡💡 重要修正（防止多台管理裝置本機時鐘不準造成版本衝突誤判）：先前用 Date.now()
+      // （用戶端自己的本機時鐘）當作版本時間戳，若某台裝置的時鐘比較慢，即使它是「後寫入」的，
+      // 產生的時間戳也可能比雲端已有的舊時間戳還小，導致版本衝突判斷失準——時鐘較慢的裝置
+      // 可能誤判自己沒有衝突而覆蓋別人較新的資料，或反過來自己較新的寫入被誤判為衝突。
+      // 改用 Firebase 內建的伺服器端時間戳（{".sv":"timestamp"}），一律由 Firebase 伺服器
+      // 自己的時鐘產生，跟任何一台用戶端裝置的本機時鐘準不準完全無關。
       const payload = {
         residents,
         lotteryResults: formattedResults,
@@ -1868,7 +1876,7 @@
         swapLogs,
         forfeitRecords,
         systemLogs,
-        _meta: { lastModified: newModifiedTs, lastModifiedBy: (currentUser && currentUser.name) || "" }
+        _meta: { lastModified: {".sv": "timestamp"}, lastModifiedBy: (currentUser && currentUser.name) || "" }
       };
 
       // 💡 改用 PATCH（而非 PUT）：只更新上面列出的這幾個欄位，完全不會動到
@@ -1879,7 +1887,19 @@
         body: JSON.stringify(payload)
       });
       if (!pushRes.ok) throw new Error("HTTP " + pushRes.status);
-      lastKnownServerModified = newModifiedTs; // 💡 寫入成功後，更新本機記住的最新版本時間戳
+      // 💡 Firebase 官方文件：PATCH 成功時，回應內容就是「實際寫入的資料」，
+      // 其中 {".sv":"timestamp"} 已經被伺服器解析成真正的時間戳數字，直接讀回來用，
+      // 不再自己用本機時鐘猜測，確保 lastKnownServerModified 永遠是伺服器認定的權威時間。
+      let resolvedModifiedTs = Date.now(); // 保底預設值，正常情況下會被下面讀到的伺服器時間覆蓋
+      try {
+        const pushResBody = await pushRes.json();
+        if (pushResBody && pushResBody._meta && Number.isFinite(Number(pushResBody._meta.lastModified))) {
+          resolvedModifiedTs = Number(pushResBody._meta.lastModified);
+        }
+      } catch (e) {
+        console.warn("無法解析伺服器回傳的時間戳，暫時退回使用本機時間作為備援：", e);
+      }
+      lastKnownServerModified = resolvedModifiedTs; // 💡 寫入成功後，更新本機記住的最新版本時間戳
       lastKnownServerModifiedBy = (currentUser && currentUser.name) || "";
       updateSyncStatusUI(true, "雲端已同步");
       return true;
@@ -3264,24 +3284,30 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     // 重複標記，不列入檢查。採非強制性提醒（可選擇仍要繼續），避免誤擋合理的特殊情況。
     const enteredPlates = [plate1, plate2, plate3, plateW].filter(p => p && p !== PENDING_PLATE_LABEL);
     if (enteredPlates.length > 0) {
-      // 💡 先檢查「同一位住戶自己4個車牌欄位」是否重複輸入了同一組車牌（例如複製貼上忘記改），
-      // 這跟下面「跨住戶」的重複檢查是不同情境，先前完全沒有涵蓋到。
+      // 💡 修正（合併重複提醒彈窗）：先前「同一住戶自己重複」與「跨住戶重複」是兩個獨立的
+      // confirm()，若兩種情況同時發生，會連續跳出兩個語氣相近的確認視窗，容易讓人誤以為
+      // 系統卡住或重複觸發，也容易在慌亂中誤按取消。改為先收集兩類重複訊息，最後合併成
+      // 一次性的提醒，只跳一次確認視窗。
+      const warningLines = [];
+
       const selfDupes = enteredPlates.filter((p, i) => enteredPlates.indexOf(p) !== i);
       if (selfDupes.length > 0) {
-        if (!confirm(`【重複車牌提醒】您在同一位住戶的車牌欄位中，重複輸入了相同的車牌號碼：${[...new Set(selfDupes)].join('、')}\n\n這通常代表輸入錯誤（例如複製貼上忘記修改），請確認是否為刻意重複。仍要繼續儲存嗎？`)) {
-          return;
-        }
+        warningLines.push(`同一位住戶的車牌欄位中，重複輸入了相同的車牌號碼：${[...new Set(selfDupes)].join('、')}`);
       }
 
-      const dupeMsgs = [];
       enteredPlates.forEach(p => {
-        const dupeOwner = residents.find(r => Number(r.id) !== Number(id || -1) && [r.plate1, r.plate2, r.plate3, r.plateWaitlist].includes(p));
+        // 💡 修正：比對時明確正規化（忽略連字號/空白/大小寫）再比較，不能只靠假設「資料庫裡
+        // 所有車牌都已經是 formatTaiwanPlate() 處理過的標準格式」——較舊的歷史資料有可能是在
+        // 車牌規則還沒擴充前存入的，格式不一定一致，直接字串比對可能漏掉真正重複的車牌。
+        const normalizedP = normalizePlateValue(p);
+        const dupeOwner = residents.find(r => Number(r.id) !== Number(id || -1) && [r.plate1, r.plate2, r.plate3, r.plateWaitlist].some(v => v && normalizePlateValue(v) === normalizedP));
         if (dupeOwner) {
-          dupeMsgs.push(`車牌 ${p} 已登記於 ${dupeOwner.build}棟 ${dupeOwner.room} ${dupeOwner.name}`);
+          warningLines.push(`車牌 ${p} 已登記於 ${dupeOwner.build}棟 ${dupeOwner.room} ${dupeOwner.name}`);
         }
       });
-      if (dupeMsgs.length > 0) {
-        if (!confirm(`【重複車牌提醒】偵測到以下車牌可能與其他住戶重複：\n\n• ${dupeMsgs.join('\n• ')}\n\n這通常代表輸入錯誤（例如複製貼上忘記修改），請確認是否真的是同一輛車掛在兩戶名下。仍要繼續儲存嗎？`)) {
+
+      if (warningLines.length > 0) {
+        if (!confirm(`【重複車牌提醒】\n\n• ${warningLines.join('\n• ')}\n\n這通常代表輸入錯誤（例如複製貼上忘記修改），請確認是否為刻意重複。仍要繼續儲存嗎？`)) {
           return;
         }
       }
@@ -3389,13 +3415,31 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     let invalidatedLaterRounds = false;
     const oldForDependency = id !== "" ? residents.find(x => Number(x.id) === Number(id)) : null;
     if (oldForDependency) {
-      const affectedRound = [1,2,3].find(n => oldForDependency['r'+n] !== ({1:r1,2:r2,3:r3}[n]));
+      // 💡💡 重要修正（防止未經抽籤程序置換中籤車輛）：先前只檢查「參加資格勾選（Y/N）」是否改變，
+      // 若住戶已經中籤，之後只是把車牌換成另一輛車（勾選狀態不變，仍是Y），系統完全偵測不到這個變化，
+      // 車位依然原封不動保留給這位住戶，形同直接把「中籤的車」換成另一輛車，沒有經過任何抽籤程序。
+      // 修正為：只要該輪「已經有車位」，且車牌實際內容變動（忽略連字號/空白/大小寫），也視為需要
+      // 清除該輪以後結果重新抽籤；「新戶待補」換成真實車牌是正常流程（等於補件），不算車輛置換。
+      const newPlatesByRound = {1: plate1, 2: plate2, 3: plate3};
+      const affectedRound = [1,2,3].find(n => {
+        const participationChanged = oldForDependency['r'+n] !== ({1:r1,2:r2,3:r3}[n]);
+        if (participationChanged) return true;
+        const hasExistingSeat = Number(oldForDependency['assign'+n]) > 0;
+        if (!hasExistingSeat) return false;
+        const oldPlate = String(oldForDependency['plate'+n] || '').trim();
+        const newPlate = String(newPlatesByRound[n] || '').trim();
+        if (oldPlate === PENDING_PLATE_LABEL || newPlate === PENDING_PLATE_LABEL) return false;
+        return normalizePlateValue(oldPlate) !== normalizePlateValue(newPlate);
+      });
       if (affectedRound) {
         const laterFormalData = [affectedRound + 1, affectedRound + 2].some(n => n <= 3 && (Object.keys(lotteryResults[['第一輪','第二輪','第三輪'][n-1]] || {}).length > 0 || residents.some(r => Number(r['assign'+n]) > 0)));
         const waitlistData = Object.keys(lotteryResults['候補'] || {}).length > 0 || residents.some(r => Number(r.assignWaitlist) > 0);
         if (laterFormalData || waitlistData) {
           const affectedText = affectedRound < 3 ? `第 ${affectedRound + 1}～3 輪與候補` : '候補';
-          if (!confirm(`⚠️ 正在變更 ${oldForDependency.build}-${oldForDependency.room} ${getDisplayName(oldForDependency.name)} 的第 ${affectedRound} 輪參加資格。\n\n因後續輪次／候補車位池建立於此前結果之上，繼續將清除 ${affectedText}，避免出現不公平的既有結果。\n\n是否繼續？`)) return;
+          const reasonText = (oldForDependency['r'+affectedRound] !== ({1:r1,2:r2,3:r3}[affectedRound]))
+            ? `第 ${affectedRound} 輪參加資格`
+            : `第 ${affectedRound} 輪已中籤的車牌號碼（等同更換該輪次中籤的車輛）`;
+          if (!confirm(`⚠️ 正在變更 ${oldForDependency.build}-${oldForDependency.room} ${getDisplayName(oldForDependency.name)} 的${reasonText}。\n\n因後續輪次／候補車位池建立於此前結果之上，繼續將清除 ${affectedText}，避免出現不公平的既有結果。\n\n是否繼續？`)) return;
           let dependencyCleared = false;
           if (affectedRound < 3) dependencyCleared = clearDependentLotteryResults(affectedRound + 1, `因住戶 ${oldForDependency.name} 變更第${affectedRound}輪參加資格，系統清除後續輪次與候補結果以維持抽籤公平性`);
           else {
@@ -3854,10 +3898,18 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function getWaitlistCandidates() {
     return residents.filter(r => {
       const plateVal = String(r.plateWaitlist || '').trim();
-      return r.waitlist === 'Y'
-        && isValidTaiwanPlate(plateVal, true)
-        && !getUserSeat("候補", r.id)
-        && !hasActiveForfeitRecord(r.id);
+      if (r.waitlist !== 'Y' || !isValidTaiwanPlate(plateVal, true) || getUserSeat("候補", r.id) || hasActiveForfeitRecord(r.id)) return false;
+      if (plateVal === PENDING_PLATE_LABEL) return true;
+      // 💡 一車一格防呆（與正式抽籤同一類修正）：候補車牌若正規化後與該住戶已中籤的
+      // 第一~三輪車牌相同，代表是同一輛車，不得再透過候補取得第二個車位。
+      const normalizedWaitlist = normalizePlateValue(plateVal);
+      const sameCarAlreadyWon = [["assign1","plate1"],["assign2","plate2"],["assign3","plate3"]].some(([assignField, plateField]) => {
+        if (!r[assignField]) return false;
+        const earlierPlate = String(r[plateField] || '').trim();
+        if (earlierPlate === PENDING_PLATE_LABEL || !earlierPlate) return false;
+        return normalizePlateValue(earlierPlate) === normalizedWaitlist;
+      });
+      return !sameCarAlreadyWon;
     });
   }
 
@@ -4422,11 +4474,30 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       }
     }
     
+    // 💡💡 重要修正（一車一格防呆）：先前只檢查「本輪車牌格式是否合法」，完全沒有檢查
+    // 「同一輛車（同一組車牌）是否已經在前面輪次中籤」。若住戶（或代填的管理員）在車牌1/2/3
+    // 填寫了完全相同的車牌，且都勾選參加，同一輛車就有機會在第一、二、三輪各中籤一次，
+    // 形同一輛車佔用多個車位，違反社區「一車一格」的抽籤公平原則。
+    // 修正為：本輪車牌若正規化後（忽略連字號、空白、大小寫）與該住戶「已中籤的前面輪次」
+    // 車牌相同，則視為同一輛車，不得再參加本輪抽籤（「新戶待補」標記除外，因為它本來就不是
+    // 真實車牌，不會有實體車輛重複佔位的疑慮）。
+    const earlierRoundPlateFields = currentRound === "第二輪" ? [["assign1","plate1"]]
+      : currentRound === "第三輪" ? [["assign1","plate1"],["assign2","plate2"]]
+      : [];
     let eligible = residents.filter(x => {
       if (x[rKey] !== 'Y') return false;
       const plateVal = String(x[plateKey] || '').trim();
       // 「新戶待補」是系統手冊明確允許的暫代車牌；其他參加者必須通過台灣牌照格式驗證。
-      return isValidTaiwanPlate(plateVal, true);
+      if (!isValidTaiwanPlate(plateVal, true)) return false;
+      if (plateVal === PENDING_PLATE_LABEL) return true;
+      const normalizedCurrent = normalizePlateValue(plateVal);
+      const sameCarAlreadyWon = earlierRoundPlateFields.some(([assignField, plateField]) => {
+        if (!x[assignField]) return false; // 該輪尚未中籤，不構成衝突
+        const earlierPlate = String(x[plateField] || '').trim();
+        if (earlierPlate === PENDING_PLATE_LABEL || !earlierPlate) return false;
+        return normalizePlateValue(earlierPlate) === normalizedCurrent;
+      });
+      return !sameCarAlreadyWon;
     });
     
     if(eligible.length === 0) {
@@ -5575,7 +5646,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       return;
     }
 
-    let matchRes = residents.filter(r => {
+    let matchRes = residents.map(r => {
       const p1 = (r.plate1 || "").replace(/[-\s]/g, "").toUpperCase();
       const p2 = (r.plate2 || "").replace(/[-\s]/g, "").toUpperCase();
       const p3 = (r.plate3 || "").replace(/[-\s]/g, "").toUpperCase();
@@ -5588,8 +5659,20 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       let sW = getUserSeat("候補", r.id);
       const seatMatch = (s1 && s1.toString() === cleanInput) || (s2 && s2.toString() === cleanInput) || (s3 && s3.toString() === cleanInput) || (sW && sW.toString() === cleanInput);
 
-      return plateMatch || seatMatch;
-    });
+      // 💡 修正：車牌是「包含」比對、車位是「完全相符」比對，兩種截然不同的比對條件，
+      // 先前混在同一份結果清單裡卻沒有任何區分標示——搜尋「15」時，車牌裡剛好含有
+      // 「15」的其他住戶，會跟「真的中籤15號車位」的住戶混在一起，容易誤解查詢結果。
+      // 改為明確記錄「這筆結果是因為什麼原因符合」，顯示時一併標示出來。
+      let matchReason = null;
+      if (seatMatch && plateMatch) matchReason = '車牌包含「' + rawInput + '」且中籤車位為 ' + cleanInput + ' 號';
+      else if (seatMatch) matchReason = '中籤車位為 ' + cleanInput + ' 號（車牌不含此號碼）';
+      else if (plateMatch) matchReason = '車牌包含「' + rawInput + '」';
+
+      return { r, matchReason };
+    }).filter(x => x.matchReason);
+
+    const matchReasonById = new Map(matchRes.map(x => [Number(x.r.id), x.matchReason]));
+    matchRes = matchRes.map(x => x.r);
 
     if(matchRes.length === 0) {
       resultBox.style.display = "block";
@@ -5611,6 +5694,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       
       html += `<div class="card" style="max-width:640px;margin:0 auto 1.5rem;box-shadow:0 8px 20px rgba(0,0,0,0.06)">
         <h4 style="color:var(--primary);margin-bottom:1rem;font-size:18px;font-weight:900;border-bottom:2px solid #e2e8f0;padding-bottom:10px">查詢結果：${escapeHtml(getDisplayName(r.name))} (${escapeHtml(r.build)} ${escapeHtml(r.room)})</h4>
+        <p style="font-size:13px;color:#0369a1;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:8px 12px;margin-bottom:14px;font-weight:700">符合原因：${escapeHtml(matchReasonById.get(Number(r.id)) || '')}</p>
         <p style="font-size:15px;color:var(--text-muted);margin-bottom:16px;font-weight:800">登記車牌：<code class="code-font">${escapeHtml(r.plate1 || r.plate2 || r.plate3 || r.plateWaitlist)}</code></p>
         <div style="font-size:15px;color:#0f172a;background:#f8fafc;padding:16px 20px;border-radius:12px;border:1px solid #cbd5e1;margin-bottom:16px;font-weight:800;box-shadow:inset 0 2px 4px rgba(0,0,0,0.02)">
           👤 車主身分反查：${escapeHtml(r.build)}棟 ${escapeHtml(r.room)} - ${escapeHtml(getDisplayName(r.name))} <span class="badge ${r.reserve === 'Y' ? 'badge-purple' : 'badge-gray'}" style="margin-left:8px">${r.reserve === 'Y' ? '保留戶' : '一般戶'}</span>
@@ -5829,7 +5913,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       Object.assign(systemSettings, snapshot);
       applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
-      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.72";
+      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.73";
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || '';
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次系統標題/版次/導覽設定已回滾。");
       return;
@@ -6255,6 +6339,112 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     addLog("設定", "下載完整系統備份");
   }
 
+  // ============ 還原備份檔案（JSON） ============
+  async function restoreFromBackupFile(inputEl) {
+    if (currentUser.role !== 'admin') {
+      alert("權限不足，僅系統管理員可還原備份檔案！");
+      inputEl.value = "";
+      return;
+    }
+    const file = inputEl.files && inputEl.files[0];
+    if (!file) return;
+
+    let backup;
+    try {
+      const text = await file.text();
+      backup = JSON.parse(text);
+    } catch (e) {
+      alert("備份檔案讀取失敗，請確認選擇的是本系統「立即完整備份」下載的 .json 檔案，內容未被修改過。\n\n錯誤訊息：" + (e && e.message ? e.message : e));
+      inputEl.value = "";
+      return;
+    }
+
+    // 💡 基本格式驗證：避免誤選了完全不相關的 JSON 檔案，導致資料結構整個錯亂。
+    // 不做過度嚴格的欄位檢查，因為備份檔案本身可能因版本演進而略有欄位差異，
+    // 這裡只確認「看起來像是本系統的完整備份」與「核心欄位存在」。
+    const requiredFields = ['residents', 'lotteryResults', 'systemSettings'];
+    const missingFields = requiredFields.filter(f => !(f in backup));
+    if (backup.backupType !== "稙村秀社區機車位抽籤系統_完整備份" || missingFields.length > 0) {
+      alert(`【還原失敗】這個檔案看起來不是本系統的完整備份檔案${missingFields.length > 0 ? `（缺少必要欄位：${missingFields.join('、')}）` : ''}，為了資料安全，已取消還原。`);
+      inputEl.value = "";
+      return;
+    }
+
+    const backupTimeText = backup.backupTime ? new Date(backup.backupTime).toLocaleString('zh-TW') : '未知時間';
+    const residentCount = Array.isArray(backup.residents) ? backup.residents.length : '未知';
+    // 💡 這是系統裡影響範圍最大、最不可逆的操作（整個資料庫都會被這份備份檔完全覆蓋），
+    // 因此比照「重置系統資料」的嚴謹程度，要求管理員先看清楚備份檔的基本資訊，
+    // 再用「輸入確認文字」的方式二次確認，而不只是一個簡單的確定/取消。
+    if (!confirm(`⚠️⚠️ 即將用備份檔案「完全覆蓋」目前雲端與本機的所有資料 ⚠️⚠️\n\n備份建立時間：${backupTimeText}\n備份檔內住戶筆數：${residentCount} 筆\n\n這會覆蓋掉「現在」系統裡的住戶名單、抽籤結果、車位互換紀錄、操作紀錄與帳號設定，換成這份備份檔裡的內容，此動作無法復原！\n\n強烈建議還原前，先對「目前」的資料也執行一次「立即完整備份」下載，以防萬一還原錯誤還能救回來。\n\n確定要繼續嗎？`)) {
+      inputEl.value = "";
+      return;
+    }
+    const confirmText = prompt(`請再次確認：請輸入「還原」兩個字，確認您了解這會覆蓋目前所有資料：`);
+    if (confirmText !== "還原") {
+      alert("輸入內容不符，已取消還原。");
+      inputEl.value = "";
+      return;
+    }
+
+    // 💡 還原前先保留目前狀態的快照，若還原過程中雲端同步失敗，可以完整復原回還原前的狀態，
+    // 不會讓系統卡在「本機已經換成備份內容、但雲端寫入失敗」的中間態。
+    const preRestoreSnapshot = {
+      residents: JSON.parse(JSON.stringify(residents)),
+      lotteryResults: JSON.parse(JSON.stringify(lotteryResults)),
+      systemSettings: JSON.parse(JSON.stringify(systemSettings)),
+      swapLogs: JSON.parse(JSON.stringify(swapLogs || [])),
+      forfeitRecords: JSON.parse(JSON.stringify(forfeitRecords || [])),
+      systemLogs: JSON.parse(JSON.stringify(systemLogs || [])),
+      pendingAudits: JSON.parse(JSON.stringify(pendingAudits || [])),
+      accountsList: JSON.parse(JSON.stringify(accountsList))
+    };
+
+    try {
+      residents = Array.isArray(backup.residents) ? backup.residents : [];
+      lotteryResults = backup.lotteryResults || { "第一輪": {}, "第二輪": {}, "第三輪": {}, "候補": {} };
+      systemSettings = backup.systemSettings || systemSettings;
+      systemSettings.appVersion = preRestoreSnapshot.systemSettings.appVersion; // 版本號仍以目前執行中的程式碼為準，不被備份檔覆蓋
+      swapLogs = Array.isArray(backup.swapLogs) ? backup.swapLogs : [];
+      forfeitRecords = Array.isArray(backup.forfeitRecords) ? backup.forfeitRecords : [];
+      systemLogs = Array.isArray(backup.systemLogs) ? backup.systemLogs : [];
+      pendingAudits = Array.isArray(backup.pendingAudits) ? backup.pendingAudits : [];
+      accountsList = Array.isArray(backup.accountsList) ? backup.accountsList : accountsList;
+      normalizeSystemSettings();
+
+      const pushOk = await cloudSyncPush();
+      const mediaOk = await cloudSyncPushMedia();
+      if (!pushOk || !mediaOk) throw new Error("雲端同步失敗");
+
+      updateLotteryCards();
+      renderDashboard();
+      renderResidents();
+      renderResults();
+      renderSwap();
+      initFloorplanSeats();
+      alert(`✅ 還原完成！已套用備份檔案（建立於 ${backupTimeText}）的內容，並成功同步到雲端。`);
+      addLog("設定", `管理員還原備份檔案（備份建立時間：${backupTimeText}）`);
+    } catch (e) {
+      // 💡 還原失敗時完整回滾，確保不會停留在「本機已改、雲端沒改」的不一致狀態。
+      residents = preRestoreSnapshot.residents;
+      lotteryResults = preRestoreSnapshot.lotteryResults;
+      systemSettings = preRestoreSnapshot.systemSettings;
+      swapLogs = preRestoreSnapshot.swapLogs;
+      forfeitRecords = preRestoreSnapshot.forfeitRecords;
+      systemLogs = preRestoreSnapshot.systemLogs;
+      pendingAudits = preRestoreSnapshot.pendingAudits;
+      accountsList = preRestoreSnapshot.accountsList;
+      updateLotteryCards();
+      renderDashboard();
+      renderResidents();
+      renderResults();
+      renderSwap();
+      initFloorplanSeats();
+      console.error("還原備份失敗：", e);
+      alert(`【還原失敗】${e && e.message ? e.message : e}\n\n已回滾至還原前的狀態，本機與雲端資料皆未變更。`);
+    }
+    inputEl.value = "";
+  }
+
   // ============ 年度封存 ============
   async function createArchive() {
     if (currentUser.role !== 'admin') {
@@ -6554,7 +6744,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.72 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.73 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -6593,7 +6783,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.72 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.73 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
