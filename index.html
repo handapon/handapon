@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.75</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.76</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -106,6 +106,16 @@
   .text-center { text-align: center !important; }
   .code-font { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background:#f1f5f9; padding:5px 10px; border-radius:6px; font-size:14.5px; color:#0f172a; font-weight:800; border:1px solid #94a3b8; letter-spacing:0.5px }
 
+
+  .advanced-ops{margin-top:1rem;border:1px solid #fca5a5;border-radius:12px;background:#fffafa;overflow:hidden}
+  .advanced-ops summary{cursor:pointer;padding:.8rem 1rem;font-weight:900;color:#991b1b;list-style:none}
+  .advanced-ops summary::-webkit-details-marker{display:none}
+  .advanced-ops summary::before{content:'＋';display:inline-block;margin-right:8px;font-weight:900}
+  .advanced-ops[open] summary::before{content:'－'}
+  .advanced-ops-body{padding:0 1rem 1rem;border-top:1px solid #fecaca}
+  .advanced-ops-note{font-size:13px;line-height:1.7;color:#7f1d1d;font-weight:700;padding-top:.8rem}
+  .results-view-banner{border:1px solid #bfdbfe;border-radius:12px;background:#eff6ff;padding:12px 14px;margin:-.25rem 0 1.25rem;font-size:14px;font-weight:800;color:#1e40af}
+
   /* 標籤 Badge */
   .badge{display:inline-block;padding:5px 12px;border-radius:100px;font-size:12.5px;font-weight:800;letter-spacing:0.5px}
   .badge-blue{background:#eff6ff;color:var(--primary);border:1px solid #93c5fd}
@@ -191,7 +201,7 @@
   /* 登入背景輪播專用 */
   .bg-fade { transition: background-image 1.5s ease-in-out; }
 
-  /* v2.75：專業控制台視覺層級 */
+  /* v2.76：專業控制台視覺層級 */
   .guest-entry-note{text-align:center;margin-top:9px;color:#475569;font-size:13px;font-weight:800;letter-spacing:.2px}
   .guest-entry-btn{min-height:54px}.guest-entry-btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(37,99,235,.24)}
   .dashboard-command-card{background:linear-gradient(135deg,#eff6ff 0%,#ecfdf5 100%);color:#0f172a;border:1px solid #bfdbfe;border-radius:18px;padding:18px 20px;margin-bottom:1.5rem;box-shadow:0 12px 24px rgba(37,99,235,.08);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
@@ -199,7 +209,7 @@
   .lottery-step[role="button"]{cursor:pointer}.lottery-step:focus{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}
   @media(max-width:1024px){.dashboard-command-card{grid-template-columns:1fr;padding:16px}.dashboard-command-title{font-size:20px}.dashboard-next-action{display:inline-block;margin-top:10px}.dashboard-command-actions{justify-content:stretch}.dashboard-command-actions .btn{flex:1 1 140px;min-height:42px}}
 
-  /* ===== v2.75：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
+  /* ===== v2.76：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
   .mobile-view-toggle{display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap}
   .mobile-view-toggle .btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
   .mobile-card-list{display:none}
@@ -313,7 +323,7 @@
   .table-scroll-hint{display:none;font-size:12.5px;color:var(--text-muted);font-weight:800;margin-bottom:.5rem;text-align:right}
 
 
-  /* ===== v2.75：管理警示中心、平面圖搜尋與 Firebase 同步狀態 ===== */
+  /* ===== v2.76：管理警示中心、平面圖搜尋與 Firebase 同步狀態 ===== */
   .dashboard-alert-card{margin-bottom:1.5rem;border:1px solid #fecaca;background:#fff7f7;border-radius:16px;padding:16px 18px;box-shadow:0 8px 18px rgba(127,29,29,.05)}
   .dashboard-alert-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.dashboard-alert-title{font-size:17px;font-weight:900;color:#991b1b}.dashboard-alert-count{font-size:12px;font-weight:900;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:999px;padding:5px 9px}
   .dashboard-alert-list{display:grid;gap:8px;margin-top:12px}.dashboard-alert-item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #fecaca;border-radius:10px;padding:9px 11px;font-size:13px;font-weight:800;color:#7f1d1d}.dashboard-alert-item .alert-main{flex:1}.dashboard-alert-item .alert-action{white-space:nowrap}
@@ -391,7 +401,7 @@
 </div>
 
 <!-- 💡 個人中籤通知單，畫面上不顯示，只有點擊「列印個人中籤通知單」時才會出現並印出 -->
-<!-- v2.75 車位平面圖互動明細 Modal -->
+<!-- v2.76 車位平面圖互動明細 Modal -->
 <div class="modal-overlay seat-detail-modal" id="seat-detail-modal" onclick="if(event.target===this) closeSeatDetailModal()">
   <div class="modal">
     <div class="flex-between" style="margin-bottom:1rem">
@@ -479,7 +489,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.75</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.76</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -679,7 +689,10 @@
 <!-- ===== 3. 執行抽籤 ===== -->
 <div id="page-lottery" class="page">
   <div class="flex-between" style="margin-bottom:1.5rem">
-    <div class="section-title" style="margin:0">執行機車位抽籤</div>
+    <div>
+      <div class="section-title" style="margin:0">執行機車位抽籤</div>
+      <div style="font-size:13px;color:var(--text-muted);font-weight:800;margin-top:3px">依序完成：檢查 → 預覽 → 執行 → 公布結果</div>
+    </div>
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
   </div>
 
@@ -749,10 +762,18 @@
       <button class="btn-run-lottery" id="main-run-btn" onclick="runLottery()">🎲 開始執行電腦抽籤</button>
     </div>
     <div class="btn-row mt-2" style="border-top:2px solid #e2e8f0;padding-top:1.5rem;margin-top:2rem">
-      <button class="btn btn-danger btn-sm" onclick="clearCurrentRound()">清除本輪結果</button>
-      <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">重置全部輪次結果</button>
       <button class="btn btn-sm" onclick="toggleLotteryPreview()">展開中籤預覽資訊 <span id="preview-toggle-icon">▼</span></button>
     </div>
+    <details class="advanced-ops" id="lottery-advanced-ops">
+      <summary>⚠️ 進階／高風險操作（請確認後再使用）</summary>
+      <div class="advanced-ops-body">
+        <div class="advanced-ops-note">清除與重置會改變正式抽籤資料；系統會先做資料一致性檢查並嘗試雲端回滾，但建議操作前先完成備份。</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-danger btn-sm" onclick="clearCurrentRound()">清除本輪結果</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">重置全部輪次結果</button>
+        </div>
+      </div>
+    </details>
     <div id="lottery-preview" style="display:none;margin-top:1.5rem;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #bbf7d0;box-shadow:0 4px 10px rgba(0,0,0,0.04);max-height:400px;overflow-y:auto;line-height:1.8;font-size:15px;font-weight:600"></div>
   </div>
 
@@ -783,6 +804,8 @@
       <button class="btn" id="btn-print" onclick="printRoundResult()">列印報表</button>
     </div>
   </div>
+
+  <div id="results-view-banner" class="results-view-banner" style="display:none"></div>
 
   <div class="round-tabs" id="result-round-tabs">
     <div class="round-tab active" data-round="第一輪" onclick="selectResultRound('第一輪')">第一輪</div>
@@ -866,7 +889,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.75 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.76 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -1096,7 +1119,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.75">
+        <input type="text" id="set-app-version" value="v2.76">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1199,7 +1222,7 @@
 
   <div class="card" style="background:#f0fdf4;border-color:#86efac">
     <div class="card-title" style="border-left-color:#16a34a">💾 資料備份與年度封存</div>
-    <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800">「立即完整備份」會把目前所有住戶、抽籤結果、系統設定打包成一個檔案下載，可作為完整快照備份（與 CSV 匯出互補，CSV 只有住戶資料）。「年度封存」則是在不清空目前資料的前提下，把當下狀態存成一份唯讀快照留存，方便社區交屋潮、每年重新抽籤前，先保留好這次的完整紀錄。</p>
+    <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800">「立即完整備份」會把目前住戶、抽籤結果、系統設定與管理紀錄打包成一個檔案下載；帳號密碼／雜湊值不會寫入備份（與 CSV 匯出互補，CSV 只有住戶資料）。「年度封存」則是在不清空目前資料的前提下，把當下狀態存成一份唯讀快照留存，方便社區交屋潮、每年重新抽籤前，先保留好這次的完整紀錄。</p>
     <div class="btn-row">
       <button class="btn btn-success" onclick="downloadFullBackup()">💾 立即完整備份（下載）</button>
       <button class="btn btn-primary" onclick="createArchive()">📦 封存本年度資料</button>
@@ -1211,14 +1234,16 @@
     <div id="archive-list-box" style="display:none;margin-top:1.5rem"></div>
   </div>
 
-  <div class="card">
-    <div class="card-title">系統資料管理與初始化</div>
-    <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800">注意事項：請謹慎執行以下清空或重置操作，建議執行前先使用上方「立即完整備份」。</p>
-    <div class="btn-row">
-      <button class="btn btn-danger" onclick="deleteAllResidents()">🗑️ 刪除所有住戶資料</button>
-      <button class="btn btn-danger" onclick="resetSystemData()">⚠️ 重置所有系統資料</button>
+  <details class="advanced-ops" id="settings-danger-ops">
+    <summary>⚠️ 系統資料管理與高風險操作</summary>
+    <div class="advanced-ops-body">
+      <div class="advanced-ops-note">以下操作可能大量刪除或覆蓋資料。建議先下載完整備份；重置與還原均會進行雲端一致性檢查。</div>
+      <div class="btn-row">
+        <button class="btn btn-danger" onclick="deleteAllResidents()">🗑️ 刪除所有住戶資料</button>
+        <button class="btn btn-danger" onclick="resetSystemData()">⚠️ 重置所有系統資料</button>
+      </div>
     </div>
-  </div>
+  </details>
 </div>
 
 <!-- 新增/編輯住戶 Modal -->
@@ -1581,7 +1606,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.75",
+    appVersion: "v2.76",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1863,14 +1888,15 @@
     }catch(e){ console.warn('釋放 Firebase 寫入鎖失敗：',e); }
   }
 
-  function cloudSyncPush(){
-    const run=()=>cloudSyncPushCore();
+  function cloudSyncPush(options = {}){
+    const run=()=>cloudSyncPushCore(options);
     const next=cloudPushChain.then(run,run);
     cloudPushChain=next.catch(()=>false);
     return next;
   }
 
-  async function cloudSyncPushCore() {
+  async function cloudSyncPushCore(options = {}) {
+    const includeMedia = options && options.includeMedia === true;
     // 核心資料寫入必須由已登入的管理員或社區主任執行；未登入／訪客一律只允許查詢。
     if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
       updateSyncStatusUI(false, "未登入／僅查詢");
@@ -1977,6 +2003,10 @@
         systemLogs,
         _meta: { lastModified: {".sv": "timestamp"}, lastModifiedBy: (currentUser && currentUser.name) || "" }
       };
+      // 還原／重置等需要「核心資料 + media」的一致性操作，使用同一個 PATCH 一次更新，
+      // Firebase 會在同一個資料庫位置將這次 multi-location update 視為單一寫入，避免
+      // 先成功核心、再失敗 media 的半完成狀態。一般日常同步仍不攜帶大型 media。
+      if (includeMedia) payload.media = { ...systemSettings };
 
       // 💡 改用 PATCH（而非 PUT）：只更新上面列出的這幾個欄位，完全不會動到
       // 另外存放在 parkingData/media 的大型檔案，兩者互不影響、互不拖累。
@@ -2036,9 +2066,18 @@
     }
   }
 
-  async function pushArchivesToCloud() {
+  function pushArchivesToCloud(){
+    const run=()=>pushArchivesToCloudCore();
+    const next=cloudPushChain.then(run,run);
+    cloudPushChain=next.catch(()=>false);
+    return next;
+  }
+
+  async function pushArchivesToCloudCore() {
     if (!currentUser || !['admin','director'].includes(currentUser.role)) return false;
     if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) return false;
+    if (lotteryRunning || waitlistLotteryRunning) return false;
+    pendingPushCount++;
     try {
       const headers = { "Content-Type": "application/json" };
       if (archivesCloudEtag) headers['if-match'] = archivesCloudEtag;
@@ -2059,10 +2098,22 @@
     } catch (e) {
       console.error("寫入封存紀錄失敗：", e);
       return false;
+    } finally {
+      pendingPushCount--;
     }
   }
 
-  async function cloudSyncPushMedia() {
+  // 大型 media 同步也納入與核心資料相同的本機 queue + 全域 Firebase lock。
+  // 另外使用 media 節點自己的 ETag 做第二層版本保護，防止非本程式客戶端或舊版
+  // 程式在鎖外異動時，直接覆蓋目前最新的 media。
+  function cloudSyncPushMedia(){
+    const run=()=>cloudSyncPushMediaCore();
+    const next=cloudPushChain.then(run,run);
+    cloudPushChain=next.catch(()=>false);
+    return next;
+  }
+
+  async function cloudSyncPushMediaCore() {
     if (!currentUser || !['admin','director'].includes(currentUser.role)) {
       updateSyncStatusUI(false, '未登入／僅查詢');
       return false;
@@ -2071,8 +2122,6 @@
       updateSyncStatusUI(false, '抽籤進行中，檔案寫入暫停');
       return false;
     }
-    // 💡 專門用來同步大型檔案（登入背景圖、平面圖、操作手冊PDF）的獨立函式，
-    // 只在真正上傳/刪除這些檔案時才會被呼叫，不會影響一般資料（例如抽籤結果）的同步速度。
     if (!FIREBASE_DB_URL || FIREBASE_DB_URL.includes("YOUR-FIREBASE")) {
       updateSyncStatusUI(false, "僅本機");
       return false;
@@ -2081,28 +2130,76 @@
       updateSyncStatusUI(false, "同步中，寫入已暫緩");
       return false;
     }
-    if (currentUser && currentUser.role === 'guest') {
-      return false;
-    }
 
     pendingPushCount++;
+    let writeLockAcquired = false;
+    let oldMedia = null;
+    let oldMediaEtag = null;
+    let mediaWritten = false;
     try {
-      // 💡 這裡改成完整送出整個 systemSettings（不論欄位名稱），確保任何大型欄位
-      // （包含目前未知名稱的舊版遺留欄位）都會被完整保存在這個獨立路徑，不會遺失。
-      const mediaPayload = { ...systemSettings };
-      const pushRes = await fetch(`${FIREBASE_DB_URL}parkingData/media.json`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mediaPayload)
+      const lockToken = await acquireCloudWriteLock();
+      if(!lockToken) return false;
+      writeLockAcquired = true;
+
+      // 在鎖內取得最新 media + ETag，避免拿到舊快照後再覆蓋其他管理裝置的修改。
+      const mediaUrl = `${FIREBASE_DB_URL}parkingData/media.json`;
+      const currentRes = await fetch(`${mediaUrl}?_t=${Date.now()}`, {
+        cache:'no-store', headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}
       });
-      if (!pushRes.ok) throw new Error("HTTP " + pushRes.status);
-      updateSyncStatusUI(true, "雲端已同步");
+      if(!currentRes.ok) throw new Error('讀取目前 media 版本失敗：HTTP '+currentRes.status);
+      oldMedia = await currentRes.json();
+      oldMediaEtag = currentRes.headers.get('ETag') || null;
+
+      const mediaPayload = { ...systemSettings };
+      const putHeaders = { 'Content-Type':'application/json' };
+      if(oldMediaEtag) putHeaders['if-match'] = oldMediaEtag;
+      const putRes = await fetch(mediaUrl, {
+        method:'PUT', headers:putHeaders, body:JSON.stringify(mediaPayload)
+      });
+      if(putRes.status===412) throw new Error('media 版本衝突：其他裝置已更新，請重新整理後再試。');
+      if(!putRes.ok) throw new Error('media 寫入失敗：HTTP '+putRes.status);
+      mediaWritten = true;
+
+      // media 變更也必須更新主版本時間戳，讓其他裝置知道需要重新同步。
+      const metaRes = await fetch(`${FIREBASE_DB_URL}parkingData/_meta.json`, {
+        method:'PATCH', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ lastModified:{'.sv':'timestamp'}, lastModifiedBy:(currentUser&&currentUser.name)||'' })
+      });
+      if(!metaRes.ok) throw new Error('media 已寫入，但版本標記更新失敗');
+      try {
+        const metaBody = await metaRes.json();
+        if (metaBody && Number.isFinite(Number(metaBody.lastModified))) {
+          lastKnownServerModified = Number(metaBody.lastModified);
+          lastKnownServerModifiedBy = (currentUser && currentUser.name) || '';
+        }
+      } catch(_) {}
+
+      const verify = await fetch(`${mediaUrl}?_t=${Date.now()}`, {
+        cache:'no-store', headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}
+      });
+      if(!verify.ok) throw new Error('media 寫入後驗證失敗');
+      const verifyData = await verify.json();
+      if(JSON.stringify(verifyData) !== JSON.stringify(mediaPayload)) throw new Error('media 寫入後內容驗證不一致');
+      updateSyncStatusUI(true, '雲端已同步');
       return true;
     } catch (e) {
       console.error("大型檔案（圖片/PDF）同步失敗：", e);
+      // 若 media 已寫入但後續驗證／meta 更新失敗，嘗試在同一把鎖內做條件回復。
+      if(mediaWritten && oldMediaEtag){
+        try{
+          const verifyNow=await fetch(`${FIREBASE_DB_URL}parkingData/media.json?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
+          if(verifyNow.ok){
+            const nowEtag=verifyNow.headers.get('ETag');
+            if(nowEtag){
+              await fetch(`${FIREBASE_DB_URL}parkingData/media.json`,{method:'PUT',headers:{'Content-Type':'application/json','if-match':nowEtag},body:JSON.stringify(oldMedia)});
+            }
+          }
+        }catch(recoverErr){ console.error('media 失敗後回復原版本亦失敗：', recoverErr); }
+      }
       updateSyncStatusUI(false, "檔案同步失敗");
       return false;
     } finally {
+      if(writeLockAcquired) await releaseCloudWriteLock();
       pendingPushCount--;
     }
   }
@@ -2494,7 +2591,7 @@
     
     const brandEl = document.getElementById("nav-brand-title");
     if (brandEl) {
-      brandEl.innerHTML = `🛵 ${titleText} <span class="app-version-label">${systemSettings.appVersion}</span>`;
+      brandEl.innerHTML = `🛵 ${escapeHtml(titleText)} <span class="app-version-label">${escapeHtml(systemSettings.appVersion || '')}</span>`;
     }
   }
 
@@ -2773,6 +2870,11 @@
   }
 
   function showPage(pageId) {
+    if (!currentUser) {
+      const overlay = document.getElementById('login-overlay');
+      if (overlay) overlay.style.display = 'flex';
+      return;
+    }
     if (pageId === 'residents' && currentUser.role === 'guest') {
       alert("權限不足！一般住戶無法檢視住戶名單。");
       return;
@@ -2961,7 +3063,7 @@
     `;
 
     let guideText = systemSettings.quickGuideText || defaultQuickGuide;
-    document.getElementById("dash-quick-guide").innerHTML = guideText.replace(/\n/g, '<br>');
+    document.getElementById("dash-quick-guide").innerHTML = escapeHtml(guideText).replace(/\n/g, '<br>');
 
     document.getElementById("dash-void-tags").innerHTML = (systemSettings.voidSeats && systemSettings.voidSeats.length > 0) 
       ? systemSettings.voidSeats.map(s => `<span class="badge badge-red" style="margin-right:8px">${s}號 作廢</span>`).join('') 
@@ -5257,6 +5359,14 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   function renderResults() {
+    const banner = document.getElementById('results-view-banner');
+    if (banner) {
+      const isGuest = !!(currentUser && currentUser.role === 'guest');
+      banner.style.display = 'block';
+      banner.innerHTML = isGuest
+        ? '👤 住戶查詢模式：僅顯示棟別、門牌、姓名與各輪車位結果；車牌與管理操作不會顯示。'
+        : '🛠️ 管理模式：可查看完整車牌、身分與管理操作；請使用下方篩選功能快速定位資料。';
+    }
     const search = document.getElementById("search-result").value.toLowerCase();
     const type = document.getElementById("filter-result-type").value;
     const thElem = document.getElementById("results-th");
@@ -6155,7 +6265,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       Object.assign(systemSettings, snapshot);
       applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
-      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.75";
+      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.76";
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || '';
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次系統標題/版次/導覽設定已回滾。");
       return;
@@ -6567,7 +6677,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       forfeitRecords,
       systemLogs,
       pendingAudits,
-      accountsList
+      // 備份檔不再攜帶任何帳號密碼／雜湊值；還原舊備份時若沒有 accountsList，則保留目前帳號。
+      accountsList: (accountsList || []).map(({password, ...safeAccount}) => safeAccount)
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -6577,7 +6688,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     a.download = `稙村秀社區機車位系統_完整備份_${dateStr}.json`;
     a.click();
     // 💡 備份檔含帳號密碼等完整資料，提醒管理員妥善保存，不要外流或公開分享
-    alert("完整備份已下載！\n\n此檔案包含所有住戶資料、抽籤結果、系統設定與帳號資料（含密碼），請妥善保存於安全的地方，不要公開分享或上傳到公開空間。");
+    alert("完整備份已下載！\n\n此檔案包含住戶資料、抽籤結果、系統設定與管理紀錄；帳號密碼／雜湊值不會寫入備份檔。仍請將備份檔妥善保存，不要公開分享或上傳到公開空間。");
     addLog("設定", "下載完整系統備份");
   }
 
@@ -6650,7 +6761,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       forfeitRecords = Array.isArray(backup.forfeitRecords) ? backup.forfeitRecords : [];
       systemLogs = Array.isArray(backup.systemLogs) ? backup.systemLogs : [];
       pendingAudits = Array.isArray(backup.pendingAudits) ? backup.pendingAudits : [];
-      accountsList = Array.isArray(backup.accountsList) ? backup.accountsList : accountsList;
+      // 為避免帳號密碼透過備份檔回灌，v2.76 不從備份檔還原 accountsList；
+      // 帳號仍以目前雲端／本機已驗證的管理帳號為準。
       normalizeSystemSettings();
 
       // 舊版備份可能沒有 _meta；還原屬管理員明確要求的完整覆蓋操作，
@@ -6659,14 +6771,13 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       lastKnownServerModifiedBy = "";
       restoreForcePush = true;
       let pushOk = false;
-      let mediaOk = false;
       try {
-        pushOk = await cloudSyncPush();
-        mediaOk = await cloudSyncPushMedia();
+        // 核心資料 + media 在同一把寫入鎖中，透過單一 PATCH 一次提交，避免半套還原。
+        pushOk = await cloudSyncPush({includeMedia:true});
       } finally {
         restoreForcePush = false;
       }
-      if (!pushOk || !mediaOk) throw new Error("雲端同步失敗");
+      if (!pushOk) throw new Error("核心資料與 media 原子同步失敗");
 
       updateLotteryCards();
       renderDashboard();
@@ -6871,10 +6982,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     systemSettings.loginBgs = [];
 
     try {
-      const mediaOk = await cloudSyncPushMedia();
-      if (!mediaOk) throw new Error("媒體資料同步失敗");
-      const mainOk = await cloudSyncPush();
-      if (!mainOk) throw new Error("主要資料同步失敗");
+      const mainOk = await cloudSyncPush({includeMedia:true});
+      if (!mainOk) throw new Error("核心資料與 media 原子同步失敗");
 
       renderDashboard();
       renderResidents();
@@ -6932,6 +7041,14 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   async function runCloudDiagnostic() {
+    if (!currentUser || currentUser.role !== 'admin') {
+      alert('權限不足！雲端診斷工具僅限系統管理員使用。');
+      return;
+    }
+    if (lotteryRunning || waitlistLotteryRunning) {
+      alert('抽籤執行期間不可進行雲端診斷，請待抽籤及同步完成後再試。');
+      return;
+    }
     const box = document.getElementById("diagnostic-result");
     box.style.display = "block";
     box.innerText = "測試進行中，請稍候...";
@@ -6985,6 +7102,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     }
     log.push("");
 
+    // 診斷只允許暫存測試資料，完成讀回後立即刪除，避免留下不必要的雲端節點。
+    if (writeOk) {
+      try {
+        const cleanupRes = await fetch(testPath, { method:'DELETE' });
+        log.push(`▶ 測試資料清理：${cleanupRes.ok ? '✅ 已刪除' : '⚠️ 刪除失敗（請稍後檢查 _diagnosticTest）'}`);
+      } catch(e) {
+        log.push(`▶ 測試資料清理：⚠️ ${e && e.message ? e.message : e}`);
+      }
+    }
+    log.push("");
+
     // 結論
     log.push("【診斷結論】");
     if (writeOk && readOk && readValueMatches) {
@@ -6999,7 +7127,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.75 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.76 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -7038,7 +7166,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.75 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.76 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
