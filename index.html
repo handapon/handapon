@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.68</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.70</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -191,7 +191,7 @@
   /* 登入背景輪播專用 */
   .bg-fade { transition: background-image 1.5s ease-in-out; }
 
-  /* v2.68：專業控制台視覺層級 */
+  /* v2.70：專業控制台視覺層級 */
   .guest-entry-note{text-align:center;margin-top:9px;color:#475569;font-size:13px;font-weight:800;letter-spacing:.2px}
   .guest-entry-btn{min-height:54px}.guest-entry-btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(37,99,235,.24)}
   .dashboard-command-card{background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);color:#fff;border-radius:18px;padding:18px 20px;margin-bottom:1.5rem;box-shadow:0 16px 30px rgba(15,23,42,.16);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
@@ -199,7 +199,7 @@
   .lottery-step[role="button"]{cursor:pointer}.lottery-step:focus{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}
   @media(max-width:1024px){.dashboard-command-card{grid-template-columns:1fr;padding:16px}.dashboard-command-title{font-size:20px}.dashboard-next-action{display:inline-block;margin-top:10px}.dashboard-command-actions{justify-content:stretch}.dashboard-command-actions .btn{flex:1 1 140px;min-height:42px}}
 
-  /* ===== v2.68：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
+  /* ===== v2.70：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
   .mobile-view-toggle{display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap}
   .mobile-view-toggle .btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
   .mobile-card-list{display:none}
@@ -235,7 +235,7 @@
   .mobile-secondary-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   @media(max-width:1024px){
     .mobile-view-toggle{display:flex}
-    .app-toast-host{right:14px;bottom:14px}
+    .app-toast-host{right:14px;bottom:82px}
     .lottery-stepper{grid-template-columns:repeat(2,1fr)}
     .seat-detail-grid{grid-template-columns:1fr}
     body.mobile-card-mode .table-wrap{display:none}
@@ -258,7 +258,7 @@
     .log-tl-content div:last-child{font-size:14px !important}
     .log-tl-dot{width:14px;height:14px}
     .log-tl-line{left:5px}
-    #back-to-top-btn{width:42px;height:42px;right:14px;bottom:18px;font-size:17px}
+    #back-to-top-btn{width:42px;height:42px;right:14px;bottom:18px;font-size:17px;z-index:2100}
     .card-title{font-size:17px}
     .section-title{font-size:21px}
     .table-wrap{max-height:55vh;margin:0 -0.1rem}
@@ -382,7 +382,7 @@
 </div>
 
 <!-- 💡 個人中籤通知單，畫面上不顯示，只有點擊「列印個人中籤通知單」時才會出現並印出 -->
-<!-- v2.68 車位平面圖互動明細 Modal -->
+<!-- v2.70 車位平面圖互動明細 Modal -->
 <div class="modal-overlay seat-detail-modal" id="seat-detail-modal" onclick="if(event.target===this) closeSeatDetailModal()">
   <div class="modal">
     <div class="flex-between" style="margin-bottom:1rem">
@@ -470,7 +470,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.68</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.70</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -855,7 +855,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.68 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.70 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -1077,7 +1077,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.68">
+        <input type="text" id="set-app-version" value="v2.70">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1546,7 +1546,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.68",
+    appVersion: "v2.70",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -3692,6 +3692,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   }
 
   function selectLotteryRound(round) {
+    // 任何切換輪次前先確保動畫 Modal 不會殘留，避免防呆訊息與舊動畫同時出現。
+    closeLotteryModal();
     const done1=isLotteryRoundCompleted("第一輪"), done2=isLotteryRoundCompleted("第二輪"), done3=isLotteryRoundCompleted("第三輪");
     if(round === '候補'){
       if(!done1 || !done2 || !done3){
@@ -3837,7 +3839,13 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   }
 
   function getWaitlistCandidates() {
-    return residents.filter(r => (r.waitlist === 'Y') && !getUserSeat("候補", r.id) && !hasActiveForfeitRecord(r.id));
+    return residents.filter(r => {
+      const plateVal = String(r.plateWaitlist || '').trim();
+      return r.waitlist === 'Y'
+        && isValidTaiwanPlate(plateVal, true)
+        && !getUserSeat("候補", r.id)
+        && !hasActiveForfeitRecord(r.id);
+    });
   }
 
   function updateWaitlistPanel() {
@@ -4241,7 +4249,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     // 💡 記錄「曾主動棄權」的歷史事實。只要本年度尚未重置/重抽受影響輪次，
     // 之後執行候補抽籤時，該住戶不得因目前已無車位而取得最高優先層級。
     if (!Array.isArray(forfeitRecords)) forfeitRecords = [];
-    forfeitRecords = forfeitRecords.filter(x => !(Number(x.residentId) === Number(r.id) && x.round === roundName));
+    // 保留同一住戶過往候補棄權紀錄，才能正確執行「允許 1 次；第 2 次（含）以上排除」規則。
     forfeitRecords.push({
       residentId: Number(r.id),
       round: roundName,
@@ -4350,6 +4358,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
   }
 
   async function runLottery() {
+    // 先關閉任何殘留的動畫 Modal，再進行流程／權限防呆，避免非阻塞 Toast 期間留下舊的抽籤畫面。
+    closeLotteryModal();
     if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
       alert("權限不足！正式抽籤僅限系統管理員與社區主任執行。");
       return;
@@ -4398,8 +4408,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     let eligible = residents.filter(x => {
       if (x[rKey] !== 'Y') return false;
       const plateVal = String(x[plateKey] || '').trim();
-      // 「新戶待補」是系統手冊明確允許的暫代車牌；真正不合格的是空白。
-      return plateVal === PENDING_PLATE_LABEL || plateVal.length > 0;
+      // 「新戶待補」是系統手冊明確允許的暫代車牌；其他參加者必須通過台灣牌照格式驗證。
+      return isValidTaiwanPlate(plateVal, true);
     });
     
     if(eligible.length === 0) {
@@ -4491,8 +4501,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
     }
     const expectedPlateKey = round === '第一輪' ? 'plate1' : (round === '第二輪' ? 'plate2' : 'plate3');
     const expectedRoundKey = round === '第一輪' ? 'r1' : (round === '第二輪' ? 'r2' : 'r3');
-    const badEligible = eligible.filter(r => !String(r[expectedPlateKey] || '').trim() || r[expectedRoundKey] !== 'Y');
-    if (badEligible.length > 0) throw new Error(`${round} 存在不符合資格的參加者資料，已中止分配。`);
+    const badEligible = eligible.filter(r => {
+      const plateVal = String(r[expectedPlateKey] || '').trim();
+      return !plateVal || r[expectedRoundKey] !== 'Y' || !isValidTaiwanPlate(plateVal, true);
+    });
+    if (badEligible.length > 0) throw new Error(`${round} 存在車牌空白或格式不合格的參加者資料，已中止分配。`);
 
     // 先清除候補的所有來源，確保任何殘留 assignWaitlist 都不會帶入下一輪。
     lotteryResults['候補'] = {};
@@ -5799,7 +5812,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       Object.assign(systemSettings, snapshot);
       applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
-      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.68";
+      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.70";
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || '';
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次系統標題/版次/導覽設定已回滾。");
       return;
@@ -6524,7 +6537,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.68 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.70 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -6563,7 +6576,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣目前一般汽機
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.68 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.70 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
