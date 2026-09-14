@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -193,6 +194,8 @@
   .sync-online { background:#dcfce7; color:#15803d; border:1px solid #86efac;}
   .sync-offline { background:#fef2f2; color:#dc2626; border:1px solid #fca5a5;}
   .sync-syncing { background:#eff6ff; color:var(--primary); border:1px solid #93c5fd;}
+  .health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.health-item{padding:.85rem 1rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;font-size:13px;font-weight:800;color:#334155}.health-item b{display:block;color:#0f172a;margin-top:4px}.health-ok{color:#15803d}.health-bad{color:#b91c1c}
+  .my-result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:1rem}.my-result-slot{padding:.8rem;border:1px solid #bfdbfe;border-radius:10px;background:#fff;font-size:13px;font-weight:800;color:#475569}.my-result-slot b{display:block;color:#1d4ed8;font-size:16px;margin-top:4px}.seat-highlight{outline:4px solid #f59e0b;outline-offset:3px;animation:seatPulse 1s ease-in-out 3}@keyframes seatPulse{50%{transform:scale(1.08);box-shadow:0 0 0 7px rgba(245,158,11,.22)}}
 
   /* 💡 預覽手冊相關樣式 */
   .pdf-preview-box { background:#f8fafc; border:2px dashed #94a3b8; border-radius:14px; height:500px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; position:relative; box-shadow:inset 0 2px 10px rgba(0,0,0,0.02)}
@@ -305,6 +308,7 @@
     .nav-menu-mobile .nav-tab{padding:1.15rem 1.25rem;font-size:15.5px}
     .table-scroll-hint{display:block}
     .btn-sm{padding:.6rem 1rem;min-height:38px}
+    .health-grid,.my-result-grid{grid-template-columns:repeat(2,1fr)}
     .yn-btn{padding:8px 14px;min-height:34px}
     .btn-row{gap:10px}
     .badge{padding:6px 12px}
@@ -534,6 +538,7 @@
       <input type="password" id="login-pw" placeholder="請輸入密碼">
     </div>
     <div id="login-error" style="color:#dc2626;font-size:14px;font-weight:900;margin-bottom:1.25rem;display:none;text-align:center">帳號或密碼錯誤！</div>
+    <div id="login-progress" role="status" style="display:none;color:#2563eb;font-size:13px;font-weight:800;margin:-.65rem 0 1rem;text-align:center"></div>
     <button class="btn btn-primary" style="width:100%;padding:1.2rem;margin-bottom:1rem;font-size:17px;font-weight:900;box-shadow:0 4px 10px rgba(37,99,235,0.3)" onclick="doLogin()">登入系統</button>
     <div style="text-align:center;position:relative;margin:1.75rem 0;">
        <hr style="border:none;border-top:2px solid #cbd5e1;">
@@ -546,6 +551,16 @@
 <!-- ===== 1. 總覽 ===== -->
 <div id="page-dashboard" class="page active">
   <div class="section-title">機車位抽籤總覽</div>
+
+  <div class="card" id="my-parking-result-card" style="display:none;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#93c5fd">
+    <div class="card-title">🎉 我的車位結果</div>
+    <div class="form-row"><input id="my-result-room" type="text" placeholder="輸入門牌，例如 A1-03 或 03" oninput="renderMyParkingResult()"><button class="btn btn-primary" onclick="renderMyParkingResult()">查詢我的車位</button></div>
+    <div id="my-parking-result-content" style="font-size:14px;font-weight:700;color:#475569">輸入門牌後，可直接查看各輪分配結果與車位位置。</div>
+  </div>
+
+  <div class="card" id="system-health-card" style="display:none">
+    <div class="card-title">系統健康狀態</div><div id="system-health-grid" class="health-grid"></div>
+  </div>
 
   <div class="card" id="guest-quick-nav" style="display:none;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border-color:#93c5fd;margin-bottom:1.75rem">
     <div class="card-title" style="border-left-color:#2563eb">📱 快速前往</div>
@@ -1838,7 +1853,7 @@
           updateSyncStatusUI(false,'其他管理裝置正在寫入，請稍候');
           return null;
         }
-        const payload={token, user:(currentUser&&currentUser.name)||'', acquiredAt:{'.sv':'timestamp'}, expiresAt:Date.now()+60000};
+        const payload={token, user:(currentUser&&currentUser.name)||'', acquiredAt:{'.sv':'timestamp'}, renewedAt:{'.sv':'timestamp'}, expiresAt:Date.now()+60000};
         const put=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json','if-match':etag},body:JSON.stringify(payload)});
         if(put.status===412){
           if(attempt<maxAttempts) await new Promise(r=>setTimeout(r,250*attempt));
@@ -1857,7 +1872,9 @@
           return null;
         }
         const verifyEtag=verify.headers.get('ETag');
-        activeCloudWriteLockToken={token,etag:verifyEtag};
+        activeCloudWriteLockToken={token,etag:verifyEtag,heartbeat:null};
+        // 寫入期間每 20 秒續租，避免大型 media 傳輸超過初始 lease 時被其他裝置誤判為失效。
+        activeCloudWriteLockToken.heartbeat=setInterval(()=>renewCloudWriteLock(token),20000);
         return token;
       }catch(e){
         console.warn('取得 Firebase 寫入鎖失敗：',e);
@@ -1868,9 +1885,28 @@
     return null;
   }
 
+  async function renewCloudWriteLock(token){
+    const lock=activeCloudWriteLockToken;
+    if(!lock || lock.token!==token) return;
+    try{
+      const url=`${FIREBASE_DB_URL}parkingData/_syncLock.json`;
+      const res=await fetch(`${url}?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data=await res.json(), etag=res.headers.get('ETag');
+      if(!data || data.token!==token || !etag) throw new Error('寫入鎖已被其他裝置取代');
+      const renewed={...data,renewedAt:{'.sv':'timestamp'},expiresAt:Date.now()+60000};
+      const put=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json','if-match':etag},body:JSON.stringify(renewed)});
+      if(!put.ok) throw new Error('HTTP '+put.status);
+    }catch(e){
+      console.warn('Firebase 寫入鎖續租失敗：',e);
+      updateSyncStatusUI(false,'寫入鎖續租失敗，請勿繼續操作');
+    }
+  }
+
   async function releaseCloudWriteLock(){
     const lock=activeCloudWriteLockToken; if(!lock) return;
     activeCloudWriteLockToken=null;
+    if(lock.heartbeat) clearInterval(lock.heartbeat);
     try{
       const url=`${FIREBASE_DB_URL}parkingData/_syncLock.json`;
       const res=await fetch(`${url}?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
@@ -2707,7 +2743,9 @@
     const p = document.getElementById("login-pw").value.trim();
 
     const loginBtn = document.querySelector('#login-overlay .btn-primary');
-    if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<span class="spinner-icon"></span>登入中，同步最新資料...'; }
+    const progressEl=document.getElementById('login-progress');
+    if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<span class="spinner-icon"></span>正在驗證帳號…'; }
+    if(progressEl){progressEl.style.display='block';progressEl.innerText='正在驗證帳號…';}
 
     // 💡 重要修正：先前登入時直接沿用「這個分頁一開始載入時」的舊資料，
     // 如果這個分頁在別人剛執行完抽籤「之前」就已經打開，或先前有同步時序問題，
@@ -2715,7 +2753,14 @@
     // 修正為：每次登入都強制重新向雲端拉取一次最新資料，確保這個工作階段一開始就是最新狀態。
     // （這裡也一併修正了先前「先用舊資料比對一次、拉取後比對失敗又退回用舊資料比對結果」的邏輯，
     // 若密碼已經在別的裝置被更改過，舊版寫法仍可能誤用過期密碼登入成功。）
-    await cloudSyncPull();
+    if(progressEl) progressEl.innerText='正在載入最新資料…';
+    if(loginBtn) loginBtn.innerHTML = '<span class="spinner-icon"></span>正在載入最新資料…';
+    const pullOk=await cloudSyncPull();
+    if(!pullOk){
+      if(progressEl) progressEl.innerText='無法載入最新資料，請檢查網路後再試。';
+      if(loginBtn){loginBtn.disabled=false;loginBtn.innerText='登入系統';}
+      return;
+    }
 
     const acc = accountsList.find(a => String(a.username || '').trim().toLowerCase() === u.toLowerCase());
     let loginOk = acc ? await verifyPassword(p, acc.password) : false;
@@ -2739,9 +2784,11 @@
       addLog("登入", `${currentUser.name} (${currentUser.role === 'admin' ? '管理員' : '社區主任'}) 登入系統`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
 
       if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = "登入系統"; }
+      if(progressEl) progressEl.style.display='none';
     } else {
       document.getElementById("login-error").style.display = "block";
       if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = "登入系統"; }
+      if(progressEl) progressEl.style.display='none';
       // 💡 記錄登入失敗嘗試（不記錄密碼本身），方便日後稽核是否有人在嘗試猜測帳密
       addLog("登入", `登入失敗：帳號「${u}」密碼錯誤或帳號不存在`);
     }
@@ -3014,6 +3061,9 @@
     const total = residents.length;
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
     const availableSeats = systemSettings.totalSeats - voidCount;
+    renderSystemHealth();
+    const myResultCard=document.getElementById('my-parking-result-card');
+    if(myResultCard) myResultCard.style.display=currentUser?.role==='guest' ? 'block' : 'none';
     
     let gotR1 = getValidWinnerCount("第一輪");
     let gotR2 = getValidWinnerCount("第二輪");
@@ -3088,6 +3138,36 @@
     }
     seatHtml += '</div>';
     document.getElementById("dash-seatmap").innerHTML = seatHtml;
+  }
+
+  function renderSystemHealth(){
+    const card=document.getElementById('system-health-card'), grid=document.getElementById('system-health-grid');
+    if(!card || !grid) return;
+    const isOfficer=['admin','director'].includes(currentUser?.role);
+    card.style.display=isOfficer?'block':'none'; if(!isOfficer) return;
+    const integrity=validateCurrentAllocationState({alert:false});
+    const synced=cloudSyncReady && lastLocalPullTime;
+    const lock=activeCloudWriteLockToken ? '寫入中（本裝置）' : '正常';
+    const lastOp=(systemLogs||[])[0];
+    grid.innerHTML=`<div class="health-item">Firebase<b class="${synced?'health-ok':'health-bad'}">${synced?'🟢 正常':'🔴 尚未同步'}</b></div><div class="health-item">資料完整性<b class="${integrity.ok?'health-ok':'health-bad'}">${integrity.ok?'🟢 正常':'🔴 發現 '+integrity.errors.length+' 項異常'}</b></div><div class="health-item">同步鎖<b class="health-ok">🟢 ${lock}</b></div><div class="health-item">最後同步<b>${lastLocalPullTime?lastLocalPullTime.toLocaleTimeString('zh-TW'):'—'}</b></div><div class="health-item">最後操作<b>${escapeHtml(lastKnownServerModifiedBy||lastOp?.user||'—')}</b></div><div class="health-item">系統版本<b>${escapeHtml(systemSettings.appVersion||'v2.76')}</b></div>`;
+  }
+
+  function renderMyParkingResult(){
+    const input=document.getElementById('my-result-room'), box=document.getElementById('my-parking-result-content');
+    if(!input || !box) return;
+    const q=String(input.value||'').trim().toLowerCase().replace(/\s+/g,'');
+    if(!q){box.innerText='輸入門牌後，可直接查看各輪分配結果與車位位置。';return;}
+    const r=residents.find(x=>`${x.build}-${x.room}`.toLowerCase().replace(/\s+/g,'')===q || String(x.room||'').toLowerCase()===q);
+    if(!r){box.innerText='找不到此門牌，請輸入完整格式（例如 A1-03）。';return;}
+    const rounds=['第一輪','第二輪','第三輪','候補']; const seats=rounds.map(round=>getUserSeat(round,r.id));
+    const slots=rounds.map((round,i)=>`<div class="my-result-slot">${round}<b>${seats[i]?seats[i]+' 號車位':'—'}</b></div>`).join('');
+    box.innerHTML=`<b>${escapeHtml(r.build)}-${escapeHtml(r.room)} 的結果</b><div class="my-result-grid">${slots}</div><div style="margin-top:12px">目前共取得 <b style="color:#15803d">${seats.filter(Boolean).length}</b> 個車位　${seats.find(Boolean)?`<button class="btn btn-sm" onclick="openResidentParkingOnMap(${r.id})">🗺 查看車位位置</button>`:''}</div>`;
+  }
+
+  function openResidentParkingOnMap(residentId){
+    const r=residents.find(x=>Number(x.id)===Number(residentId)); if(!r) return;
+    const seat=['第一輪','第二輪','第三輪','候補'].map(round=>getUserSeat(round,r.id)).find(Boolean);
+    if(!seat) return; showPage('floorplan'); setTimeout(()=>highlightFloorplanSeat(seat),80);
   }
 
   function previewVoidCount() {
@@ -6168,6 +6248,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     floorplanSearchText=String(document.getElementById('floorplan-search')?.value||'').trim().toLowerCase();
     floorplanStatusFilter=document.getElementById('floorplan-status-filter')?.value||'all';
     initFloorplanSeats();
+    const match=String(floorplanSearchText||'').match(/\d+/); if(match) setTimeout(()=>highlightFloorplanSeat(Number(match[0]),false),0);
   }
   function clearFloorplanFilter(){
     floorplanSearchText=''; floorplanStatusFilter='all';
@@ -6207,12 +6288,13 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         label = `${i}號<br><b style="font-size:15px;color:${isWL ? '#c2410c' : '#1e3a8a'}">${occupant.build} ${occupant.room}</b>${isWL ? '<br><span style="font-size:10.5px;font-weight:800">🎟️候補</span>' : ''}`;
         hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}${isWL ? '（候補分配）' : ''}`;
       }
-      b1Html += `<div class="${cls}" role="button" tabindex="0" onclick="openSeatDetail(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){openSeatDetail(${i})}" title="點擊查看車位 ${i}號詳細資料：${escapeHtml(hoverTitle)}">${label}</div>`;
+      b1Html += `<div id="floorplan-seat-${i}" class="${cls}" role="button" tabindex="0" onclick="openSeatDetail(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){openSeatDetail(${i})}" title="點擊查看車位 ${i}號詳細資料：${escapeHtml(hoverTitle)}">${label}</div>`;
     }
 
     for(let i = b1Limit + 1; i <= total; i++) {
       let isVoid = vSeats.includes(i);
       let occupant = getSeatOccupant(i);
+      if(!floorplanSeatVisible(i, isVoid, occupant)) { continue; }
       let cls = "seat seat-free";
       let label = `${i}號`;
       let hoverTitle = `車位 ${i}號 (空位)`;
@@ -6227,7 +6309,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         label = `${i}號<br><b style="font-size:15px;color:${isWL ? '#c2410c' : '#1e3a8a'}">${occupant.build} ${occupant.room}</b>${isWL ? '<br><span style="font-size:10.5px;font-weight:800">🎟️候補</span>' : ''}`;
         hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}${isWL ? '（候補分配）' : ''}`;
       }
-      b2Html += `<div class="${cls}" role="button" tabindex="0" onclick="openSeatDetail(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){openSeatDetail(${i})}" title="點擊查看車位 ${i}號詳細資料：${escapeHtml(hoverTitle)}">${label}</div>`;
+      b2Html += `<div id="floorplan-seat-${i}" class="${cls}" role="button" tabindex="0" onclick="openSeatDetail(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){openSeatDetail(${i})}" title="點擊查看車位 ${i}號詳細資料：${escapeHtml(hoverTitle)}">${label}</div>`;
     }
 
     if (b1Html === '') b1Html = '<div class="empty" style="grid-column:1/-1;padding:2rem">目前沒有符合篩選條件的車位。</div>';
@@ -6236,6 +6318,13 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const b2Grid = document.getElementById("fp-b2-grid");
     if(b1Grid) b1Grid.innerHTML = b1Html;
     if(b2Grid) b2Grid.innerHTML = b2Html;
+  }
+
+  function highlightFloorplanSeat(seat, switchTab=true){
+    const target=Number(seat); if(!Number.isInteger(target)||target<1) return;
+    const b1Limit=systemSettings.b1Limit||Math.floor((systemSettings.totalSeats||122)/2);
+    if(switchTab) switchFloorplan(target<=b1Limit?1:2);
+    setTimeout(()=>{const el=document.getElementById(`floorplan-seat-${target}`); if(!el) return; el.classList.remove('seat-highlight'); void el.offsetWidth; el.classList.add('seat-highlight'); el.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});},50);
   }
 
   // ================= 9. 系統設定與帳號管理邏輯 =================
