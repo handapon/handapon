@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.73</title>
+<title id="app-title-tag">稙村秀社區機車位電腦抽籤系統 v2.74</title>
 <!-- 載入 SheetJS 模組以支援匯出 .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -191,7 +191,7 @@
   /* 登入背景輪播專用 */
   .bg-fade { transition: background-image 1.5s ease-in-out; }
 
-  /* v2.73：專業控制台視覺層級 */
+  /* v2.74：專業控制台視覺層級 */
   .guest-entry-note{text-align:center;margin-top:9px;color:#475569;font-size:13px;font-weight:800;letter-spacing:.2px}
   .guest-entry-btn{min-height:54px}.guest-entry-btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(37,99,235,.24)}
   .dashboard-command-card{background:linear-gradient(135deg,#eff6ff 0%,#ecfdf5 100%);color:#0f172a;border:1px solid #bfdbfe;border-radius:18px;padding:18px 20px;margin-bottom:1.5rem;box-shadow:0 12px 24px rgba(37,99,235,.08);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
@@ -199,7 +199,7 @@
   .lottery-step[role="button"]{cursor:pointer}.lottery-step:focus{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}
   @media(max-width:1024px){.dashboard-command-card{grid-template-columns:1fr;padding:16px}.dashboard-command-title{font-size:20px}.dashboard-next-action{display:inline-block;margin-top:10px}.dashboard-command-actions{justify-content:stretch}.dashboard-command-actions .btn{flex:1 1 140px;min-height:42px}}
 
-  /* ===== v2.73：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
+  /* ===== v2.74：行動版卡片、Toast、抽籤流程與平面圖互動 ===== */
   .mobile-view-toggle{display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap}
   .mobile-view-toggle .btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
   .mobile-card-list{display:none}
@@ -382,7 +382,7 @@
 </div>
 
 <!-- 💡 個人中籤通知單，畫面上不顯示，只有點擊「列印個人中籤通知單」時才會出現並印出 -->
-<!-- v2.73 車位平面圖互動明細 Modal -->
+<!-- v2.74 車位平面圖互動明細 Modal -->
 <div class="modal-overlay seat-detail-modal" id="seat-detail-modal" onclick="if(event.target===this) closeSeatDetailModal()">
   <div class="modal">
     <div class="flex-between" style="margin-bottom:1rem">
@@ -470,7 +470,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.73</span></div>
+  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.74</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -855,7 +855,7 @@
   </div>
 </div>
 
-<!-- ===== 7. 車位互換 (v2.73 進階版) ===== -->
+<!-- ===== 7. 車位互換 (v2.74 進階版) ===== -->
 <div id="page-swap" class="page">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
@@ -1077,7 +1077,7 @@
       </div>
       <div>
         <label>系統版次標題</label>
-        <input type="text" id="set-app-version" value="v2.73">
+        <input type="text" id="set-app-version" value="v2.74">
       </div>
     </div>
     <div style="margin-top:16px">
@@ -1562,7 +1562,7 @@
     voidSeats: [],
     abStart: 19,
     abEnd: 56,
-    appVersion: "v2.73",
+    appVersion: "v2.74",
     swapEnabled: true,
     swapDeadline: "2026-06-30",
     loginBgs: [], 
@@ -1829,7 +1829,7 @@
         });
         if (checkRes.ok) {
           const serverModified = await checkRes.json();
-          if (serverModified && Number(serverModified) > lastKnownServerModified) {
+          if (!restoreForcePush && serverModified && Number(serverModified) > lastKnownServerModified) {
             console.warn(`偵測到雲端資料版本衝突（雲端:${serverModified} > 本機已知:${lastKnownServerModified}），取消本次寫入以避免覆蓋他人更新。`);
             updateSyncStatusUI(false, "偵測到他人已更新，請重新整理");
             alert("⚠️ 偵測到雲端資料已被其他裝置或使用者更新過。\n\n本次變更已「取消寫入」，系統不會再用舊快照覆蓋雲端最新資料。\n\n請先重新整理取得最新內容，再重新操作一次。");
@@ -2291,7 +2291,8 @@
       const activeTag = document.activeElement ? document.activeElement.tagName : '';
       const isTyping = (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT');
       // 車位明細 Modal 本身允許背景同步；其他互動 Modal 仍暫緩，避免打斷輸入。
-      if (otherModalOpen || isTyping || pendingPushCount > 0) return;
+      // 正式／候補抽籤執行期間絕不允許背景拉取覆蓋記憶體中的抽籤結果。
+      if (lotteryRunning || waitlistLotteryRunning || otherModalOpen || isTyping || pendingPushCount > 0) return;
       if (Date.now() - lastManualMutationAt < 3000) return;
       const ok = await cloudSyncPull();
       if (ok) {
@@ -2482,7 +2483,7 @@
 
   async function doLogin() {
     const u = document.getElementById("login-user").value.trim();
-    const p = document.getElementById("login-pw").value;
+    const p = document.getElementById("login-pw").value.trim();
 
     const loginBtn = document.querySelector('#login-overlay .btn-primary');
     if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<span class="spinner-icon"></span>登入中，同步最新資料...'; }
@@ -2849,6 +2850,7 @@
   }
 
   async function saveVoidFromDash() {
+    if (lotteryRunning || waitlistLotteryRunning) { alert("抽籤執行期間暫停作廢車位變更，請待抽籤完成後再操作。"); return; }
     if (!currentUser || currentUser.role !== 'admin') {
       alert("權限不足，僅系統管理員可設定作廢車位！");
       return;
@@ -3243,6 +3245,7 @@
   }
 
   async function saveResident() {
+    if (lotteryRunning || waitlistLotteryRunning) { alert("抽籤執行期間暫停住戶資料異動，請待抽籤完成後再操作。"); return; }
     const id = document.getElementById("edit-id").value;
     const preSaveSnapshot = {
       residents: JSON.parse(JSON.stringify(residents)),
@@ -3680,7 +3683,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       if (!modern) Object.assign(map, legacy);
       const val = (row,k) => { const i=map[k]; return i>=0&&i<row.length ? String(row[i]??'').trim() : ''; };
       const seatVal = raw => { const m=String(raw||'').match(/\d+/); return m ? Number(m[0]) : ''; };
-      let count=0, skippedReserve=0, invalidPrefCount=0, invalidSeatCount=0, invalidPlateCount=0, invalidRows=0;
+      let count=0, skippedReserve=0, invalidPrefCount=0, invalidSeatCount=0, invalidPlateCount=0, duplicatePlateCount=0, invalidRows=0;
       const invalidPlateRows=[];
       const importedIds=[]; const seenSeats=new Map();
 
@@ -3699,7 +3702,20 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         const plate1=invalidPlateKeys.has('plate1')?'':formatTaiwanPlate(rawPlates.plate1);
         const plate2=invalidPlateKeys.has('plate2')?'':formatTaiwanPlate(rawPlates.plate2);
         const plate3=invalidPlateKeys.has('plate3')?'':formatTaiwanPlate(rawPlates.plate3);
-        const plateW=invalidPlateKeys.has('plateW')?'':formatTaiwanPlate(rawPlates.plateW);
+        let plateW=invalidPlateKeys.has('plateW')?'':formatTaiwanPlate(rawPlates.plateW);
+        // 同一筆 CSV 不允許同一實體車牌跨第一～三輪重複使用；重複的後出欄位自動清空並取消對應資格。
+        const duplicatePlateKeys = new Set();
+        const rowPlateSeen = new Set();
+        [['plate1',plate1],['plate2',plate2],['plate3',plate3],['plateW',plateW]].forEach(([key, plate]) => {
+          const normalized = normalizePlateValue(plate);
+          if (!normalized || normalized === normalizePlateValue(PENDING_PLATE_LABEL)) return;
+          if (rowPlateSeen.has(normalized)) duplicatePlateKeys.add(key);
+          else rowPlateSeen.add(normalized);
+        });
+        if (duplicatePlateKeys.has('plate2')) plate2='';
+        if (duplicatePlateKeys.has('plate3')) plate3='';
+        if (duplicatePlateKeys.has('plateW')) plateW='';
+        if (duplicatePlateKeys.size) duplicatePlateCount += duplicatePlateKeys.size;
         let pref1=seatVal(val(row,'pref1')), pref2=seatVal(val(row,'pref2')), pref3=seatVal(val(row,'pref3'));
         const voidSeatSetForImport = new Set((Array.isArray(systemSettings.voidSeats) ? systemSettings.voidSeats : []).map(Number));
         if(pref1 && (pref1<1||pref1>systemSettings.totalSeats)){pref1='';invalidPrefCount++;}
@@ -3715,8 +3731,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         // 車牌欄位無效時，不允許舊車位資料跟著匯入，避免產生「資格 N 卻有 assign」的矛盾。
         if (invalidPlateKeys.has('plate1')) seat1='';
         if (invalidPlateKeys.has('plate2')) seat2='';
-        if (invalidPlateKeys.has('plate3')) seat3='';
-        if (invalidPlateKeys.has('plateW')) waitlistSeat='';
+        if (invalidPlateKeys.has('plate3') || duplicatePlateKeys.has('plate3')) seat3='';
+        if (invalidPlateKeys.has('plate1')) seat1='';
+        if (duplicatePlateKeys.has('plate1')) seat1='';
+        if (invalidPlateKeys.has('plate2') || duplicatePlateKeys.has('plate2')) seat2='';
+        if (invalidPlateKeys.has('plateW') || duplicatePlateKeys.has('plateW')) waitlistSeat='';
         const waitlistRaw=val(row,'waitlist'); const waitlist=invalidPlateKeys.has('plateW') ? 'N' : ((waitlistRaw==='Y'||waitlistRaw==='已登記'||!!waitlistSeat||!!plateW)?'Y':'N');
         let bad=false; const localSet=new Set();
         for(const [rn,seat] of [[1,seat1],[2,seat2],[3,seat3],[0,waitlistSeat]]) { if(!seat) continue; if(seat<1||seat>Number(systemSettings.totalSeats)||systemSettings.voidSeats.includes(seat)||localSet.has(seat)||seenSeats.has(seat)){bad=true;invalidSeatCount++;} localSet.add(seat); if(!seenSeats.has(seat)) seenSeats.set(seat,`${build}-${room} ${name}${rn?' 第'+rn+'輪':' 候補'}`); }
@@ -3733,7 +3752,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         alert(`【CSV 匯入失敗】資料造成資格或車位衝突，本次匯入已全部回滾。\n\n${consistency.errors.slice(0,12).map(x=>'• '+x).join('\n')}`); inputElem.value=''; return;
       }
       renderResidents();renderDashboard();updateLotteryCards();checkPlateWarnings();initFloorplanSeats();
-      let msg=`成功匯入 ${count} 筆住戶資料！`; if(skippedReserve)msg+=`\n⚠️ ${skippedReserve} 筆保留戶因缺少指定車位而略過。`; if(invalidPrefCount)msg+=`\n⚠️ ${invalidPrefCount} 個指定車位因超出範圍、作廢或重複而清空／略過。`; if(invalidSeatCount)msg+=`\n⚠️ ${invalidSeatCount} 筆含無效／重複／作廢／已占用車位的資料略過。`; if(invalidPlateCount){msg+=`\n⚠️ ${invalidPlateCount} 個車牌欄位格式無效：已保留該住戶基本資料，無效車牌已清空，對應參加資格自動設為 N。`; if(invalidPlateRows.length) msg+=`\n\n${invalidPlateRows.slice(0,5).join('\n')}${invalidPlateRows.length>5?`\n…另有 ${invalidPlateRows.length-5} 筆無效車牌。`:''}`;} if(invalidRows)msg+=`\n⚠️ ${invalidRows} 列格式不足而略過。`;
+      let msg=`成功匯入 ${count} 筆住戶資料！`; if(skippedReserve)msg+=`\n⚠️ ${skippedReserve} 筆保留戶因缺少指定車位而略過。`; if(invalidPrefCount)msg+=`\n⚠️ ${invalidPrefCount} 個指定車位因超出範圍、作廢或重複而清空／略過。`; if(invalidSeatCount)msg+=`\n⚠️ ${invalidSeatCount} 筆含無效／重複／作廢／已占用車位的資料略過。`; if(duplicatePlateCount)msg+=`\n⚠️ ${duplicatePlateCount} 個車牌欄位與同一列前面車牌重複：已清空重複欄位並取消該欄位對應參加資格。`; if(invalidPlateCount){msg+=`\n⚠️ ${invalidPlateCount} 個車牌欄位格式無效：已保留該住戶基本資料，無效車牌已清空，對應參加資格自動設為 N。`; if(invalidPlateRows.length) msg+=`\n\n${invalidPlateRows.slice(0,5).join('\n')}${invalidPlateRows.length>5?`\n…另有 ${invalidPlateRows.length-5} 筆無效車牌。`:''}`;} if(invalidRows)msg+=`\n⚠️ ${invalidRows} 列格式不足而略過。`;
       addLog('住戶',`成功匯入 CSV 檔案 (${count} 筆)`).then(ok=>{if(!ok)alert(CLOUD_SYNC_FAIL_MSG);else alert(msg);}); inputElem.value='';
     };
     reader.readAsText(file,'UTF-8');
@@ -4071,11 +4090,18 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     return { ok: errors.length === 0, errors };
   }
 
+  let lotteryRunning = false;
   let waitlistLotteryRunning = false;
+  // 備份還原是管理員明確要求的完整覆蓋操作；僅在還原流程期間略過版本衝突檢查。
+  let restoreForcePush = false;
 
   async function runWaitlistLottery() {
     if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
       alert("權限不足！候補抽籤僅限系統管理員與社區主任執行。");
+      return;
+    }
+    if (lotteryRunning) {
+      alert("正式抽籤正在執行中，請勿同時執行候補抽籤。");
       return;
     }
     if (waitlistLotteryRunning) {
@@ -4268,6 +4294,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   async function forfeitSeat(residentId, roundName) {
+    if (lotteryRunning || waitlistLotteryRunning) { alert("抽籤執行期間不可標記棄權，請待抽籤完成後再操作。"); return; }
     const r = residents.find(x => Number(x.id) === Number(residentId));
     if (!r) return;
     const snapshot = {
@@ -4504,6 +4531,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       alert(`${currentRound} 沒有符合資格（已填寫對應當輪車牌且勾選參加）的住戶！`);
       return;
     }
+    if (lotteryRunning) {
+      alert("抽籤正在執行中，請勿重複點擊。");
+      return;
+    }
+    lotteryRunning = true;
 
     const runSnapshot = {
       residents: JSON.parse(JSON.stringify(residents)),
@@ -4544,6 +4576,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           systemLogs = runSnapshot.systemLogs;
           updateLotteryCards(); renderDashboard(); renderResidents(); renderResults(); renderSwap(); initFloorplanSeats();
           closeLotteryModal();
+          lotteryRunning = false;
           runBtn.disabled = false; runBtn.innerHTML = "🎲 開始執行電腦抽籤";
           alert(`【抽籤執行失敗】${e && e.message ? e.message : e}\n\n本次結果已回滾，未寫入不完整資料。`);
           return;
@@ -4571,6 +4604,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
             runBtn.disabled = false; runBtn.innerHTML = "🎲 開始執行電腦抽籤";
             alert(`⚠️ ${currentRound} 抽籤雲端同步失敗，系統已自動回滾本次抽籤結果。\n\n請確認網路／雲端狀態後重新執行本輪，避免本機與雲端出現不同版本。`);
           }
+        }).catch(e => {
+          residents = runSnapshot.residents;
+          lotteryResults = runSnapshot.lotteryResults;
+          forfeitRecords = runSnapshot.forfeitRecords;
+          systemLogs = runSnapshot.systemLogs;
+          updateLotteryCards(); renderDashboard(); renderResidents(); renderResults(); renderSwap(); initFloorplanSeats();
+          closeLotteryModal();
+          alert(`【抽籤同步失敗】${e && e.message ? e.message : e}\n\n本次結果已回滾，請重新取得雲端資料後再執行。`);
+        }).finally(() => {
+          lotteryRunning = false;
+          runBtn.disabled = false; runBtn.innerHTML = "🎲 開始執行電腦抽籤";
         });
       }
     }, 200);
@@ -4594,6 +4638,12 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       return !plateVal || r[expectedRoundKey] !== 'Y' || !isValidTaiwanPlate(plateVal, true);
     });
     if (badEligible.length > 0) throw new Error(`${round} 存在車牌空白或格式不合格的參加者資料，已中止分配。`);
+
+    const allocationSnapshot = {
+      lotteryResults: JSON.parse(JSON.stringify(lotteryResults)),
+      assigns: new Map(residents.map(r => [Number(r.id), { assign1:r.assign1, assign2:r.assign2, assign3:r.assign3, assignWaitlist:r.assignWaitlist }])),
+      forfeitRecords: JSON.parse(JSON.stringify(forfeitRecords || []))
+    };
 
     // 先清除候補的所有來源，確保任何殘留 assignWaitlist 都不會帶入下一輪。
     lotteryResults['候補'] = {};
@@ -4835,12 +4885,23 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     // 最終一致性檢查：任何跨輪重複車位、資格矛盾、map／住戶欄位不一致都直接回滾。
     const postAllocationCheck = validateCurrentAllocationState({alert:false});
     if (!postAllocationCheck.ok) {
+      lotteryResults = allocationSnapshot.lotteryResults;
+      residents.forEach(r => {
+        const oldAssign = allocationSnapshot.assigns.get(Number(r.id));
+        if (!oldAssign) return;
+        r.assign1 = oldAssign.assign1 || "";
+        r.assign2 = oldAssign.assign2 || "";
+        r.assign3 = oldAssign.assign3 || "";
+        r.assignWaitlist = oldAssign.assignWaitlist || "";
+      });
+      forfeitRecords = allocationSnapshot.forfeitRecords;
       throw new Error(`本輪分配完成後的一致性檢查失敗：${postAllocationCheck.errors.slice(0,6).join('；')}`);
     }
 
   }
 
   async function clearCurrentRound() {
+    if (lotteryRunning || waitlistLotteryRunning) { alert("抽籤執行期間不可清除結果，請待抽籤完成後再操作。"); return; }
     if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
       alert("權限不足！清除正式輪次結果僅限系統管理員與社區主任執行。");
       return;
@@ -4918,6 +4979,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   async function confirmClearAll() {
+    if (lotteryRunning || waitlistLotteryRunning) { alert("抽籤執行期間不可重置結果，請待抽籤完成後再操作。"); return; }
     if (!currentUser || !['admin','director'].includes(currentUser.role)) {
       alert('權限不足！');
       return;
@@ -5390,6 +5452,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   async function confirmSwap() {
+    if (lotteryRunning || waitlistLotteryRunning) { alert("抽籤執行期間不可進行車位互換，請待抽籤完成後再操作。"); return; }
     if(!systemSettings.swapEnabled) {
       alert("目前車位互換功能已鎖定或逾期！");
       return;
@@ -5913,7 +5976,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       Object.assign(systemSettings, snapshot);
       applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
-      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.73";
+      document.getElementById("set-app-version").value = systemSettings.appVersion || "v2.74";
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || '';
       alert(CLOUD_SYNC_FAIL_MSG + "\n\n本次系統標題/版次/導覽設定已回滾。");
       return;
@@ -6411,8 +6474,19 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       accountsList = Array.isArray(backup.accountsList) ? backup.accountsList : accountsList;
       normalizeSystemSettings();
 
-      const pushOk = await cloudSyncPush();
-      const mediaOk = await cloudSyncPushMedia();
+      // 舊版備份可能沒有 _meta；還原屬管理員明確要求的完整覆蓋操作，
+      // 先清除舊裝置留下的 lastKnownServerModified，並啟用一次性強制推送模式。
+      lastKnownServerModified = 0;
+      lastKnownServerModifiedBy = "";
+      restoreForcePush = true;
+      let pushOk = false;
+      let mediaOk = false;
+      try {
+        pushOk = await cloudSyncPush();
+        mediaOk = await cloudSyncPushMedia();
+      } finally {
+        restoreForcePush = false;
+      }
       if (!pushOk || !mediaOk) throw new Error("雲端同步失敗");
 
       updateLotteryCards();
@@ -6744,7 +6818,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       log.push("❌ 讀回失敗，但寫入顯示成功，這種情況較少見，建議重新測試一次。");
     }
 
-    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.73 起改用「名稱無關」的自動大型欄位偵測），
+    // 💡 額外顯示目前實際的一般同步 payload 大小（v2.74 起改用「名稱無關」的自動大型欄位偵測），
     // 並且「逐一欄位」列出大小，精準抓出到底是哪個欄位異常肥大，而不是只看總數猜測。
     try {
       const coreCopy = splitSystemSettingsForSync(systemSettings); // 與實際同步邏輯完全一致
@@ -6783,7 +6857,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       log.push(`   - pendingAudits（待審核清單，共 ${pendingAudits.length} 筆）：約 ${pendingAuditsSize.toFixed(1)} KB`);
       log.push(`   - swapLogs（互換紀錄，共 ${swapLogs.length} 筆）：約 ${swapLogsSize.toFixed(1)} KB`);
       log.push(`   - systemLogs（操作紀錄，共 ${systemLogs.length} 筆）：約 ${systemLogsSize.toFixed(1)} KB`);
-      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.73 起已不影響一般同步速度）`);
+      log.push(`【附加資訊】圖片/PDF等大型欄位獨立資料大小：約 ${mediaSize.toFixed(1)} KB（v2.74 起已不影響一般同步速度）`);
     } catch (e) { /* 附加資訊非必要，失敗也不影響主要診斷結果 */ }
 
     box.innerText = log.join("\n");
