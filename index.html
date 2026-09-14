@@ -194,6 +194,7 @@
   .sync-offline { background:#fef2f2; color:#dc2626; border:1px solid #fca5a5;}
   .sync-syncing { background:#eff6ff; color:var(--primary); border:1px solid #93c5fd;}
   .health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.health-item{padding:.85rem 1rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;font-size:13px;font-weight:800;color:#334155}.health-item b{display:block;color:#0f172a;margin-top:4px}.health-ok{color:#15803d}.health-bad{color:#b91c1c}
+  .settings-section{margin-bottom:1rem;border:1px solid #cbd5e1;border-radius:14px;background:#f8fafc}.settings-section>summary{cursor:pointer;padding:1rem 1.2rem;font-size:17px;font-weight:900;color:#0f172a}.settings-section[open]>summary{border-bottom:1px solid #cbd5e1;background:#eff6ff}.settings-section .card{margin:1rem}.settings-section.risk-section{border-color:#fdba74;background:#fff7ed}.settings-risk-note{margin:.75rem 0;padding:.75rem 1rem;border-radius:9px;background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;font-size:13px;font-weight:800;line-height:1.6}.results-summary-strip{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 1rem}.results-summary-strip span{border:1px solid #bfdbfe;background:#eff6ff;color:#1e3a8a;border-radius:999px;padding:6px 10px;font-size:12.5px;font-weight:900}.swap-status-banner{display:none;margin-bottom:1.25rem;padding:1rem 1.15rem;border-radius:12px;font-size:14px;font-weight:900}.swap-status-banner.open{display:block;background:#f0fdf4;border:1px solid #86efac;color:#166534}.swap-status-banner.closed{display:block;background:#fef2f2;border:1px solid #fecaca;color:#991b1b}.stat.clickable{cursor:pointer}.stat.clickable:hover{transform:translateY(-2px);border-color:#60a5fa}.log-tl-item.high-risk .log-tl-dot{background:#dc2626;box-shadow:0 0 0 2px #fecaca}.log-tl-item.high-risk .log-tl-content{border-color:#fecaca;background:#fff7f7}.log-risk-label{color:#b91c1c;font-weight:900;margin-left:6px}button.btn.btn-sm[onclick*="showPage('dashboard')"]{min-width:112px}
   .my-result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:1rem}.my-result-slot{padding:.8rem;border:1px solid #bfdbfe;border-radius:10px;background:#fff;font-size:13px;font-weight:800;color:#475569}.my-result-slot b{display:block;color:#1d4ed8;font-size:16px;margin-top:4px}.seat-highlight{outline:4px solid #f59e0b;outline-offset:3px;animation:seatPulse 1s ease-in-out 3}@keyframes seatPulse{50%{transform:scale(1.08);box-shadow:0 0 0 7px rgba(245,158,11,.22)}}
 
   /* 💡 預覽手冊相關樣式 */
@@ -806,7 +807,6 @@
     <div class="stats-grid waitlist-stats-grid" style="margin-bottom:1.5rem" id="waitlist-stats"></div>
     <div class="btn-row">
       <button class="btn-run-lottery" style="font-size:16px;padding:1rem 2.5rem;background:linear-gradient(135deg,#d97706 0%,#b45309 100%)" onclick="runWaitlistLottery()">🎟️ 執行候補抽籤</button>
-      <button class="btn btn-danger btn-sm" onclick="clearWaitlistResults()">清除候補結果</button>
     </div>
     <div id="waitlist-preview" style="display:none;margin-top:1.5rem;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #fde68a;max-height:300px;overflow-y:auto;line-height:1.8;font-size:15px;font-weight:600"></div>
   </div>
@@ -835,6 +835,7 @@
     <div class="round-tab" data-round="候補" onclick="selectResultRound('候補')">🎟️ 候補</div>
     <div class="round-tab" data-round="全部輪次" onclick="selectResultRound('全部輪次')">全部輪次總表</div>
   </div>
+  <div id="results-summary-strip" class="results-summary-strip" aria-live="polite"></div>
 
   <div class="card card-pad-lg">
     <div class="form-row" style="margin-bottom:1.5rem">
@@ -846,7 +847,7 @@
         <option value="skip">未參加 (未登記/未參加該項目)</option>
       </select>
     </div>
-    <div class="btn-row" style="margin:-.5rem 0 1rem"><button class="btn btn-sm" onclick="setLogQuickFilter('today')">今天</button><button class="btn btn-sm" onclick="setLogQuickFilter('lottery')">抽籤相關</button><button class="btn btn-sm" onclick="setLogQuickFilter('sync')">同步失敗</button><button class="btn btn-sm btn-danger" onclick="setLogQuickFilter('danger')">危險操作</button><button class="btn btn-sm" onclick="setLogQuickFilter('all')">全部</button></div>
+    <div id="results-log-filter-hint" style="margin:-.25rem 0 1rem;font-size:13px;color:var(--text-muted);font-weight:800;letter-spacing:.2px">今天　｜　抽籤相關　｜　同步失敗　｜　危險操作　｜　全部</div>
     <div class="mobile-view-toggle" id="result-view-toggle">
       <button class="btn btn-sm active" id="result-view-table-btn" onclick="setResultViewMode('table')">☷ 表格檢視</button>
       <button class="btn btn-sm" id="result-view-card-btn" onclick="setResultViewMode('card')">▣ 卡片檢視</button>
@@ -917,26 +918,9 @@
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
     <div class="section-title" style="margin:0">車位互換管理</div>
   </div>
+  <div id="swap-status-banner" class="swap-status-banner"></div>
   
   <div id="swap-admin-content">
-    <div class="card">
-      <div class="flex-between">
-        <div class="card-title" style="margin:0;border:none;padding:0">互換功能開關與設定</div>
-        <span id="swap-status-badge" class="badge">檢查中...</span>
-      </div>
-      <div class="form-row mt-2" style="margin-top:1.25rem">
-        <div>
-          <label>開放互換截止日期</label>
-          <input type="text" id="swap-deadline" placeholder="YYYY-MM-DD">
-        </div>
-        <div style="display:flex;align-items:flex-end;gap:10px">
-          <button class="btn btn-primary" onclick="saveSwapConfig()">儲存設定</button>
-          <button class="btn btn-success" onclick="setSwapEnabled(true)">開放功能</button>
-          <button class="btn btn-danger" onclick="setSwapEnabled(false)">鎖定功能</button>
-        </div>
-      </div>
-    </div>
-
     <div class="card">
       <div class="card-title" style="border-left-color:#7c3aed">進階車位互換 (支援單一車位跨輪次對調)</div>
       <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.75rem;font-weight:700">請搜尋欲互換的兩位住戶，並分別「指定要換出的車位輪次」，系統將精準對調雙方選擇的單一車位。</p>
@@ -1037,6 +1021,8 @@
       <option value="all">全部車位狀態</option><option value="free">空車位</option><option value="used">已分配</option><option value="waitlist">候補分配</option><option value="void">作廢車位</option>
     </select>
     <button class="btn btn-sm" onclick="clearFloorplanFilter()">清除篩選</button>
+    <span id="floorplan-zoom-label" style="align-self:center;font-size:13px;font-weight:900;color:var(--text-muted)">縮放：100%</span>
+    <button class="btn btn-sm" id="floorplan-return-highlight" style="display:none" onclick="returnToHighlightedSeat()">回到高亮車位</button>
   </div>
   <div id="floorplan-highlight-note" style="display:none;margin:-4px 0 14px;padding:9px 12px;border-radius:9px;background:#fff7ed;border:1px solid #fdba74;color:#9a3412;font-size:13px;font-weight:900"></div>
 
@@ -1186,6 +1172,17 @@
       <button class="btn btn-primary" onclick="saveSeatSettings()">儲存車位與區間設定</button>
     </div>
   </div>
+
+  <div class="card" style="background:#f8fafc;border-color:#cbd5e1">
+    <div class="flex-between"><div class="card-title" style="margin:0;border:none;padding:0">車位互換功能開關與設定</div><span id="swap-status-badge" class="badge">檢查中...</span></div>
+    <div class="form-row mt-2" style="margin-top:1.25rem"><div><label>開放互換截止日期</label><input type="text" id="swap-deadline" placeholder="YYYY-MM-DD"></div><div style="display:flex;align-items:flex-end;gap:10px"><button class="btn btn-primary" onclick="saveSwapConfig()">儲存設定</button><button class="btn btn-success" onclick="setSwapEnabled(true)">開放功能</button><button class="btn btn-danger" onclick="setSwapEnabled(false)">鎖定功能</button></div></div>
+  </div>
+
+  <details class="card" style="background:#fff7ed;border-color:#fdba74">
+    <summary class="card-title" style="border-left-color:#d97706;cursor:pointer">⚠️ 候補結果管理</summary>
+    <p style="font-size:14px;color:var(--text-muted);font-weight:700;line-height:1.7">清除候補結果會釋放所有候補車位並重置候補棄權歷史；請先確認是否已完成公告或備份。</p>
+    <button class="btn btn-danger" onclick="clearWaitlistResults()">清除候補結果</button>
+  </details>
 
   <div class="card">
     <div class="card-title">首頁登入背景圖輪播設定</div>
@@ -1596,6 +1593,7 @@
   let currentFloorplan = 1;
   let fpZoomLevel = 1.0;
   let activeSeatDetail = null;
+  let highlightedSeat = null;
   let bgCarouselTimer = null; 
   let cloudSyncReady = false; // 💡 新增：是否已成功從雲端完整下載過一次資料
   let autoSyncTimer = null; // 💡 新增：背景自動同步計時器
@@ -2893,6 +2891,7 @@
   }
 
   function initApp() {
+    setupSettingsAccordion();
     renderDashboard();
     renderResidents();
     renderResults();
@@ -2906,6 +2905,21 @@
     initFloorplanSeats();
     updateLotteryCards();
     checkPlateWarnings();
+  }
+
+  function setupSettingsAccordion(){
+    const page=document.getElementById('page-settings'); if(!page||page.dataset.accordionReady==='1') return;
+    const cards=[...page.querySelectorAll(':scope > .card')]; if(!cards.length) return;
+    const groups=[['一般設定',[]],['車位設定',[]],['候補管理',[]],['互換管理',[]],['帳號權限',[]],['備份與診斷',[]]];
+    const pick=text=>/候補/.test(text)?2:/互換/.test(text)?3:/帳號|主任|待審核/.test(text)?4:/備份|封存|診斷|歷史/.test(text)?5:/車位與 B1|作廢車位/.test(text)?1:0;
+    cards.forEach(card=>groups[pick(card.innerText)].push(card));
+    groups.forEach(([title,list],index)=>{if(!list.length)return;const details=document.createElement('details');details.className='settings-section'+(title==='候補管理'?' risk-section':'');details.open=index<2;const summary=document.createElement('summary');summary.textContent=title;details.appendChild(summary);list.forEach(card=>details.appendChild(card));page.appendChild(details);});
+    page.dataset.accordionReady='1'; updateSettingsRiskInfo();
+  }
+  function updateSettingsRiskInfo(){
+    const card=[...document.querySelectorAll('#page-settings .card')].find(x=>x.innerText.includes('候補結果管理')); if(!card)return;
+    const affected=getValidWinnerCount('候補'), seats=new Set(residents.map(r=>Number(r.assignWaitlist)).filter(n=>n>0)).size;
+    let note=card.querySelector('.settings-risk-note');if(!note){note=document.createElement('div');note.className='settings-risk-note';card.querySelector('button')?.before(note);}note.innerText=`影響範圍：將釋放 ${seats} 個候補車位，影響 ${affected} 位候補中籤住戶，並重置候補棄權歷史。`;
   }
 
   function showPage(pageId) {
@@ -3086,9 +3100,9 @@
     document.getElementById("dash-stats").innerHTML = `
       <div class="stat"><div class="stat-label">總住戶登記數</div><div class="stat-value blue">${total}</div></div>
       <div class="stat"><div class="stat-label">社區可用車位</div><div class="stat-value green">${availableSeats}</div></div>
-      <div class="stat"><div class="stat-label">第一輪已中籤</div><div class="stat-value orange">${gotR1}</div></div>
-      <div class="stat"><div class="stat-label">第二輪已中籤</div><div class="stat-value orange">${gotR2}</div></div>
-      <div class="stat"><div class="stat-label">第三輪已中籤</div><div class="stat-value orange">${gotR3}</div></div>
+      <div class="stat clickable" role="button" tabindex="0" onclick="openWinnerResults('第一輪')" onkeydown="if(event.key==='Enter'||event.key===' '){openWinnerResults('第一輪')}"><div class="stat-label">第一輪已中籤</div><div class="stat-value orange">${gotR1}</div></div>
+      <div class="stat clickable" role="button" tabindex="0" onclick="openWinnerResults('第二輪')" onkeydown="if(event.key==='Enter'||event.key===' '){openWinnerResults('第二輪')}"><div class="stat-label">第二輪已中籤</div><div class="stat-value orange">${gotR2}</div></div>
+      <div class="stat clickable" role="button" tabindex="0" onclick="openWinnerResults('第三輪')" onkeydown="if(event.key==='Enter'||event.key===' '){openWinnerResults('第三輪')}"><div class="stat-label">第三輪已中籤</div><div class="stat-value orange">${gotR3}</div></div>
     `;
 
     let lastModText = "尚無紀錄";
@@ -3138,6 +3152,8 @@
     document.getElementById("dash-seatmap").innerHTML = seatHtml;
   }
 
+  function openWinnerResults(round){showPage('results');selectResultRound(round);const filter=document.getElementById('filter-result-type');if(filter){filter.value='got';renderResults();}}
+
   function renderSystemHealth(){
     const card=document.getElementById('system-health-card'), grid=document.getElementById('system-health-grid');
     if(!card || !grid) return;
@@ -3159,7 +3175,7 @@
     if(!r){box.innerText='找不到此門牌，請輸入完整格式（例如 A1-03）。';return;}
     try{localStorage.setItem('parking_lottery_last_room',`${r.build}-${r.room}`);}catch(_){}
     const rounds=['第一輪','第二輪','第三輪','候補']; const seats=rounds.map(round=>getUserSeat(round,r.id));
-    const slots=rounds.map((round,i)=>`<div class="my-result-slot">${round}<b>${seats[i]?seats[i]+' 號車位':'—'}</b></div>`).join('');
+    const slots=rounds.map((round,i)=>`<div class="my-result-slot" style="${seats[i]?'background:#dbeafe;border-color:#60a5fa':'opacity:.58'}">${round}<b style="${seats[i]?'font-size:24px;color:#1d4ed8':'font-size:16px;color:#64748b'}">${seats[i]?seats[i]+' 號車位':'—'}</b></div>`).join('');
     box.innerHTML=`<b>${escapeHtml(r.build)}-${escapeHtml(r.room)} 的結果</b><div class="my-result-grid">${slots}</div><div style="margin-top:12px">目前共取得 <b style="color:#15803d">${seats.filter(Boolean).length}</b> 個車位　${seats.find(Boolean)?`<button class="btn btn-sm" onclick="openResidentParkingOnMap(${r.id})">🗺 查看車位位置</button>`:''}</div>`;
   }
 
@@ -4719,8 +4735,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   async function clearWaitlistResults() {
-    if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
-      alert("權限不足！清除候補結果僅限系統管理員與社區主任執行。");
+    if (!currentUser || currentUser.role !== 'admin') {
+      alert("權限不足！清除候補結果僅限系統管理員於系統設定中執行。");
       return;
     }
     if (getValidWinnerCount("候補") === 0 && !residents.some(r => Number(r.assignWaitlist) > 0)) {
@@ -5447,6 +5463,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   function renderResults() {
+    renderResultsSummary();
+    const logHint=document.getElementById('results-log-filter-hint');
+    if(logHint) logHint.style.display=(currentUser && currentUser.role === 'guest') ? 'none' : 'block';
     const banner = document.getElementById('results-view-banner');
     if (banner) {
       const isGuest = !!(currentUser && currentUser.role === 'guest');
@@ -5571,6 +5590,14 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if(rw) rw.style.display=resultViewMode==="table"?"":"none"; if(rc) rc.style.display=resultViewMode==="card"?"block":"none";
   }
 
+  function renderResultsSummary(){
+    const box=document.getElementById('results-summary-strip'); if(!box)return;
+    const r=currentResultRound, n=r==='第一輪'?1:r==='第二輪'?2:r==='第三輪'?3:0;
+    const eligible=n?residents.filter(x=>x[`r${n}`]==='Y'&&String(x[`plate${n}`]||'').trim()).length:r==='候補'?residents.filter(x=>x.waitlist==='Y').length:residents.length;
+    const winners=r==='全部輪次'?['第一輪','第二輪','第三輪','候補'].reduce((a,x)=>a+getValidWinnerCount(x),0):getValidWinnerCount(r);
+    box.innerHTML=`<span>${r}</span><span>合格 ${eligible} 位</span><span>中籤 ${winners} 位</span><span>未中籤 ${Math.max(0,eligible-winners)} 位</span><span>作廢 ${(systemSettings.voidSeats||[]).length} 位</span>`;
+  }
+
   function preparePrintHeader() {
     const title = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
     const now = new Date().toLocaleString('zh-TW');
@@ -5643,6 +5670,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       badge.innerText = "互換已鎖定";
       badge.className = "badge badge-red";
     }
+    const banner=document.getElementById('swap-status-banner');
+    if(banner){const deadline=String(systemSettings.swapDeadline||'').trim();const expired=deadline&&new Date(`${deadline}T23:59:59`).getTime()<Date.now();const open=!!systemSettings.swapEnabled&&!expired;banner.className='swap-status-banner '+(open?'open':'closed');banner.innerText=open?`🟢 互換目前開放｜截止日期：${deadline||'未設定'}`:`🔴 互換目前${expired?'已逾期':'已關閉'}｜截止日期：${deadline||'未設定'}`;}
 
     let html = "";
     if(swapLogs.length === 0) {
@@ -5664,6 +5693,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   async function saveSwapConfig() {
+    if (!currentUser || currentUser.role !== 'admin') { alert('權限不足，僅系統管理員可修改互換開關與截止日期。'); return; }
     const oldDeadline = systemSettings.swapDeadline;
     const oldLogs = JSON.parse(JSON.stringify(systemLogs || []));
     systemSettings.swapDeadline = document.getElementById("swap-deadline").value.trim();
@@ -5681,6 +5711,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   async function setSwapEnabled(en) {
+    if (!currentUser || currentUser.role !== 'admin') { alert('權限不足，僅系統管理員可開放或鎖定互換功能。'); return; }
     const oldEnabled = systemSettings.swapEnabled;
     const oldLogs = JSON.parse(JSON.stringify(systemLogs || []));
     systemSettings.swapEnabled = !!en;
@@ -6232,12 +6263,15 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if(fpZoomLevel < 0.5) fpZoomLevel = 0.5;
     if(fpZoomLevel > 3.0) fpZoomLevel = 3.0;
     document.getElementById("fp-img-wrap").style.transform = `scale(${fpZoomLevel})`;
+    const label=document.getElementById('floorplan-zoom-label'); if(label) label.innerText=`縮放：${Math.round(fpZoomLevel*100)}%`;
   }
 
   function resetFloorplanZoom() {
     fpZoomLevel = 1.0;
     document.getElementById("fp-img-wrap").style.transform = `scale(1.0)`;
+    const label=document.getElementById('floorplan-zoom-label'); if(label) label.innerText='縮放：100%';
   }
+  function returnToHighlightedSeat(){ if(highlightedSeat) highlightFloorplanSeat(highlightedSeat); }
 
   function uploadCustomFloorplan(inputElem) {
     const file = inputElem.files[0];
@@ -6337,9 +6371,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
 
   function highlightFloorplanSeat(seat, switchTab=true){
     const target=Number(seat); if(!Number.isInteger(target)||target<1) return;
+    highlightedSeat=target;
     const b1Limit=systemSettings.b1Limit||Math.floor((systemSettings.totalSeats||122)/2);
     if(switchTab) switchFloorplan(target<=b1Limit?1:2);
     const note=document.getElementById('floorplan-highlight-note'); if(note){note.style.display='block';note.innerText=`目前高亮：${target} 號車位`;} 
+    const returnBtn=document.getElementById('floorplan-return-highlight'); if(returnBtn) returnBtn.style.display='inline-block';
     setTimeout(()=>{const el=document.getElementById(`floorplan-seat-${target}`); if(!el) return; el.classList.remove('seat-highlight'); void el.offsetWidth; el.classList.add('seat-highlight'); el.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});},50);
   }
 
@@ -7313,12 +7349,13 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       html = '<div class="empty">尚無操作紀錄</div>';
     } else {
       filtered.forEach(l => {
-        html += `<div class="log-tl-item">
+        const highRisk=/重抽|清除|還原|鎖定互換|重置/.test(String(l.msg||''));
+        html += `<div class="log-tl-item ${highRisk?'high-risk':''}">
           <div class="log-tl-line"></div>
           <div class="log-tl-dot"></div>
           <div class="log-tl-content">
             <div style="font-size:13.5px;color:var(--text-muted);margin-bottom:6px;font-weight:800">${escapeHtml(l.time)} <span class="badge badge-blue" style="margin:0 8px">${escapeHtml(l.type)}</span> 👤 ${escapeHtml(l.user)}</div>
-            <div style="font-size:15px;color:var(--text-main);font-weight:700;line-height:1.6">${escapeHtml(l.msg)}</div>
+            <div style="font-size:15px;color:var(--text-main);font-weight:700;line-height:1.6">${highRisk?'<span class="log-risk-label">⚠️ 高風險操作</span> ':''}${escapeHtml(l.msg)}</div>
           </div>
         </div>`;
       });
