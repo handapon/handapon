@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -246,11 +245,13 @@
   .seat-detail-number{font-size:30px;font-weight:900;color:#1d4ed8}.seat-detail-status{font-size:13px;font-weight:900}
   .seat-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.seat-detail-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px}.seat-detail-label{display:block;font-size:12px;color:#64748b;font-weight:800}.seat-detail-value{font-size:14.5px;font-weight:900;color:#0f172a}
   .lottery-lock-note{display:none;margin-bottom:14px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;padding:10px 12px;font-weight:800}
+  .lottery-preflight{margin-top:1.25rem;padding:1rem 1.15rem;background:#fff;border:1px solid #bfdbfe;border-radius:12px}.lottery-preflight.risk{background:#fff7ed;border-color:#fdba74}.lottery-preflight.safe{background:#f0fdf4;border-color:#86efac}.lottery-preflight-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:.75rem 0}.lottery-preflight-grid div{padding:.65rem .75rem;border-radius:8px;background:rgba(248,250,252,.85);font-size:12px;font-weight:800;color:#475569}.lottery-preflight-grid b{display:block;color:#0f172a;font-size:17px;margin-top:2px}.lottery-preflight-risk{font-size:13px;font-weight:900;line-height:1.55;margin:.6rem 0}
   .mobile-secondary-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   @media(max-width:1024px){
     .mobile-view-toggle{display:flex}
     .app-toast-host{right:14px;bottom:82px}
     .lottery-stepper{grid-template-columns:repeat(2,1fr)}
+    .lottery-preflight-grid{grid-template-columns:repeat(2,1fr)}
     .seat-detail-grid{grid-template-columns:1fr}
     body.mobile-card-mode .table-wrap{display:none}
     body.mobile-card-mode #residents-card-list,body.mobile-card-mode #results-card-list{display:block}
@@ -777,6 +778,10 @@
       </div>
       <button class="btn-run-lottery" id="main-run-btn" onclick="runLottery()">🎲 開始執行電腦抽籤</button>
     </div>
+    <div class="lottery-preflight" id="lottery-preflight" aria-live="polite">
+      <b>抽籤前確認</b><div class="lottery-preflight-grid" id="lottery-preflight-grid"></div><div class="lottery-preflight-risk" id="lottery-preflight-risk"></div>
+      <label style="display:flex;gap:9px;align-items:flex-start;margin:0;color:#0f172a"><input type="checkbox" id="lottery-preflight-confirm" onchange="updateLotteryPreflight()" style="width:auto;margin-top:3px">我已確認本輪資格、車位數與可能被清除的後續結果。</label>
+    </div>
     <div class="btn-row mt-2" style="border-top:2px solid #e2e8f0;padding-top:1.5rem;margin-top:2rem">
       <button class="btn btn-sm" onclick="toggleLotteryPreview()">展開中籤預覽資訊 <span id="preview-toggle-icon">▼</span></button>
     </div>
@@ -841,6 +846,7 @@
         <option value="skip">未參加 (未登記/未參加該項目)</option>
       </select>
     </div>
+    <div class="btn-row" style="margin:-.5rem 0 1rem"><button class="btn btn-sm" onclick="setLogQuickFilter('today')">今天</button><button class="btn btn-sm" onclick="setLogQuickFilter('lottery')">抽籤相關</button><button class="btn btn-sm" onclick="setLogQuickFilter('sync')">同步失敗</button><button class="btn btn-sm btn-danger" onclick="setLogQuickFilter('danger')">危險操作</button><button class="btn btn-sm" onclick="setLogQuickFilter('all')">全部</button></div>
     <div class="mobile-view-toggle" id="result-view-toggle">
       <button class="btn btn-sm active" id="result-view-table-btn" onclick="setResultViewMode('table')">☷ 表格檢視</button>
       <button class="btn btn-sm" id="result-view-card-btn" onclick="setResultViewMode('card')">▣ 卡片檢視</button>
@@ -1032,6 +1038,7 @@
     </select>
     <button class="btn btn-sm" onclick="clearFloorplanFilter()">清除篩選</button>
   </div>
+  <div id="floorplan-highlight-note" style="display:none;margin:-4px 0 14px;padding:9px 12px;border-radius:9px;background:#fff7ed;border:1px solid #fdba74;color:#9a3412;font-size:13px;font-weight:900"></div>
 
   <div class="round-tabs">
     <div class="round-tab active" id="fp-tab-1" onclick="switchFloorplan(1)">B1 區車位圖</div>
@@ -1864,15 +1871,11 @@
         if(!verify.ok) throw new Error('HTTP '+verify.status);
         const verifyData=await verify.json();
         if(!verifyData || verifyData.token!==token) {
-          if(verifyData && verifyData.token===token) {
-            const verifyEtag = verify.headers.get('ETag');
-            if(verifyEtag) { try { await fetch(url,{method:'DELETE',headers:{'if-match':verifyEtag}}); } catch(_){} }
-          }
           if(attempt<maxAttempts) continue;
           return null;
         }
         const verifyEtag=verify.headers.get('ETag');
-        activeCloudWriteLockToken={token,etag:verifyEtag,heartbeat:null};
+        activeCloudWriteLockToken={token,etag:verifyEtag,heartbeat:null,lost:false};
         // 寫入期間每 20 秒續租，避免大型 media 傳輸超過初始 lease 時被其他裝置誤判為失效。
         activeCloudWriteLockToken.heartbeat=setInterval(()=>renewCloudWriteLock(token),20000);
         return token;
@@ -1899,6 +1902,7 @@
       if(!put.ok) throw new Error('HTTP '+put.status);
     }catch(e){
       console.warn('Firebase 寫入鎖續租失敗：',e);
+      if(activeCloudWriteLockToken && activeCloudWriteLockToken.token===token) activeCloudWriteLockToken.lost=true;
       updateSyncStatusUI(false,'寫入鎖續租失敗，請勿繼續操作');
     }
   }
@@ -1977,6 +1981,7 @@
         alert(`【防呆攔截】寫入鎖取得後發現資料一致性異常，已取消寫入。\n\n${lockedPreflight.errors.slice(0, 12).map(x => '• ' + x).join('\n')}`);
         return false;
       }
+      if(activeCloudWriteLockToken?.lost) throw new Error('寫入鎖續租失敗，已中止提交以避免競態寫入。');
       // 取得全域寫入鎖後，再做雲端版本檢查；這一段是在鎖內執行，會阻止遵守本鎖的其他管理裝置同時寫入。
       try {
         const checkRes = await fetch(`${FIREBASE_DB_URL}parkingData/_meta/lastModified.json?_t=${Date.now()}`, {
@@ -2135,8 +2140,7 @@
   }
 
   // 大型 media 同步也納入與核心資料相同的本機 queue + 全域 Firebase lock。
-  // 另外使用 media 節點自己的 ETag 做第二層版本保護，防止非本程式客戶端或舊版
-  // 程式在鎖外異動時，直接覆蓋目前最新的 media。
+  // media 與 _meta 使用同一次 multi-location PATCH，避免兩次 REST 寫入形成半完成狀態。
   function cloudSyncPushMedia(){
     const run=()=>cloudSyncPushMediaCore();
     const next=cloudPushChain.then(run,run);
@@ -2182,21 +2186,14 @@
       oldMediaEtag = currentRes.headers.get('ETag') || null;
 
       const mediaPayload = { ...systemSettings };
-      const putHeaders = { 'Content-Type':'application/json' };
-      if(oldMediaEtag) putHeaders['if-match'] = oldMediaEtag;
-      const putRes = await fetch(mediaUrl, {
-        method:'PUT', headers:putHeaders, body:JSON.stringify(mediaPayload)
-      });
-      if(putRes.status===412) throw new Error('media 版本衝突：其他裝置已更新，請重新整理後再試。');
-      if(!putRes.ok) throw new Error('media 寫入失敗：HTTP '+putRes.status);
-      mediaWritten = true;
-
-      // media 變更也必須更新主版本時間戳，讓其他裝置知道需要重新同步。
-      const metaRes = await fetch(`${FIREBASE_DB_URL}parkingData/_meta.json`, {
+      if(activeCloudWriteLockToken?.lost) throw new Error('寫入鎖續租失敗，已中止 media 提交。');
+      // media 與主版本標記必須同一次 multi-location PATCH；避免 media 成功、_meta 失敗的半完成狀態。
+      const metaRes = await fetch(`${FIREBASE_DB_URL}parkingData.json`, {
         method:'PATCH', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ lastModified:{'.sv':'timestamp'}, lastModifiedBy:(currentUser&&currentUser.name)||'' })
+        body:JSON.stringify({ media: mediaPayload, _meta:{ lastModified:{'.sv':'timestamp'}, lastModifiedBy:(currentUser&&currentUser.name)||'' } })
       });
-      if(!metaRes.ok) throw new Error('media 已寫入，但版本標記更新失敗');
+      if(!metaRes.ok) throw new Error('media 與版本標記寫入失敗：HTTP '+metaRes.status);
+      mediaWritten = true;
       try {
         const metaBody = await metaRes.json();
         if (metaBody && Number.isFinite(Number(metaBody.lastModified))) {
@@ -3064,6 +3061,7 @@
     renderSystemHealth();
     const myResultCard=document.getElementById('my-parking-result-card');
     if(myResultCard) myResultCard.style.display=currentUser?.role==='guest' ? 'block' : 'none';
+    if(currentUser?.role==='guest') { const input=document.getElementById('my-result-room'); try{if(input&&!input.value) input.value=localStorage.getItem('parking_lottery_last_room')||'';}catch(_){} if(input?.value) renderMyParkingResult(); }
     
     let gotR1 = getValidWinnerCount("第一輪");
     let gotR2 = getValidWinnerCount("第二輪");
@@ -3159,6 +3157,7 @@
     if(!q){box.innerText='輸入門牌後，可直接查看各輪分配結果與車位位置。';return;}
     const r=residents.find(x=>`${x.build}-${x.room}`.toLowerCase().replace(/\s+/g,'')===q || String(x.room||'').toLowerCase()===q);
     if(!r){box.innerText='找不到此門牌，請輸入完整格式（例如 A1-03）。';return;}
+    try{localStorage.setItem('parking_lottery_last_room',`${r.build}-${r.room}`);}catch(_){}
     const rounds=['第一輪','第二輪','第三輪','候補']; const seats=rounds.map(round=>getUserSeat(round,r.id));
     const slots=rounds.map((round,i)=>`<div class="my-result-slot">${round}<b>${seats[i]?seats[i]+' 號車位':'—'}</b></div>`).join('');
     box.innerHTML=`<b>${escapeHtml(r.build)}-${escapeHtml(r.room)} 的結果</b><div class="my-result-grid">${slots}</div><div style="margin-top:12px">目前共取得 <b style="color:#15803d">${seats.filter(Boolean).length}</b> 個車位　${seats.find(Boolean)?`<button class="btn btn-sm" onclick="openResidentParkingOnMap(${r.id})">🗺 查看車位位置</button>`:''}</div>`;
@@ -4129,7 +4128,19 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       else c.classList.remove("active");
     });
     document.getElementById("lottery-round-label").innerText = `${round}抽籤控制台`;
+    const confirmBox=document.getElementById('lottery-preflight-confirm'); if(confirmBox) confirmBox.checked=false;
     updateLotteryCards();
+  }
+  function updateLotteryPreflight(){
+    const box=document.getElementById('lottery-preflight'), grid=document.getElementById('lottery-preflight-grid'), risk=document.getElementById('lottery-preflight-risk'); if(!box||!grid||!risk) return;
+    const n=currentRound==='第一輪'?1:currentRound==='第二輪'?2:3;
+    const participants=residents.filter(r=>r[`r${n}`]==='Y'&&String(r[`plate${n}`]||'').trim()).length;
+    const free=getFormalLotteryStartFreeSeats(currentRound).length, voids=(systemSettings.voidSeats||[]).length;
+    const later=currentRound==='第一輪'?['第二輪','第三輪','候補']:currentRound==='第二輪'?['第三輪','候補']:['候補'];
+    const clearing=later.filter(r=>getValidWinnerCount(r)>0||(r==='候補'&&residents.some(x=>Number(x.assignWaitlist)>0)));
+    grid.innerHTML=`<div>目前輪次<b>${currentRound}</b></div><div>合格住戶<b>${participants} 位</b></div><div>可用／作廢位<b>${free}／${voids}</b></div><div>本輪既有結果<b>${getValidWinnerCount(currentRound)} 席</b></div>`;
+    box.classList.toggle('risk',clearing.length>0); box.classList.toggle('safe',clearing.length===0);
+    risk.textContent=clearing.length?`⚠️ 重抽將清除：${clearing.join('、')} 的既有結果。`:'🟢 不會清除既有後續結果。';
   }
   function updateLotteryCards() {
     normalizeSystemSettings();
@@ -4179,6 +4190,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       }
     });
     updateWaitlistPanel();
+    updateLotteryPreflight();
   }
 
   // 💡 計算目前「剩餘可分配車位」：總車位扣除作廢車位、再扣除已經在任何輪次（含候補）分配出去的車位
@@ -4797,6 +4809,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       alert("權限不足！正式抽籤僅限系統管理員與社區主任執行。");
       return;
     }
+    if(!document.getElementById('lottery-preflight-confirm')?.checked){ alert('請先完成「抽籤前確認」勾選，再執行抽籤。'); return; }
     const completedR1=isLotteryRoundCompleted("第一輪");
     const completedR2=isLotteryRoundCompleted("第二輪");
     if((currentRound==='第二輪'&&!completedR1)||(currentRound==='第三輪'&&!completedR2)){
@@ -5562,7 +5575,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const title = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
     const now = new Date().toLocaleString('zh-TW');
     document.getElementById("print-header-title").innerText = `${title}｜抽籤結果與彙整總表`;
-    document.getElementById("print-header-meta").innerText = `目前檢視：${currentResultRound}　｜　列印時間：${now}`;
+    const version=systemSettings.appVersion||'v2.76';
+    const revision=lastKnownServerModified?new Date(lastKnownServerModified).toLocaleString('zh-TW'):'尚無雲端版本紀錄';
+    document.getElementById("print-header-meta").innerText = `目前檢視：${currentResultRound}　｜　列印時間：${now}　｜　系統版本：${version}　｜　資料最後更新：${revision}${lastKnownServerModifiedBy?'　｜　執行者／更新者：'+lastKnownServerModifiedBy:''}`;
   }
 
   function exportResultsPDF() {
@@ -6324,6 +6339,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const target=Number(seat); if(!Number.isInteger(target)||target<1) return;
     const b1Limit=systemSettings.b1Limit||Math.floor((systemSettings.totalSeats||122)/2);
     if(switchTab) switchFloorplan(target<=b1Limit?1:2);
+    const note=document.getElementById('floorplan-highlight-note'); if(note){note.style.display='block';note.innerText=`目前高亮：${target} 號車位`;} 
     setTimeout(()=>{const el=document.getElementById(`floorplan-seat-${target}`); if(!el) return; el.classList.remove('seat-highlight'); void el.offsetWidth; el.classList.add('seat-highlight'); el.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});},50);
   }
 
@@ -7308,6 +7324,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       });
     }
     document.getElementById("log-timeline").innerHTML = html;
+  }
+
+  function setLogQuickFilter(mode){
+    const search=document.getElementById('log-search'), type=document.getElementById('log-filter-type'); if(!search||!type) return;
+    const today=new Date().toLocaleDateString('zh-TW'); type.value='';
+    if(mode==='today') search.value=today;
+    else if(mode==='lottery'){search.value='';type.value='抽籤';}
+    else if(mode==='sync') search.value='同步失敗';
+    else if(mode==='danger') search.value='清除';
+    else search.value='';
+    renderLogs();
   }
 
   async function clearLogs() {
