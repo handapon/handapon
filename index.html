@@ -23,9 +23,10 @@
   body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg-main);color:var(--text-main);font-size:15px;line-height:1.7;overflow-x:hidden;width:100%;max-width:100vw}
   
   /* 導覽列 */
-  :root{--radius-sm:8px;--radius-card:14px;--radius-panel:20px}
+  :root{--radius-sm:8px;--radius-card:14px;--radius-panel:20px;--surface-info:#eff6ff;--surface-attention:#fff7ed;--surface-success:#f0fdf4}
   .nav{background:linear-gradient(100deg,#eff6ff 0%,#f8fafc 48%,#f0fdf4 100%);border-top:4px solid var(--primary);border-bottom:1px solid #94a3b8;display:flex;align-items:center;padding:0 1.5rem;position:sticky;top:0;z-index:900;box-shadow:0 4px 10px -2px rgba(0,0,0,0.08)}
   .nav-title{font-size:16.5px;font-weight:900;color:var(--primary);padding:1.1rem 0;margin-right:1.5rem;white-space:nowrap;display:flex;align-items:center;gap:8px;letter-spacing:0.5px}
+  .brand-mark{width:31px;height:31px;border-radius:var(--radius-sm);display:inline-grid;place-items:center;background:linear-gradient(135deg,#2563eb,#0f766e);color:#fff;font-size:13px;font-weight:900;letter-spacing:0;box-shadow:0 5px 12px rgba(37,99,235,.24)}
   .nav-tabs{display:flex;gap:6px;flex:1;overflow-x:auto}
   .nav-tab{padding:.9rem 1.15rem;font-size:14.5px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:3px solid transparent;white-space:nowrap;font-weight:800;transition:all .2s}
   .nav-tab.active{color:var(--primary);border-bottom-color:var(--primary);background:#f8fafc}
@@ -198,6 +199,12 @@
   .settings-section{margin-bottom:1rem;border:1px solid #cbd5e1;border-radius:14px;background:#f8fafc}.settings-section>summary{cursor:pointer;padding:1rem 1.2rem;font-size:17px;font-weight:900;color:#0f172a}.settings-section[open]>summary{border-bottom:1px solid #cbd5e1;background:#eff6ff}.settings-section .card{margin:1rem}.settings-section.risk-section{border-color:#fdba74;background:#fff7ed}.settings-risk-note{margin:.75rem 0;padding:.75rem 1rem;border-radius:9px;background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;font-size:13px;font-weight:800;line-height:1.6}.results-summary-strip{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 1rem}.results-summary-strip span{border:1px solid #bfdbfe;background:#eff6ff;color:#1e3a8a;border-radius:999px;padding:6px 10px;font-size:12.5px;font-weight:900}.swap-status-banner{display:none;margin-bottom:1.25rem;padding:1rem 1.15rem;border-radius:12px;font-size:14px;font-weight:900}.swap-status-banner.open{display:block;background:#f0fdf4;border:1px solid #86efac;color:#166534}.swap-status-banner.closed{display:block;background:#fef2f2;border:1px solid #fecaca;color:#991b1b}.stat.clickable{cursor:pointer}.stat.clickable:hover{transform:translateY(-2px);border-color:#60a5fa}.log-tl-item.high-risk .log-tl-dot{background:#dc2626;box-shadow:0 0 0 2px #fecaca}.log-tl-item.high-risk .log-tl-content{border-color:#fecaca;background:#fff7f7}.log-risk-label{color:#b91c1c;font-weight:900;margin-left:6px}button.btn.btn-sm[onclick*="showPage('dashboard')"]{min-width:112px}
   :where(button,input,select,textarea,[role="button"],summary):focus-visible{outline:3px solid #2563eb!important;outline-offset:3px;box-shadow:0 0 0 5px rgba(37,99,235,.16)!important}
   .card{border-radius:var(--radius-card)} .card-title{font-weight:900}.card p,.card small,.muted-note{font-weight:500}.card-attention{background:linear-gradient(135deg,#fff7ed,#fffbeb);border-color:#fdba74}.card-display{background:linear-gradient(135deg,#eff6ff,#f8fafc);border-color:transparent;box-shadow:none}.management-dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.management-item{padding:14px;border:1px solid #cbd5e1;border-radius:var(--radius-card);background:#fff}.management-item b{display:block;margin-top:6px;color:#0f172a}.management-item.warn{background:#fff7ed;border-color:#fdba74}.management-item.danger{background:#fff1f2;border-color:#fecdd3}.countdown{font-variant-numeric:tabular-nums}.review-list{display:grid;gap:10px}.review-row{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #cbd5e1;border-radius:var(--radius-sm);background:#f8fafc}.review-row input{width:20px;height:20px;margin-top:1px}.review-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.review-summary div{padding:12px;border-radius:var(--radius-sm);background:#eff6ff;border:1px solid #bfdbfe}.review-summary b{display:block;font-size:18px;color:#1d4ed8;margin-top:3px}.modal-card{max-width:680px}.csv-preview-table{max-height:300px;overflow:auto;border:1px solid #cbd5e1;border-radius:var(--radius-sm);margin-top:12px}.csv-preview-table table{margin:0}.freeze-banner{display:none;margin:0 0 1rem;padding:.8rem 1rem;border-radius:var(--radius-sm);background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a;font-weight:800}
+  button:focus,input:focus,select:focus,textarea:focus,[role="button"]:focus{outline:3px solid #2563eb;outline-offset:3px;box-shadow:0 0 0 5px rgba(37,99,235,.16)}
+  button,.btn,input,select,textarea,.badge,.yn-btn,.round-tab{border-radius:var(--radius-sm)}
+  .card,.settings-section,.management-item,.health-item,.data-card,.table-wrap,.modal-box,.csv-preview-table,.log-tl-content{border-radius:var(--radius-card)}
+  .fp-outer-card,.fp-inner-box,#login-overlay>div,.modal-overlay .modal-box{border-radius:var(--radius-panel)}
+  .card p,.card small,.muted-note,.data-card-sub,.data-card-label{font-weight:500}.review-summary div{background:var(--surface-info)}
+  #login-overlay{background-image:radial-gradient(circle at 15% 18%,rgba(96,165,250,.72),transparent 31%),radial-gradient(circle at 84% 76%,rgba(45,212,191,.48),transparent 30%),linear-gradient(135deg,#0f172a,#1e3a5f 52%,#0f766e);overflow:hidden}#login-overlay:before,#login-overlay:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.2);border-radius:50%;pointer-events:none}#login-overlay:before{width:420px;height:420px;left:-160px;bottom:-190px}#login-overlay:after{width:260px;height:260px;right:-70px;top:-90px}#login-overlay>div{position:relative;z-index:1;box-shadow:0 28px 70px -18px rgba(2,6,23,.55)!important}
   .my-result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:1rem}.my-result-slot{padding:.8rem;border:1px solid #bfdbfe;border-radius:10px;background:#fff;font-size:13px;font-weight:800;color:#475569}.my-result-slot b{display:block;color:#1d4ed8;font-size:16px;margin-top:4px}.seat-highlight{outline:4px solid #f59e0b;outline-offset:3px;animation:seatPulse 1s ease-in-out 3}@keyframes seatPulse{50%{transform:scale(1.08);box-shadow:0 0 0 7px rgba(245,158,11,.22)}}
 
   /* 💡 預覽手冊相關樣式 */
@@ -499,7 +506,7 @@
 
 <!-- ===== 主導覽列 ===== -->
 <nav class="nav">
-  <div class="nav-title" id="nav-brand-title">🛵 稙村秀社區機車位電腦抽籤系統 <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:6px;margin-left:8px;border:1px solid #cbd5e1">v2.76</span></div>
+  <div class="nav-title" id="nav-brand-title"><span class="brand-mark" aria-hidden="true">稙</span><span>稙村秀社區機車位電腦抽籤系統</span> <span class="app-version-label" style="font-size:12px;color:var(--text-main);background:#e2e8f0;padding:2px 8px;border-radius:var(--radius-sm);margin-left:8px;border:1px solid #cbd5e1">v2.76</span></div>
   <div class="nav-tabs" id="nav-tabs-desktop">
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
@@ -535,11 +542,11 @@
   <div style="background:rgba(255,255,255,0.98);backdrop-filter:blur(10px);border-radius:24px;padding:3rem 2.5rem;width:90%;max-width:440px;box-shadow:0 25px 60px -12px rgba(0,0,0,0.4)">
     <h3 id="login-modal-title" style="margin-bottom:1.75rem;text-align:center;font-size:24px;color:var(--text-main);font-weight:900;letter-spacing:-0.5px">稙村秀社區機車位電腦抽籤系統</h3>
     <div style="margin-bottom:1.25rem">
-      <label>管理帳號</label>
+      <label for="login-user">管理帳號</label>
       <input type="text" id="login-user" placeholder="請輸入管理帳號">
     </div>
     <div style="margin-bottom:1.5rem">
-      <label>密碼</label>
+      <label for="login-pw">密碼</label>
       <input type="password" id="login-pw" placeholder="請輸入密碼">
     </div>
     <div id="login-error" style="color:#dc2626;font-size:14px;font-weight:900;margin-bottom:1.25rem;display:none;text-align:center">帳號或密碼錯誤！</div>
@@ -855,7 +862,6 @@
         <option value="skip">未參加 (未登記/未參加該項目)</option>
       </select>
     </div>
-    <div id="results-log-filter-hint" style="margin:-.25rem 0 1rem;font-size:13px;color:var(--text-muted);font-weight:800;letter-spacing:.2px">今天　｜　抽籤相關　｜　同步失敗　｜　危險操作　｜　全部</div>
     <div class="mobile-view-toggle" id="result-view-toggle">
       <button class="btn btn-sm active" id="result-view-table-btn" onclick="setResultViewMode('table')">☷ 表格檢視</button>
       <button class="btn btn-sm" id="result-view-card-btn" onclick="setResultViewMode('card')">▣ 卡片檢視</button>
@@ -1131,16 +1137,16 @@
     <div class="card-title">系統標題、快速導覽與版次設定</div>
     <div class="form-row">
       <div>
-        <label>系統標題名稱</label>
+        <label for="set-app-title">系統標題名稱</label>
         <input type="text" id="set-app-title" value="稙村秀社區機車位電腦抽籤系統">
       </div>
       <div>
-        <label>系統版次標題</label>
+        <label for="set-app-version">系統版次標題</label>
         <input type="text" id="set-app-version" value="v2.76">
       </div>
     </div>
     <div style="margin-top:16px">
-      <label>「系統快速導覽」說明文字 (支援換行)</label>
+      <label for="set-quick-guide">「系統快速導覽」說明文字 (支援換行)</label>
       <textarea id="set-quick-guide" rows="8"></textarea>
     </div>
     <div class="btn-row mt-2" style="margin-top:1.5rem">
@@ -1152,27 +1158,27 @@
     <div class="card-title">車位與 B1/B2 區間配置設定</div>
     <div class="form-row">
       <div>
-        <label>總車位數</label>
+        <label for="set-total-seats">總車位數</label>
         <input type="number" id="set-total-seats" value="122">
       </div>
       <div>
-        <label>B1 區車位上限 (例: 61)</label>
+        <label for="set-b1-limit">B1 區車位上限 (例: 61)</label>
         <input type="number" id="set-b1-limit" value="61">
       </div>
     </div>
     <div class="form-row mt-2" style="margin-top:16px">
       <div>
-        <label>A/B棟優先區間（起）</label>
+        <label for="set-ab-start">A/B棟優先區間（起）</label>
         <input type="number" id="set-ab-start" value="19">
       </div>
       <div>
-        <label>A/B棟優先區間（迄）</label>
+        <label for="set-ab-end">A/B棟優先區間（迄）</label>
         <input type="number" id="set-ab-end" value="56">
       </div>
     </div>
     <div class="form-row mt-2" style="margin-top:16px">
       <div style="grid-column: span 2;">
-        <label>作廢車位（逗號分隔，例：5,10,15）</label>
+        <label for="set-void-seats">作廢車位（逗號分隔，例：5,10,15）</label>
         <input type="text" id="set-void-seats" placeholder="5,10,15">
       </div>
     </div>
@@ -1287,7 +1293,7 @@
     <input type="hidden" id="edit-id">
     <div class="form-row">
       <div>
-        <label>棟別</label>
+        <label for="res-build">棟別</label>
         <select id="res-build">
           <option value="A1">A1</option><option value="A2">A2</option>
           <option value="B1">B1</option><option value="B2">B2</option>
@@ -1297,17 +1303,17 @@
         </select>
       </div>
       <div>
-        <label>門牌號碼</label>
+        <label for="res-room">門牌號碼</label>
         <input type="text" id="res-room" placeholder="例: 3F-1">
       </div>
     </div>
     <div class="form-row">
       <div>
-        <label>住戶姓名</label>
+        <label for="res-name">住戶姓名</label>
         <input type="text" id="res-name" placeholder="請輸入姓名">
       </div>
       <div>
-        <label>身分</label>
+        <label for="res-reserve">身分</label>
         <select id="res-reserve" onchange="handleResidentReserveChange()">
           <option value="N">一般戶</option>
           <option value="Y">保留戶</option>
@@ -1315,17 +1321,17 @@
       </div>
     </div>
     <div class="form-row-3">
-      <div><label>參加第一輪</label><select id="res-r1"><option value="Y">參加</option><option value="N">不參加</option></select></div>
-      <div><label>參加第二輪</label><select id="res-r2"><option value="Y">參加</option><option value="N">不參加</option></select></div>
-      <div><label>參加第三輪</label><select id="res-r3"><option value="Y">參加</option><option value="N">不參加</option></select></div>
+      <div><label for="res-r1">參加第一輪</label><select id="res-r1"><option value="Y">參加</option><option value="N">不參加</option></select></div>
+      <div><label for="res-r2">參加第二輪</label><select id="res-r2"><option value="Y">參加</option><option value="N">不參加</option></select></div>
+      <div><label for="res-r3">參加第三輪</label><select id="res-r3"><option value="Y">參加</option><option value="N">不參加</option></select></div>
     </div>
     <div style="max-width:340px;margin-bottom:16px">
-      <label>候補登記（三輪後遞補剩餘車位）</label><select id="res-waitlist"><option value="N">未登記</option><option value="Y">已登記</option></select>
+      <label for="res-waitlist">候補登記（三輪後遞補剩餘車位）</label><select id="res-waitlist"><option value="N">未登記</option><option value="Y">已登記</option></select>
     </div>
     <div class="form-row-3">
-      <div><label>指定車位1</label><input type="number" id="res-pref1" min="1" placeholder="選填 (保留戶必填)"></div>
-      <div><label>指定車位2</label><input type="number" id="res-pref2" min="1" placeholder="選填"></div>
-      <div><label>指定車位3</label><input type="number" id="res-pref3" min="1" placeholder="選填"></div>
+      <div><label for="res-pref1">指定車位1</label><input type="number" id="res-pref1" min="1" placeholder="選填 (保留戶必填)"></div>
+      <div><label for="res-pref2">指定車位2</label><input type="number" id="res-pref2" min="1" placeholder="選填"></div>
+      <div><label for="res-pref3">指定車位3</label><input type="number" id="res-pref3" min="1" placeholder="選填"></div>
     </div>
     <div id="pref-range-hint" style="font-size:12.5px;color:var(--text-muted);font-weight:700;margin-top:-10px;margin-bottom:8px"></div>
     <div id="new-general-pref-hint" style="font-size:12.5px;color:#c2410c;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:9px 12px;margin-bottom:16px;font-weight:700;display:none">
@@ -2692,7 +2698,7 @@
     
     const brandEl = document.getElementById("nav-brand-title");
     if (brandEl) {
-      brandEl.innerHTML = `🛵 ${escapeHtml(titleText)} <span class="app-version-label">${escapeHtml(systemSettings.appVersion || '')}</span>`;
+      brandEl.innerHTML = `<span class="brand-mark" aria-hidden="true">稙</span><span>${escapeHtml(titleText)}</span><span class="app-version-label">${escapeHtml(systemSettings.appVersion || '')}</span>`;
     }
   }
 
