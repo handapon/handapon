@@ -1413,12 +1413,8 @@
       <p class="muted-note">請核對本次由系統即時計算的摘要。資料異動、逾時或切換輪次後，需重新覆核。</p>
       <div id="lottery-review-summary" class="review-summary"></div>
       <div id="lottery-review-impact" class="settings-risk-note" style="display:none"></div>
-      <div class="review-list">
-        <label class="review-row"><input type="checkbox" data-review-check><span>我已核對本輪參與資格、可分配車位與作廢車位。</span></label>
-        <label class="review-row"><input type="checkbox" data-review-check><span>我已確認執行輪次與可能清除的後續抽籤結果。</span></label>
-        <label class="review-row"><input type="checkbox" data-review-check><span>我了解抽籤開始後，住戶資格、車牌、指定車位與作廢位將暫時凍結。</span></label>
-      </div>
-      <div class="btn-row mt-2" style="justify-content:flex-end;margin-top:1.25rem"><button class="btn" onclick="closeLotteryReviewModal()">返回</button><button class="btn btn-primary" id="lottery-review-confirm-btn" onclick="confirmLotteryReview()" disabled>確認並執行</button></div>
+      <div class="review-row" style="margin-top:14px"><span>確認後，系統將再次驗證資料版本，並在抽籤期間暫時凍結基礎資料。</span></div>
+      <div class="btn-row mt-2" style="justify-content:flex-end;margin-top:1.25rem"><button class="btn" onclick="closeLotteryReviewModal()">返回</button><button class="btn btn-primary" id="lottery-review-confirm-btn" onclick="confirmLotteryReview()">我已核對，進入下一步</button></div>
     </div>
   </div>
   <div class="modal-overlay" id="csv-preview-modal" role="dialog" aria-modal="true" aria-labelledby="csv-preview-title">
@@ -4952,13 +4948,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const d=getLotteryReviewData(); const host=document.getElementById('lottery-review-summary'), impact=document.getElementById('lottery-review-impact');
     host.innerHTML=`<div>執行輪次<b>${escapeHtml(d.round)}</b></div><div>合格住戶<b>${d.eligible} 位</b></div><div>可分配車位<b>${d.free} 席</b></div><div>作廢車位<b>${d.voids} 席</b></div><div>預計未中籤<b>${d.unwon} 位</b></div><div>資料版本<b>${escapeHtml(d.version)}</b></div><div style="grid-column:1/-1">最後更新<b>${escapeHtml(d.modified)}</b></div>`;
     impact.style.display='block'; impact.textContent=d.clearing.length?`影響範圍：執行後將清除 ${d.clearing.join('、')} 的既有結果。`:'影響範圍：本次不會清除後續輪次或候補結果。';
-    document.querySelectorAll('#lottery-review-modal [data-review-check]').forEach(x=>{x.checked=false;x.onchange=()=>{document.getElementById('lottery-review-confirm-btn').disabled=![...document.querySelectorAll('#lottery-review-modal [data-review-check]')].every(v=>v.checked);};});
-    document.getElementById('lottery-review-confirm-btn').disabled=true; document.getElementById('lottery-review-modal').classList.add('show');
+    document.getElementById('lottery-review-confirm-btn').disabled=false; document.getElementById('lottery-review-modal').classList.add('show');
   }
   function closeLotteryReviewModal(){document.getElementById('lottery-review-modal').classList.remove('show');}
   function confirmLotteryReview(){
-    const d=getLotteryReviewData(); const all=[...document.querySelectorAll('#lottery-review-modal [data-review-check]')].every(v=>v.checked);
-    if(!all){showAppToast('請完成全部覆核項目。','warn');return;}
+    const d=getLotteryReviewData();
     lotteryReviewApproval={round:d.round,version:d.version,approvedAt:Date.now()}; closeLotteryReviewModal(); runLottery();
   }
 
@@ -5092,7 +5086,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           updateLotteryCards(); renderDashboard(); renderResidents(); renderResults(); renderSwap(); initFloorplanSeats();
           closeLotteryModal();
           lotteryRunning = false; setLotteryDataFreeze(false);
-          runBtn.disabled = false; runBtn.innerHTML = "🎲 開始執行電腦抽籤";
+          runBtn.disabled = false; runBtn.innerHTML = "開啟執行前覆核";
           alert(`【抽籤執行失敗】${e && e.message ? e.message : e}\n\n本次結果已回滾，未寫入不完整資料。`);
           return;
         }
@@ -5102,7 +5096,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         document.getElementById("lam-close-btn").style.display = "inline-block";
         
         runBtn.disabled = false;
-        runBtn.innerHTML = "🎲 開始執行電腦抽籤";
+        runBtn.innerHTML = "開啟執行前覆核";
 
         updateLotteryCards();
         renderDashboard();
@@ -5116,7 +5110,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
             systemLogs = runSnapshot.systemLogs;
             updateLotteryCards(); renderDashboard(); renderResidents(); renderResults(); renderSwap(); initFloorplanSeats();
             closeLotteryModal();
-            runBtn.disabled = false; runBtn.innerHTML = "🎲 開始執行電腦抽籤";
+            runBtn.disabled = false; runBtn.innerHTML = "開啟執行前覆核";
             alert(`⚠️ ${currentRound} 抽籤雲端同步失敗，系統已自動回滾本次抽籤結果。\n\n請確認網路／雲端狀態後重新執行本輪，避免本機與雲端出現不同版本。`);
           }
         }).catch(e => {
@@ -5129,7 +5123,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           alert(`【抽籤同步失敗】${e && e.message ? e.message : e}\n\n本次結果已回滾，請重新取得雲端資料後再執行。`);
         }).finally(() => {
           lotteryRunning = false; setLotteryDataFreeze(false);
-          runBtn.disabled = false; runBtn.innerHTML = "🎲 開始執行電腦抽籤";
+          runBtn.disabled = false; runBtn.innerHTML = "開啟執行前覆核";
         });
       }
     }, 200);
