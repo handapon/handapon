@@ -4887,6 +4887,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       return;
     }
 
+    // 先標記本機異動時間，避免自動同步在寫入前拉回舊雲端資料而覆蓋第一次棄權。
+    lastManualMutationAt = Date.now();
     // 💡 先重新確認畫面上的車位仍是該住戶目前實際持有的車位，
     // 避免另一個分頁/裝置已先完成互換或棄權，而本頁仍拿舊資料執行刪除。
     const latestSeat = getUserSeat(roundName, r.id);
@@ -5047,6 +5049,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function openLotteryReviewModal(){
     if(!currentUser || !['admin','director'].includes(currentUser.role)){showAppToast('正式抽籤僅限管理人員執行。','warn');return;}
     if(isLotteryDataFrozen()){showAppToast('抽籤處理中，請勿重複送出。','warn');return;}
+    if(getValidWinnerCount(currentRound)>0){showAppToast(`${currentRound} 已完成抽籤。若需重新抽籤，請先使用「清除本輪結果」或「重置全部輪次結果」。`,'warn',5000);return;}
     const d=getLotteryReviewData(); const host=document.getElementById('lottery-review-summary'), impact=document.getElementById('lottery-review-impact');
     host.innerHTML=`<div>執行輪次<b>${escapeHtml(d.round)}</b></div><div>合格住戶<b>${d.eligible} 位</b></div><div>可分配車位<b>${d.free} 席</b></div><div>作廢車位<b>${d.voids} 席</b></div><div>預計未中籤<b>${d.unwon} 位</b></div><div>資料版本<b>${escapeHtml(d.version)}</b></div><div style="grid-column:1/-1">最後更新<b>${escapeHtml(d.modified)}</b></div>`;
     impact.style.display='block'; impact.textContent=d.clearing.length?`影響範圍：執行後將清除 ${d.clearing.join('、')} 的既有結果。`:'影響範圍：本次不會清除後續輪次或候補結果。';
@@ -5239,6 +5242,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
       throw new Error("權限不足：正式抽籤分配僅限系統管理員與社區主任執行。");
     }
+    if (getValidWinnerCount(round) > 0) {
+      throw new Error(`${round} 已完成抽籤；請先清除本輪結果或重置全部輪次結果後，才能重新抽籤。`);
+    }
     if (!['第一輪','第二輪','第三輪'].includes(round)) {
       throw new Error(`不支援的正式抽籤輪次：${round}`);
     }
@@ -5246,7 +5252,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const expectedRoundKey = round === '第一輪' ? 'r1' : (round === '第二輪' ? 'r2' : 'r3');
     const badEligible = eligible.filter(r => {
       const plateVal = String(r[expectedPlateKey] || '').trim();
-      return !plateVal || r[expectedRoundKey] !== 'Y' || !isValidTaiwanPlate(plateVal, true);
+      return !plateVal || r[expectedRoundKey] !== 'Y';
     });
     if (badEligible.length > 0) throw new Error(`${round} 存在車牌空白或格式不合格的參加者資料，已中止分配。`);
 
@@ -6478,7 +6484,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     document.body.classList.add('printing-slip');
     window.print();
     // 💡 列印完成（或取消）後自動移除這個class，恢復正常畫面顯示，避免殘留影響其他頁面
-    const resetSlipMode = () => { document.body.classList.remove('printing-slip'); window.scrollTo({top:priorScrollY,behavior:'auto'}); window.removeEventListener('afterprint', resetSlipMode); };
+    const resetSlipMode = () => { document.body.classList.remove('printing-slip'); slip.style.display='none'; slip.innerHTML=''; window.scrollTo({top:priorScrollY,behavior:'auto'}); window.removeEventListener('afterprint', resetSlipMode); };
     window.addEventListener('afterprint', resetSlipMode);
   }
 
