@@ -1492,8 +1492,8 @@
   //   （早期綠牌僅用單一英文字母標示監理所轄區，字母碼數比其他車種更少，先前規則要求至少2碼英文會誤擋這類舊牌。）
   // - 身心障礙機車：新式（3碼英文+4碼數字）與舊式過渡期特殊位數配比，皆已被下方一般規則的
   //   英文1~3碼、數字2~5碼範圍涵蓋，不需要另外設計專屬格式。
-  // - 軍用／公務車號牌：常見4碼純數字（如「軍1234」的數字部分），已將純數字規則下限
-  //   從5碼放寬到4碼涵蓋；車牌前綴的中文字樣（如「軍」）不在監理機關核發的英數號碼本身編碼內，
+  // - 1978~1983 年機車牌：前2碼分區代號 + 後5碼流水號，例如 02-12327；輸入時移除連字號後為7位純數字。
+  // - 軍用／公務車號牌：常見4碼純數字（如「軍1234」的數字部分），純數字規則同時涵蓋4~7碼；車牌前綴的中文字樣（如「軍」）不在監理機關核發的英數號碼本身編碼內，
   //   系統車牌欄位僅登記監理編碼部分，不需要額外容納中文字元。
   const TAIWAN_PLATE_PATTERNS = [
     /^[A-HJ-NP-Z]{3}\d{3,4}$/,    // 新式普通機車 / 汽車等：ABC123、ABC1234
@@ -1504,7 +1504,14 @@
     /^\d{2}[A-HJ-NP-Z]{2}$/,      // 舊式大型重型機車：2碼數字+2碼英文，如 12-AA
     /^\d{3,4}[A-HJ-NP-Z]$/,       // 舊式50cc輕型機車：3或4碼數字+1碼英文，如 123-T、1234-T
     /^\d{2}[A-HJ-NP-Z]{4}$/,      // 更早期 DD-LLLL
-    /^\d{4,6}$/                    // 純數字車牌：4~6碼（4碼涵蓋軍/公務車等純數字車牌，5~6碼為極早期民用車牌）
+    /^\d{4,7}$/                    // 純數字車牌：4~7碼（7碼涵蓋1978~1983年機車的2碼分區＋5碼流水號）
+  ];
+  // 民國93年以前部分既有號牌仍可能使用 I、O；僅在明確的舊式排列中接受，避免放寬現行一車一號格式。
+  const LEGACY_LETTER_PLATE_PATTERNS = [
+    /^[A-Z]{2}\d{2,4}$/,           // AA-12、AO-0123 等舊式英文在前
+    /^[A-Z]\d{3,4}$/,              // T-123、I-1234 等舊式輕型機車
+    /^\d{2,4}[A-Z]{1,3}$/,         // 12-AA、1234-OA 等舊式數字在前
+    /^(?=[A-Z0-9]{6}$)(?=.*[A-Z])[A-Z0-9]{3}\d{3}$/ // 原型式普通重型機車 3-3 混合碼，如 M79-022
   ];
 
   function normalizePlateValue(value) {
@@ -1519,7 +1526,7 @@
     const normalized = normalizePlateValue(value);
     if (!normalized) return false;
     if (allowPending && normalized === normalizePlateValue(PENDING_PLATE_LABEL)) return true;
-    return MICRO_E2W_PLATE_PATTERN.test(normalized) || TAIWAN_PLATE_PATTERNS.some(re => re.test(normalized));
+    return MICRO_E2W_PLATE_PATTERN.test(normalized) || TAIWAN_PLATE_PATTERNS.some(re => re.test(normalized)) || LEGACY_LETTER_PLATE_PATTERNS.some(re => re.test(normalized));
   }
 
   function formatTaiwanPlate(value) {
@@ -1528,8 +1535,13 @@
     if (!isValidTaiwanPlate(normalized, false)) return '';
     // 微型電動二輪車官方格式為 2 英文 + 5 數字，牌面不含連字號。
     if (MICRO_E2W_PLATE_PATTERN.test(normalized)) return normalized;
-    // 其他格式自動找出英數交界，補上系統慣用的顯示連字號。
+    // 一般規則先處理，以免 AB1234 被誤切成 AB1-234。
     const m = normalized.match(/^([A-HJ-NP-Z]+)(\d+)$/) || normalized.match(/^(\d+)([A-HJ-NP-Z]+)$/);
+    if (m && TAIWAN_PLATE_PATTERNS.some(re => re.test(normalized))) return m[1] + '-' + m[2];
+    // 原型式 3-3 混合碼：前三碼可含英文與數字，後三碼為流水號；不可誤排為 M-79022。
+    const legacyMixed = normalized.match(/^([A-Z0-9]{3})(\d{3})$/);
+    if (legacyMixed && /[A-Z]/.test(legacyMixed[1]) && /\d/.test(legacyMixed[1])) return legacyMixed[1] + '-' + legacyMixed[2];
+    // 其餘已驗證之舊式英文/數字兩段格式。
     if (m) return m[1] + '-' + m[2];
     return normalized;
   }
@@ -1539,7 +1551,7 @@
     if (!raw) return '請輸入車牌號碼。';
     if (normalizePlateValue(raw) === normalizePlateValue(PENDING_PLATE_LABEL)) return '';
     if (!isValidTaiwanPlate(raw, false)) {
-      return '車牌格式錯誤：請輸入台灣汽機車或微型電動二輪車車牌（例如 ABC-1234、AB-123、AB12345；微型電動二輪車為 2 英文＋5 數字，牌面不含連字號；中間的「-」可省略）；英文字母 I、O 不使用。若尚無車牌，請勾選「新戶待補」。';
+      return '車牌格式錯誤：請輸入台灣汽機車或微型電動二輪車車牌（例如 ABC-1234、AA-12、T-123、02-12327、AB12345；微型電動二輪車為 2 英文＋5 數字，牌面不含連字號；中間的「-」可省略）。I、O 僅容許既有舊式號牌。若尚無車牌，請勾選「新戶待補」。';
     }
     return '';
   }
