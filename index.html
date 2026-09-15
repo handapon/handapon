@@ -21,6 +21,9 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html{overflow-x:hidden;width:100%}
   body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg-main);color:var(--text-main);font-size:15px;line-height:1.7;overflow-x:hidden;width:100%;max-width:100vw}
+  .reading-preferences{position:fixed;right:1rem;top:44px;z-index:1200;background:#fff;border:1px solid #94a3b8;border-radius:var(--radius-card);padding:.8rem;box-shadow:0 12px 28px rgba(15,23,42,.2);font-size:13px}.reading-preferences strong{display:block;margin:.3rem 0}.reading-preferences button,.password-control button{border:1px solid #94a3b8;background:#fff;border-radius:var(--radius-sm);padding:.3rem .55rem;margin:2px;cursor:pointer;font:inherit}.password-control{display:flex;gap:6px}.password-control input{flex:1}.login-entry-heading{font-size:14px;font-weight:900;color:#1e40af;border-left:4px solid var(--primary);padding-left:8px;margin:0 0 .7rem}.login-entry-heading.resident{margin-top:.25rem;color:#0f766e;border-left-color:#0f766e}.login-inline-note{font-size:12px;color:#b45309;font-weight:700;margin:.3rem 0}.login-announcement{font-size:12px;line-height:1.55;color:#475569;background:#f8fafc;border-left:3px solid #60a5fa;padding:.45rem .65rem;margin-top:.8rem}
+  body[data-font-size="small"]{font-size:13px}body[data-font-size="large"]{font-size:17px}body[data-font-size="xlarge"]{font-size:19px}body[data-font-size="large"] .btn,body[data-font-size="xlarge"] .btn,body[data-font-size="large"] input,body[data-font-size="xlarge"] input,body[data-font-size="large"] select,body[data-font-size="xlarge"] select{font-size:1em}body[data-font-size="large"] .card,body[data-font-size="xlarge"] .card{font-size:1.05em}body[data-density="compact"] .card{padding:1.2rem;margin-bottom:1rem}body[data-density="compact"] td,body[data-density="compact"] th{padding:.7rem .75rem}body[data-density="comfortable"] .card{padding:2.4rem;margin-bottom:2.1rem}body[data-density="comfortable"] td,body[data-density="comfortable"] th{padding:1.55rem 1rem}body[data-density="comfortable"] .btn{padding:.85rem 1.55rem}.filter-toolbar{position:sticky;top:64px;z-index:30}
+  .guest-mode #results-card-list .data-card,.guest-mode #my-parking-result-card{font-size:1.12em}.guest-mode #results-card-list .data-card{padding:1.35rem}
   
   /* 導覽列 */
   :root{--radius-sm:8px;--radius-card:14px;--radius-panel:20px;--surface-info:#eff6ff;--surface-attention:#fff7ed;--surface-success:#f0fdf4}
@@ -516,8 +519,13 @@
 <div class="user-bar" id="user-bar" style="display:none">
   <span id="user-bar-name" style="font-weight:800;">👤 未登入</span>
   <span id="sync-status-indicator" class="sync-offline">雲端連線中...</span>
+  <button class="user-bar-btn" onclick="toggleReadingPreferences()">閱讀設定</button>
   <button class="user-bar-btn" onclick="refreshCloudData()">🔄 重新整理</button>
   <button class="user-bar-btn" onclick="doLogout()">登出系統</button>
+</div>
+<div id="reading-preferences" class="reading-preferences" hidden aria-label="閱讀設定">
+  <strong>字體大小</strong><div><button onclick="setFontSize('small')">小</button><button onclick="setFontSize('standard')">標準</button><button onclick="setFontSize('large')">大</button><button onclick="setFontSize('xlarge')">特大</button></div>
+  <strong>閱讀密度</strong><div><button onclick="setReadingDensity('compact')">緊湊</button><button onclick="setReadingDensity('standard')">標準</button><button onclick="setReadingDensity('comfortable')">舒適</button></div>
 </div>
 
 <!-- ===== 主導覽列 ===== -->
@@ -567,22 +575,23 @@
 <div id="login-overlay" class="bg-fade" style="display:none;position:fixed;inset:0;background-color:#0f172a;z-index:9999;align-items:center;justify-content:center;background-size:cover;background-position:center;background-repeat:no-repeat;">
   <div style="background:rgba(255,255,255,0.98);backdrop-filter:blur(10px);border-radius:24px;padding:3rem 2.5rem;width:90%;max-width:440px;box-shadow:0 25px 60px -12px rgba(0,0,0,0.4)">
     <h3 id="login-modal-title" style="margin-bottom:1.75rem;text-align:center;font-size:24px;color:var(--text-main);font-weight:900;letter-spacing:-0.5px">稙村秀社區機車位電腦抽籤系統</h3>
-    <div style="margin-bottom:1.25rem">
+    <div class="login-entry-heading">管理員登入</div><div style="margin-bottom:1.25rem">
       <label for="login-user">管理帳號</label>
       <input type="text" id="login-user" placeholder="請輸入管理帳號">
     </div>
-    <div style="margin-bottom:1.5rem">
+    <div style="margin-bottom:.4rem">
       <label for="login-pw">密碼</label>
-      <input type="password" id="login-pw" placeholder="請輸入密碼">
+      <div class="password-control"><input type="password" id="login-pw" placeholder="請輸入密碼" onkeyup="checkLoginCapsLock(event)"><button type="button" onclick="toggleLoginPassword()">顯示</button></div>
     </div>
-    <div id="login-error" style="color:#dc2626;font-size:14px;font-weight:900;margin-bottom:1.25rem;display:none;text-align:center">帳號或密碼錯誤！</div>
+    <div id="login-capslock" class="login-inline-note" style="display:none">Caps Lock 已開啟</div>
+    <div id="login-error" style="color:#dc2626;font-size:14px;font-weight:900;margin-bottom:1.25rem;display:none;text-align:left">帳號或密碼不正確。</div>
     <div id="login-progress" role="status" style="display:none;color:#2563eb;font-size:13px;font-weight:800;margin:-.65rem 0 1rem;text-align:center"></div>
     <button class="btn btn-primary" style="width:100%;padding:1.2rem;margin-bottom:1rem;font-size:17px;font-weight:900;box-shadow:0 4px 10px rgba(37,99,235,0.3)" onclick="doLogin()">登入系統</button>
-    <div style="text-align:center;position:relative;margin:1.75rem 0;">
+    <div class="login-entry-heading resident">住戶查詢</div><div style="text-align:center;position:relative;margin:1rem 0;">
        <hr style="border:none;border-top:2px solid #cbd5e1;">
        <span style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#fff;padding:0 14px;font-size:14px;color:#475569;font-weight:800">或</span>
     </div>
-    <button class="guest-entry-btn btn" style="width:100%;padding:1.25rem;color:var(--primary);border-color:#60a5fa;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);font-size:17px;font-weight:900;box-shadow:0 8px 18px rgba(37,99,235,.18);" onclick="guestLogin()">🏠 進入社區住戶查詢入口</button><div class="guest-entry-note">（社區芳鄰請由此處登入）</div>
+    <button class="guest-entry-btn btn" style="width:100%;padding:1.25rem;color:var(--primary);border-color:#60a5fa;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);font-size:17px;font-weight:900;box-shadow:0 8px 18px rgba(37,99,235,.18);" onclick="guestLogin()">進入住戶查詢</button><div class="guest-entry-note">不需帳號密碼，可查詢結果、平面圖與公告。</div><div id="login-health-note" class="login-inline-note">系統健康：連線檢查中</div><div class="login-announcement">系統訊息：請依社區公告辦理登記截止日與抽籤日期。</div>
   </div>
 </div>
 
@@ -2886,6 +2895,15 @@
     }
   }
 
+  function toggleReadingPreferences(){const el=document.getElementById('reading-preferences');el.hidden=!el.hidden;}
+  function setFontSize(size){document.body.dataset.fontSize=size;localStorage.setItem('lottery_font_size',size);}
+  function setReadingDensity(density){document.body.dataset.density=density;localStorage.setItem('lottery_reading_density',density);}
+  function initReadingPreferences(){setFontSize(localStorage.getItem('lottery_font_size')||'standard');setReadingDensity(localStorage.getItem('lottery_reading_density')||'standard');}
+  function toggleLoginPassword(){const input=document.getElementById('login-pw');const btn=input.nextElementSibling;input.type=input.type==='password'?'text':'password';btn.textContent=input.type==='password'?'顯示':'隱藏';}
+  function checkLoginCapsLock(e){const note=document.getElementById('login-capslock');if(note)note.style.display=e.getModifierState&&e.getModifierState('CapsLock')?'block':'none';}
+  function showFirstLoginGuide(){const key='lottery_first_guide_'+currentUser.role;if(localStorage.getItem(key))return;localStorage.setItem(key,'1');showAppToast(currentUser.role==='guest'?'住戶導覽：可從「我的結果、平面圖、公告」快速查詢。':'管理員導覽：可依序進入住戶名單、執行抽籤、結果與系統設定。','info');}
+  function updateLoginHealth(ok){const el=document.getElementById('login-health-note');if(!el)return;el.textContent=ok?'系統健康：Firebase 連線正常':'系統健康：同步異常；可查詢，暫勿執行抽籤。';el.style.color=ok?'#15803d':'#b91c1c';}
+
   async function doLogin() {
     const u = document.getElementById("login-user").value.trim();
     const p = document.getElementById("login-pw").value.trim();
@@ -2904,6 +2922,7 @@
     if(progressEl) progressEl.innerText='正在載入最新資料…';
     if(loginBtn) loginBtn.innerHTML = '<span class="spinner-icon"></span>正在載入最新資料…';
     const pullOk=await cloudSyncPull();
+    updateLoginHealth(pullOk);
     if(!pullOk){
       if(progressEl) progressEl.innerText='無法載入最新資料，請檢查網路後再試。';
       if(loginBtn){loginBtn.disabled=false;loginBtn.innerText='登入系統';}
@@ -2928,6 +2947,7 @@
       if(bgCarouselTimer) clearInterval(bgCarouselTimer);
       initUserBar();
       initApp();
+      showFirstLoginGuide();
       startAutoSync();
       addLog("登入", `${currentUser.name} (${currentUser.role === 'admin' ? '管理員' : '社區主任'}) 登入系統`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
 
@@ -2948,7 +2968,8 @@
 
     // 💡 同上修正：訪客進入前也強制重新拉取雲端最新資料，確保一定看到最新的抽籤結果，
     // 而不是這個分頁很早以前打開時的舊快照。
-    await cloudSyncPull();
+    const guestPullOk=await cloudSyncPull();
+    updateLoginHealth(guestPullOk);
 
     currentUser = { name: "社區住戶", role: "guest", username: "guest", password: "" };
     // 住戶模式不需要管理端帳號、稽核紀錄與操作紀錄；即使這些資料曾在同步回應中存在，也不再長期留在前端記憶體。
@@ -2958,6 +2979,8 @@
     if(bgCarouselTimer) clearInterval(bgCarouselTimer);
     initUserBar();
     initApp();
+    setResultViewMode('card');
+    showFirstLoginGuide();
     startAutoSync();
     addLog("登入", "以社區住戶身分進入系統");
 
@@ -3045,6 +3068,7 @@
   }
 
   function initApp() {
+    initReadingPreferences();
     wireAccessibleLabels();
     repairKnownResidentNameArtifacts();
     setupSettingsAccordion();
