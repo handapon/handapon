@@ -151,7 +151,7 @@
   .lrs-stat-val{font-size:26px;font-weight:900;color:var(--text-main);display:block}
   .lrs-stat-lbl{font-size:13px;color:var(--text-muted);font-weight:800;margin-top:4px}
 
-  .btn-run-lottery{background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#fff;border:none;font-size:19px;padding:1.25rem 3.5rem;border-radius:14px;cursor:pointer;font-weight:900;box-shadow:0 8px 20px rgba(37,99,235,0.4);transition:all .2s ease;letter-spacing:1px}
+  .btn-run-lottery{background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#fff;border:none;font-size:21px;padding:1.35rem 3.8rem;border-radius:14px;cursor:pointer;font-weight:900;box-shadow:0 8px 20px rgba(37,99,235,0.32);transition:all .2s ease;letter-spacing:.6px}.btn-run-lottery:disabled{cursor:not-allowed;opacity:.55;box-shadow:none;filter:saturate(.7)}
   .btn-run-lottery:hover:not(:disabled){transform:translateY(-3px) scale(1.02);box-shadow:0 12px 28px rgba(37,99,235,0.5)}
   .btn-run-lottery:disabled{background:#94a3b8;box-shadow:none;transform:none;cursor:wait;opacity:0.8}
 
@@ -202,6 +202,8 @@
   .seat-number{display:inline-block;font-size:1.35em;line-height:1;font-weight:900;color:var(--primary);font-variant-numeric:tabular-nums}.empty{display:grid;place-items:center;gap:8px;min-height:150px;background:linear-gradient(135deg,#f8fafc,#fff);border:1px dashed #cbd5e1;border-radius:var(--radius-card)}.empty strong{font-size:16px;color:#334155}.empty small{font-size:13px;font-weight:500;color:var(--text-muted);text-align:center;line-height:1.6}
   .floorplan-toolkit{position:sticky;top:8px;z-index:15;padding:10px;background:rgba(255,255,255,.96);border:1px solid #cbd5e1;border-radius:var(--radius-card);box-shadow:0 8px 18px rgba(15,23,42,.08);backdrop-filter:blur(10px);margin-bottom:14px}.floorplan-toolkit .floorplan-toolbar{margin-bottom:8px}.floorplan-context{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #e2e8f0}.floorplan-context .legend-box{justify-content:flex-start;margin:0;font-size:12.5px}.floorplan-context-status{font-size:13px;font-weight:800;color:#475569}.log-detail{margin-top:10px;padding:9px 11px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:var(--radius-sm);font-size:12.5px;color:#475569;line-height:1.65}.log-detail b{color:#334155}
   #mobile-bottom-nav{display:none}@media(max-width:700px){body{padding-bottom:72px}#mobile-bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;bottom:0;left:0;right:0;z-index:1000;background:#fff;border-top:1px solid #cbd5e1;box-shadow:0 -6px 18px rgba(15,23,42,.1);padding:6px}.mobile-bottom-btn{border:0;background:transparent;color:#475569;font-size:11px;font-weight:800;padding:8px 3px;min-height:54px}.mobile-bottom-btn:active{background:#eff6ff;color:#1d4ed8;border-radius:8px}.guest-only-nav{display:none}.guest-mode .guest-only-nav{display:block}.guest-mode .admin-only-nav{display:none}}
+  .filter-toolbar{align-items:end}.filter-toolbar .btn{height:44px;white-space:nowrap}#residents-table th:nth-child(1),#residents-table td:nth-child(1),#residents-table th:nth-child(18),#residents-table td:nth-child(18){background:#f8fafc}#residents-table th:nth-child(n+2):nth-child(-n+5),#residents-table td:nth-child(n+2):nth-child(-n+5){background:#f8fafc}#residents-table th:nth-child(n+6):nth-child(-n+10),#residents-table td:nth-child(n+6):nth-child(-n+10){background:#eff6ff}#residents-table th:nth-child(n+11):nth-child(-n+13),#residents-table td:nth-child(n+11):nth-child(-n+13){background:#f5f3ff}#residents-table th:nth-child(n+14):nth-child(-n+17),#residents-table td:nth-child(n+14):nth-child(-n+17){background:#f0fdf4}.lottery-action-note{margin-top:12px;font-size:13px;font-weight:700;line-height:1.6;color:#64748b}.lottery-action-note.blocked{color:#b45309;background:#fff7ed;border:1px solid #fdba74;border-radius:var(--radius-sm);padding:9px 11px}
+  .form-section-title{margin:18px 0 9px;padding:8px 11px;background:#eff6ff;border-left:3px solid #2563eb;border-radius:var(--radius-sm);font-size:14px;font-weight:900;color:#1e3a8a}
   :where(button,input,select,textarea,[role="button"],summary):focus-visible{outline:3px solid #2563eb!important;outline-offset:3px;box-shadow:0 0 0 5px rgba(37,99,235,.16)!important}
   .card{border-radius:var(--radius-card)} .card-title{font-weight:900}.card p,.card small,.muted-note{font-weight:500}.card-attention{background:linear-gradient(135deg,#fff7ed,#fffbeb);border-color:#fdba74}.card-display{background:linear-gradient(135deg,#eff6ff,#f8fafc);border-color:transparent;box-shadow:none}.management-dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.management-item{padding:14px;border:1px solid #cbd5e1;border-radius:var(--radius-card);background:#fff}.management-item b{display:block;margin-top:6px;color:#0f172a}.management-item.warn{background:#fff7ed;border-color:#fdba74}.management-item.danger{background:#fff1f2;border-color:#fecdd3}.countdown{font-variant-numeric:tabular-nums}.review-list{display:grid;gap:10px}.review-row{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #cbd5e1;border-radius:var(--radius-sm);background:#f8fafc}.review-row input{width:20px;height:20px;margin-top:1px}.review-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.review-summary div{padding:12px;border-radius:var(--radius-sm);background:#eff6ff;border:1px solid #bfdbfe}.review-summary b{display:block;font-size:18px;color:#1d4ed8;margin-top:3px}.modal-card{max-width:680px}.csv-preview-table{max-height:300px;overflow:auto;border:1px solid #cbd5e1;border-radius:var(--radius-sm);margin-top:12px}.csv-preview-table table{margin:0}.freeze-banner{display:none;margin:0 0 1rem;padding:.8rem 1rem;border-radius:var(--radius-sm);background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a;font-weight:800}
   button:focus,input:focus,select:focus,textarea:focus,[role="button"]:focus{outline:3px solid #2563eb;outline-offset:3px;box-shadow:0 0 0 5px rgba(37,99,235,.16)}
@@ -666,7 +668,7 @@
   <div class="flex-between" style="margin-bottom:1.5rem">
     <div style="display:flex;align-items:center;gap:12px">
       <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
-      <div class="section-title" style="margin:0">住戶名單管理</div>
+      <div><div class="section-title" style="margin:0">住戶名單管理</div><div id="resident-page-meta" class="muted-note">載入中…</div></div>
     </div>
     <div class="btn-row" style="margin:0">
       <button class="btn btn-primary" id="btn-add-resident" onclick="openAddModal()">新增住戶</button>
@@ -682,7 +684,7 @@
   <div id="plate-warning-banner" style="display:none;margin-bottom:1.5rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:1.25rem;color:#9f1239"></div>
   
   <div class="card card-pad-lg">
-    <div class="form-row-3" style="margin-bottom:1.25rem">
+    <div class="form-row-3 filter-toolbar" style="margin-bottom:1.25rem">
       <input type="text" id="search-resident" placeholder="搜尋姓名 / 門牌 / 棟別" oninput="renderResidents()">
       <select id="filter-build" onchange="renderResidents()">
         <option value="">全部分棟</option>
@@ -692,11 +694,17 @@
         <option value="D1">D1</option><option value="D2">D2</option>
         <option value="E1">E1</option><option value="E2">E2</option>
       </select>
+      <button class="btn btn-sm" onclick="toggleResidentAdvancedFilters()">更多篩選</button>
+    </div>
+    <div id="resident-advanced-filters" class="form-row-3 filter-toolbar" style="display:none;margin:-.5rem 0 1.25rem;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:var(--radius-sm)">
       <select id="filter-reserve" onchange="renderResidents()">
         <option value="">全部身分</option>
         <option value="N">一般戶</option>
         <option value="Y">保留戶</option>
       </select>
+      <select id="filter-plate-verify" onchange="renderResidents()"><option value="">全部車牌核對狀態</option><option value="prior">去年資料待確認</option><option value="pending">待住戶補件／核對</option><option value="current">本年度已核對</option></select>
+      <button class="btn btn-sm btn-primary" onclick="batchConfirmPlateVerification()">將篩選結果標記為已核對</button>
+      <button class="btn btn-sm" onclick="clearResidentFilters()">清除篩選</button>
     </div>
     <div style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.25rem;font-weight:800" id="resident-count"></div>
     <div id="waitlist-col-hint" style="font-size:13px;color:#c2410c;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;margin-bottom:1.25rem;font-weight:700">
@@ -729,6 +737,7 @@
             <th class="text-center">車牌2</th>
             <th class="text-center">車牌3</th>
             <th class="text-center">車牌<br>(候補)</th>
+            <th class="text-center col-group-start">操作</th>
           </tr>
         </thead>
         <tbody id="resident-tbody"></tbody>
@@ -811,7 +820,7 @@
         <h3 id="lottery-round-label" style="font-size:28px;color:var(--primary);margin-bottom:10px;font-weight:900">第一輪抽籤控制台</h3>
         <p id="lottery-round-status" style="font-size:15px;color:var(--text-muted);font-weight:700">系統將依據住戶勾選參加狀況與 A/B 棟優先區間設定進行嚴密且公平的亂數配置。</p>
       </div>
-      <button class="btn-run-lottery" id="main-run-btn" onclick="openLotteryReviewModal()">開啟執行前覆核</button>
+      <div><button class="btn-run-lottery" id="main-run-btn" onclick="openLotteryReviewModal()">開啟執行前覆核</button><div id="lottery-action-note" class="lottery-action-note">先檢查抽籤條件，再覆核資料；確認後才會進入最終執行步驟。</div></div>
     </div>
     <div class="lottery-preflight" id="lottery-preflight" aria-live="polite">
       <b>抽籤前確認</b><div class="lottery-preflight-grid" id="lottery-preflight-grid"></div><div class="lottery-preflight-risk" id="lottery-preflight-risk"></div>
@@ -1323,6 +1332,7 @@
   <div class="modal">
     <div class="modal-title" id="modal-title">新增住戶</div>
     <input type="hidden" id="edit-id">
+    <div class="form-section-title">1. 基本資料</div>
     <div class="form-row">
       <div>
         <label for="res-build">棟別</label>
@@ -1353,6 +1363,7 @@
       </div>
     </div>
     <div class="form-row-3">
+      <div class="form-section-title full" style="grid-column:1/-1">2. 抽籤資格</div>
       <div><label for="res-r1">參加第一輪</label><select id="res-r1"><option value="Y">參加</option><option value="N">不參加</option></select></div>
       <div><label for="res-r2">參加第二輪</label><select id="res-r2"><option value="Y">參加</option><option value="N">不參加</option></select></div>
       <div><label for="res-r3">參加第三輪</label><select id="res-r3"><option value="Y">參加</option><option value="N">不參加</option></select></div>
@@ -1360,6 +1371,7 @@
     <div style="max-width:340px;margin-bottom:16px">
       <label for="res-waitlist">候補登記（三輪後遞補剩餘車位）</label><select id="res-waitlist"><option value="N">未登記</option><option value="Y">已登記</option></select>
     </div>
+    <div class="form-section-title">3. 指定車位</div>
     <div class="form-row-3">
       <div><label for="res-pref1">指定車位1</label><input type="number" id="res-pref1" min="1" placeholder="選填 (保留戶必填)"></div>
       <div><label for="res-pref2">指定車位2</label><input type="number" id="res-pref2" min="1" placeholder="選填"></div>
@@ -1369,6 +1381,7 @@
     <div id="new-general-pref-hint" style="font-size:12.5px;color:#c2410c;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:9px 12px;margin-bottom:16px;font-weight:700;display:none">
       ⚠️ 新增「一般戶」若填寫指定車位，儲存時會再次確認，請確認此指定是否已有管理單位核准。
     </div>
+    <div class="form-section-title">4. 車牌與年度核對</div>
     <div class="form-row-3">
       <div><label>車牌 1 (自動勾第1輪)</label><input type="text" id="res-plate1" placeholder="例: ABC-1234" maxlength="8" inputmode="latin" oninput="onPlateInput(this)">
         <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:700;font-size:12.5px;color:#c2410c;cursor:pointer">
@@ -3400,12 +3413,14 @@
     const search = document.getElementById("search-resident").value.toLowerCase();
     const bFilter = document.getElementById("filter-build").value;
     const rFilter = document.getElementById("filter-reserve").value;
+    const plateVerifyFilter = document.getElementById("filter-plate-verify").value;
 
     const filtered = residents.filter(r => {
       const matchSearch = r.name.toLowerCase().includes(search) || r.room.toLowerCase().includes(search) || r.build.toLowerCase().includes(search);
       const matchBuild = bFilter === "" || r.build === bFilter;
       const matchReserve = rFilter === "" || r.reserve === rFilter;
-      return matchSearch && matchBuild && matchReserve;
+      const matchVerify = plateVerifyFilter === "" || (r.plateVerification || 'current') === plateVerifyFilter;
+      return matchSearch && matchBuild && matchReserve && matchVerify;
     });
 
     // 💡 依目前排序狀態排序（點擊表格欄位標題即可切換排序欄位/方向）
@@ -3419,6 +3434,8 @@
     }
 
     document.getElementById("resident-count").innerText = `目前顯示 ${filtered.length} 筆住戶資料 (系統共建檔 ${residents.length} 筆)`;
+    const verifyCount=residents.filter(r=>r.plateVerification==='prior'||r.plateVerification==='pending').length;
+    const pageMeta=document.getElementById('resident-page-meta'); if(pageMeta) pageMeta.textContent=`共 ${residents.length} 戶｜${verifyCount} 筆車牌待核對`;
 
     // 💡 更新表格標題上的排序方向圖示（▲/▼/⇅），對應目前的排序狀態
     ['id','build','room','name','reserve','pref1'].forEach(col => {
@@ -3457,10 +3474,14 @@
         <td class="text-center">${renderPlateCell(r.plate2)}</td>
         <td class="text-center">${renderPlateCell(r.plate3)}</td>
         <td class="text-center">${renderPlateCell(r.plateWaitlist)}</td>
+        <td class="text-center col-group-start"><div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-sm" onclick="printNotificationSlip(${r.id})" title="列印個人中籤通知單">列印</button><button class="btn btn-sm btn-danger" onclick="deleteResident(${r.id})">刪除</button></div></td>
       </tr>`;
     });
     document.getElementById("resident-tbody").innerHTML = html;
   }
+  function toggleResidentAdvancedFilters(){const box=document.getElementById('resident-advanced-filters');if(box)box.style.display=box.style.display==='none'?'grid':'none';}
+  function clearResidentFilters(){document.getElementById('search-resident').value='';document.getElementById('filter-build').value='';document.getElementById('filter-reserve').value='';document.getElementById('filter-plate-verify').value='';renderResidents();}
+  async function batchConfirmPlateVerification(){if(!confirm('確定將目前篩選結果的車牌核對狀態標記為「本年度已核對」嗎？'))return;const q=document.getElementById('search-resident').value.toLowerCase(),b=document.getElementById('filter-build').value,r=document.getElementById('filter-reserve').value,v=document.getElementById('filter-plate-verify').value;const targets=residents.filter(x=>(!q||x.name.toLowerCase().includes(q)||x.room.toLowerCase().includes(q)||x.build.toLowerCase().includes(q))&&(!b||x.build===b)&&(!r||x.reserve===r)&&(!v||(x.plateVerification||'current')===v));if(!targets.length){showAppToast('目前篩選條件沒有住戶。','info');return;}targets.forEach(x=>{x.plateVerification='current';x.plateVerificationNote='批次核對完成';});renderResidents();const ok=await addLog('住戶',`批次標記 ${targets.length} 戶車牌為本年度已核對`,{sync:false})&&await cloudSyncPush();if(!ok)showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}
 
   function setResidentViewMode(mode){
     residentViewMode = mode === 'card' ? 'card' : 'table';
@@ -4393,6 +4414,15 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     });
     updateWaitlistPanel();
     updateLotteryPreflight();
+    const runBtn=document.getElementById('main-run-btn'), note=document.getElementById('lottery-action-note');
+    if(runBtn&&note){
+      const n=currentRound==='第一輪'?1:currentRound==='第二輪'?2:3;
+      const invalid=residents.some(r=>r[`r${n}`]==='Y'&&!isValidTaiwanPlate(r[`plate${n}`],true));
+      const blockedReason=!cloudSyncReady?'尚未完成雲端資料同步，請稍候或重新整理資料。':invalid?'有參加住戶的車牌資料異常，請先回到住戶名單修正。':lotteryRunning?'抽籤正在執行與寫入，請勿關閉頁面。':'';
+      runBtn.disabled=!!blockedReason;
+      note.textContent=blockedReason||'先檢查抽籤條件，再覆核資料；確認後才會進入最終執行步驟。';
+      note.classList.toggle('blocked',!!blockedReason);
+    }
   }
 
   // 💡 計算目前「剩餘可分配車位」：總車位扣除作廢車位、再扣除已經在任何輪次（含候補）分配出去的車位
@@ -7585,6 +7615,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     systemLogs.unshift({
       id: `log_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
       time: new Date().toLocaleString(),
+      isoTime: new Date().toISOString(),
       type,
       msg,
       user: currentUser.name,
@@ -7604,6 +7635,12 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     return await cloudSyncPush();
   }
 
+  function formatLogTime(log){
+    const d=new Date(log.isoTime||log.time); if(Number.isNaN(d.getTime())) return String(log.time||'—');
+    const diff=Math.max(0,Date.now()-d.getTime()); const mins=Math.floor(diff/60000);
+    const relative=mins<1?'剛剛':mins<60?`${mins} 分鐘前`:mins<1440?`${Math.floor(mins/60)} 小時前`:`${Math.floor(mins/1440)} 天前`;
+    return `${relative} · ${d.toLocaleString('zh-TW',{hour12:false})}`;
+  }
   function renderLogs() {
     if (currentUser.role !== 'admin') return;
     const search = document.getElementById("log-search").value.toLowerCase();
@@ -7640,7 +7677,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           <div class="log-tl-line"></div>
           <div class="log-tl-dot"></div>
           <div class="log-tl-content">
-            <div style="font-size:13.5px;color:var(--text-muted);margin-bottom:6px;font-weight:800"><label style="display:inline-flex;align-items:center;gap:5px;margin-right:8px;font-size:12px"><input type="checkbox" value="${escapeHtml(logId)}" ${selectedLogIds.includes(logId)?'checked':''} onchange="toggleLogCompare(this.value,this.checked)">比較</label>${escapeHtml(l.time)} <span class="badge status-action" style="margin:0 8px">${escapeHtml(l.type)}</span> 執行者：${escapeHtml(l.user)}</div>
+            <div style="font-size:13.5px;color:var(--text-muted);margin-bottom:6px;font-weight:800"><label style="display:inline-flex;align-items:center;gap:5px;margin-right:8px;font-size:12px"><input type="checkbox" value="${escapeHtml(logId)}" ${selectedLogIds.includes(logId)?'checked':''} onchange="toggleLogCompare(this.value,this.checked)">比較</label>${escapeHtml(formatLogTime(l))} <span class="badge status-action" style="margin:0 8px">${escapeHtml(l.type)}</span> 執行者：${escapeHtml(l.user)}</div>
             <div style="font-size:15px;color:var(--text-main);font-weight:700;line-height:1.6">${highRisk?'<span class="log-risk-label">高風險操作</span> ':''}${escapeHtml(l.msg)}</div>
             <div class="log-detail">${detail}</div>
           </div>
@@ -7660,7 +7697,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if(selected.length!==2){box.style.display='block';box.className='settings-risk-note';box.textContent='請先勾選兩筆操作紀錄再進行比較。';return;}
     const [a,b]=selected.slice().reverse();
     if(!a.context||!b.context){box.style.display='block';box.className='settings-risk-note';box.textContent='選取的舊版紀錄缺少資料快照，無法比較數量差異；請改選含快照的新紀錄。';return;}
-    const diff=(key,label)=>`${label}：${Number(a.context[key]||0)} → ${Number(b.context[key]||0)}（${Number(b.context[key]||0)-Number(a.context[key]||0)>=0?'+':''}${Number(b.context[key]||0)-Number(a.context[key]||0)}）`;
+    const diff=(key,label)=>{const delta=Number(b.context[key]||0)-Number(a.context[key]||0);return `${label}：${Number(a.context[key]||0)} → ${Number(b.context[key]||0)}（<b style="color:${delta>0?'#15803d':delta<0?'#b91c1c':'#475569'}">${delta>=0?'+':''}${delta}</b>）`;};
     box.style.display='block';box.className='card card-display';box.innerHTML=`<div class="card-title">操作紀錄比較</div><div style="font-size:13px;line-height:1.75"><b>較早：</b>${escapeHtml(a.time)}｜${escapeHtml(a.msg)}<br><b>較晚：</b>${escapeHtml(b.time)}｜${escapeHtml(b.msg)}<br>${diff('residents','住戶')}｜${diff('assigned','已分配')}｜${diff('voidSeats','作廢位')}<br><b>資料版本：</b>${escapeHtml(a.context.dataVersion||'—')} → ${escapeHtml(b.context.dataVersion||'—')}</div>`;
   }
 
