@@ -947,7 +947,7 @@
   </div>
 
   <div class="card">
-    <div class="form-row" style="margin-bottom:1.5rem">
+    <div class="form-row filter-toolbar" style="margin-bottom:1.5rem">
       <input type="text" id="log-search" placeholder="搜尋紀錄內容..." oninput="renderLogs()">
       <select id="log-filter-type" onchange="renderLogs()">
         <option value="">全部類型</option>
@@ -1330,6 +1330,12 @@
     <div id="archive-list-box" style="display:none;margin-top:1.5rem"></div>
     <div id="versioned-backup-list-box" style="display:none;margin-top:1.5rem"></div>
   </div>
+  <div class="card" style="background:#eff6ff;border-color:#93c5fd">
+    <div class="card-title">年度作業中心</div>
+    <p class="muted-note">新年度初始化會先封存目前年度，保留住戶基本資料，將車牌改標為「去年資料待確認」，並清空抽籤、候補與互換結果。</p>
+    <div id="annual-workflow-status" class="lottery-preflight" style="margin-top:12px"></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="openNewYearWizard()">開啟新年度建立精靈</button></div>
+  </div>
 
   <details class="advanced-ops" id="settings-danger-ops">
     <summary>⚠️ 系統資料管理與高風險操作</summary>
@@ -1489,6 +1495,7 @@
       <div class="btn-row mt-2" style="justify-content:flex-end;margin-top:1.25rem"><button class="btn" onclick="closeLotteryReviewModal()">返回</button><button class="btn btn-primary" id="lottery-review-confirm-btn" onclick="confirmLotteryReview()">我已核對，進入下一步</button></div>
     </div>
   </div>
+  <div class="modal-overlay" id="new-year-modal" role="dialog" aria-modal="true" aria-labelledby="new-year-title"><div class="modal-box modal-card"><div class="modal-title" id="new-year-title">新年度建立精靈</div><p class="muted-note">系統將先建立版本備份與年度封存，接著保留住戶基本資料、將車牌核對狀態設為「去年資料待確認」，並清空抽籤、候補、棄權與互換資料。</p><label for="new-year-label">新年度名稱</label><input id="new-year-label" type="text" maxlength="40" placeholder="例：115 年度機車位抽籤"><div class="settings-risk-note" style="margin-top:14px">影響範圍：不會刪除住戶基本資料或歷年封存；會清空目前年度的抽籤、候補、棄權與互換結果。</div><div class="modal-footer"><button class="btn" onclick="document.getElementById('new-year-modal').classList.remove('show')">取消</button><button class="btn btn-primary" onclick="initializeNewYear()">確認建立新年度</button></div></div></div>
   <div class="modal-overlay" id="csv-preview-modal" role="dialog" aria-modal="true" aria-labelledby="csv-preview-title">
     <div class="modal-box modal-card">
       <div class="modal-title" id="csv-preview-title">CSV 匯入預覽與差異報告</div>
@@ -3085,6 +3092,7 @@
     initFloorplanSeats();
     updateLotteryCards();
     checkPlateWarnings();
+    renderBackupHealth();
   }
 
   function setupSettingsAccordion(){
@@ -3116,6 +3124,7 @@
       if (overlay) overlay.style.display = 'flex';
       return;
     }
+    if(currentUser.role==='guest' && ['residents','lottery','swap','logs','settings'].includes(pageId)){showAppToast('住戶模式僅提供結果、查詢、平面圖與公告。','info');pageId='dashboard';}
     if (pageId === 'residents' && currentUser.role === 'guest') {
       alert("權限不足！一般住戶無法檢視住戶名單。");
       return;
@@ -4336,6 +4345,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function cancelCsvImport(){pendingCsvImport=null;document.getElementById('csv-preview-modal').classList.remove('show');}
   async function confirmCsvImport(){
     if(!pendingCsvImport)return; const accepted=pendingCsvImport.plan.filter(x=>x.status==='新增'||x.status==='更新'); if(!accepted.length){cancelCsvImport();showAppToast('沒有可正式匯入的資料。','info');return;}
+    if(!await autoBackupBeforeMajorOperation('CSV 匯入')) return;
     const snapshot=JSON.parse(JSON.stringify(residents)); let nextId=Math.max(0,...residents.map(r=>Number(r.id)||0)); accepted.forEach(x=>{const key=`${x.c.build}|${x.c.room}`.toLowerCase(), found=residents.find(r=>`${r.build}|${r.room}`.toLowerCase()===key); if(found)Object.assign(found,x.c);else residents.push({...x.c,id:++nextId,assign1:'',assign2:'',assign3:'',assignWaitlist:'',waitlistExclusionOverride:false});});
     if(!validateCurrentAllocationState({alert:false}).ok){residents=snapshot;showAppToast('匯入會造成資料衝突，已取消。','warn');return;}
     const counts=pendingCsvImport.count;cancelCsvImport();renderResidents();renderDashboard();updateLotteryCards();checkPlateWarnings(); const ok=await addLog('住戶',`CSV 匯入：新增 ${counts.add}、更新 ${counts.update}、略過 ${counts.skip}、衝突 ${counts.conflict}`,{sync:false})&&await cloudSyncPush(); if(!ok){residents=snapshot;renderResidents();renderDashboard();showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');return;} showAppToast(`CSV 已匯入：新增 ${counts.add}、更新 ${counts.update} 筆。`,'success');
@@ -4389,7 +4399,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const free=getFormalLotteryStartFreeSeats(currentRound).length, voids=(systemSettings.voidSeats||[]).length;
     const later=currentRound==='第一輪'?['第二輪','第三輪','候補']:currentRound==='第二輪'?['第三輪','候補']:['候補'];
     const clearing=later.filter(r=>getValidWinnerCount(r)>0||(r==='候補'&&residents.some(x=>Number(x.assignWaitlist)>0)));
-    grid.innerHTML=`<div>目前輪次<b>${currentRound}</b></div><div>合格住戶<b>${participants} 位</b></div><div>可用／作廢位<b>${free}／${voids}</b></div><div>本輪既有結果<b>${getValidWinnerCount(currentRound)} 席</b></div>`;
+    const preconditions=cloudSyncReady&&free>0&&getValidWinnerCount(currentRound)===0;
+    const last=[...(systemLogs||[])].find(x=>x.type==='抽籤'&&String(x.msg||'').includes(currentRound)&&/完成|執行/.test(String(x.msg||'')));
+    grid.innerHTML=`<div>目前輪次<b>${currentRound}</b></div><div>合格住戶<b>${participants} 位</b></div><div>可用／作廢位<b>${free}／${voids}</b></div><div>前置條件<b>${preconditions?'已完成':'待處理'}</b></div><div>本輪既有結果<b>${getValidWinnerCount(currentRound)} 席</b></div><div>最後執行<b>${last?formatLogTime(last):'尚未執行'}</b></div>`;
     box.classList.toggle('risk',clearing.length>0); box.classList.toggle('safe',clearing.length===0);
     risk.textContent=clearing.length?`⚠️ 重抽將清除：${clearing.join('、')} 的既有結果。`:'🟢 不會清除既有後續結果。';
   }
@@ -5074,15 +5086,16 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const voids=(systemSettings.voidSeats||[]).length;
     const later=currentRound==='第一輪'?['第二輪','第三輪','候補']:currentRound==='第二輪'?['第三輪','候補']:['候補'];
     const clearing=later.filter(r=>getValidWinnerCount(r)>0||(r==='候補'&&residents.some(x=>Number(x.assignWaitlist)>0)));
-    return {round:currentRound,eligible,free,voids,unwon:Math.max(0,eligible-free),clearing,version:getLotteryDataVersion(),modified:lastKnownServerModified?new Date(lastKnownServerModified).toLocaleString('zh-TW'):'尚未同步'};
+    const plateIssues=residents.filter(r=>r[`r${n}`]==='Y'&&!isValidTaiwanPlate(String(r[`plate${n}`]||''),true)).length;
+    return {round:currentRound,eligible,free,voids,unwon:Math.max(0,eligible-free),clearing,plateIssues,version:getLotteryDataVersion(),modified:lastKnownServerModified?new Date(lastKnownServerModified).toLocaleString('zh-TW'):'尚未同步'};
   }
   function openLotteryReviewModal(){
     if(!currentUser || !['admin','director'].includes(currentUser.role)){showAppToast('正式抽籤僅限管理人員執行。','warn');return;}
     if(isLotteryDataFrozen()){showAppToast('抽籤處理中，請勿重複送出。','warn');return;}
     if(getValidWinnerCount(currentRound)>0){showAppToast(`${currentRound} 已完成抽籤。若需重新抽籤，請先使用「清除本輪結果」或「重置全部輪次結果」。`,'warn',5000);return;}
     const d=getLotteryReviewData(); const host=document.getElementById('lottery-review-summary'), impact=document.getElementById('lottery-review-impact');
-    host.innerHTML=`<div>執行輪次<b>${escapeHtml(d.round)}</b></div><div>合格住戶<b>${d.eligible} 位</b></div><div>可分配車位<b>${d.free} 席</b></div><div>作廢車位<b>${d.voids} 席</b></div><div>預計未中籤<b>${d.unwon} 位</b></div><div>資料版本<b>${escapeHtml(d.version)}</b></div><div style="grid-column:1/-1">最後更新<b>${escapeHtml(d.modified)}</b></div>`;
-    impact.style.display='block'; impact.textContent=d.clearing.length?`影響範圍：執行後將清除 ${d.clearing.join('、')} 的既有結果。`:'影響範圍：本次不會清除後續輪次或候補結果。';
+    host.innerHTML=`<div>執行輪次<b>${escapeHtml(d.round)}</b></div><div>合格住戶<b>${d.eligible} 位</b></div><div>可分配車位<b>${d.free} 席</b></div><div>作廢車位<b>${d.voids} 席</b></div><div>預計未中籤<b>${d.unwon} 位</b></div><div>車牌待處理<b>${d.plateIssues} 位</b></div><div>資料版本<b>${escapeHtml(d.version)}</b></div><div style="grid-column:1/-1">最後更新<b>${escapeHtml(d.modified)}</b></div>`;
+    impact.style.display='block'; impact.textContent=`${d.plateIssues?`注意：本輪有 ${d.plateIssues} 位參加資料的車牌格式待管理員於住戶名單核對；為保護個資，此處不顯示姓名或門牌。`:''}${d.plateIssues&&d.clearing.length?'　':''}${d.clearing.length?`影響範圍：執行後將清除 ${d.clearing.join('、')} 的既有結果。`:'影響範圍：本次不會清除後續輪次或候補結果。'}`;
     document.getElementById('lottery-review-confirm-btn').disabled=false; document.getElementById('lottery-review-modal').classList.add('show');
   }
   function closeLotteryReviewModal(){document.getElementById('lottery-review-modal').classList.remove('show');}
@@ -5176,6 +5189,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       alert("抽籤正在執行中，請勿重複點擊。");
       return;
     }
+    if(!await autoBackupBeforeMajorOperation(`執行${currentRound}抽籤`)) return;
     lotteryRunning = true;
     setLotteryDataFreeze(true,currentRound);
 
@@ -5572,6 +5586,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     }
 
     if(confirm(msg)) {
+      if(!await autoBackupBeforeMajorOperation(`清除${currentRound}結果`)) return;
       const clearSnapshot = {
         lotteryResults: JSON.parse(JSON.stringify(lotteryResults)),
         assigns: new Map(residents.map(r => [Number(r.id), {assign1:r.assign1, assign2:r.assign2, assign3:r.assign3, assignWaitlist:r.assignWaitlist, waitlistExclusionOverride:!!r.waitlistExclusionOverride}])),
@@ -5632,6 +5647,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       return;
     }
     if (!confirm("警告：確定要重置全部輪次的抽籤結果（含車位互換紀錄）嗎？")) return;
+    if(!await autoBackupBeforeMajorOperation('重置全部輪次結果')) return;
     const snapshot = {
       lotteryResults: JSON.parse(JSON.stringify(lotteryResults)),
       swapLogs: JSON.parse(JSON.stringify(swapLogs || [])),
@@ -5919,11 +5935,12 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if (!currentUser || currentUser.role === 'guest') { alert('權限不足！一般住戶僅提供查詢。'); return; } preparePrintHeader(); window.print(); }
   function printAnnouncement(){
     if(!currentUser || currentUser.role==='guest'){alert('權限不足！一般住戶僅提供查詢。');return;}
-    const rounds=currentResultRound==='全部輪次'?['第一輪','第二輪','第三輪','候補']:[currentResultRound];
+    // 公告版是年度彙整公告，不受畫面目前停留的單輪分頁限制，避免誤只印出第一輪。
+    const rounds=['第一輪','第二輪','第三輪','候補'];
     const rows=[];rounds.forEach(round=>residents.forEach(r=>{const seat=getUserSeat(round,r.id);if(seat)rows.push({round,seat,r});}));
     const title=systemSettings.appTitle||'社區機車位抽籤系統';
     const sheet=document.getElementById('announcement-sheet');
-    sheet.innerHTML=`<section style="padding:8mm"><h1 style="text-align:center;font-size:22pt;margin:0 0 6mm">${escapeHtml(title)}｜抽籤結果公告</h1><p style="text-align:center;margin:0 0 5mm">公告範圍：${escapeHtml(currentResultRound)}　公告時間：${new Date().toLocaleString('zh-TW')}</p><p style="text-align:center;margin:0 0 7mm">合格 ${rounds.reduce((n,r)=>n+(r==='候補'?residents.filter(x=>x.waitlist==='Y').length:residents.filter(x=>x['r'+({'第一輪':1,'第二輪':2,'第三輪':3}[r])]==='Y').length),0)} 位｜中籤 ${rows.length} 位｜作廢 ${(systemSettings.voidSeats||[]).length} 位</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>輪次</th><th>棟別</th><th>門牌</th><th>中籤住戶</th><th>車位</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${escapeHtml(x.round)}</td><td>${escapeHtml(x.r.build)}</td><td>${escapeHtml(x.r.room)}</td><td>${escapeHtml(maskName(x.r.name))}</td><td style="font-size:14pt;font-weight:900">${x.seat} 號</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:12mm">本公告範圍尚無中籤結果。</td></tr>'}</tbody></table><p style="margin-top:8mm;font-size:10pt">本公告為查閱用途；如有疑義，請洽社區管理委員會。公告版已隱藏車牌與管理操作資訊。</p></section>`;
+    sheet.innerHTML=`<section style="padding:8mm"><h1 style="text-align:center;font-size:22pt;margin:0 0 6mm">${escapeHtml(title)}｜抽籤結果公告</h1><p style="text-align:center;margin:0 0 5mm">公告範圍：第一輪、第二輪、第三輪及候補　公告時間：${new Date().toLocaleString('zh-TW')}</p><p style="text-align:center;margin:0 0 7mm">合格 ${rounds.reduce((n,r)=>n+(r==='候補'?residents.filter(x=>x.waitlist==='Y').length:residents.filter(x=>x['r'+({'第一輪':1,'第二輪':2,'第三輪':3}[r])]==='Y').length),0)} 位｜中籤 ${rows.length} 位｜作廢 ${(systemSettings.voidSeats||[]).length} 位</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>輪次</th><th>棟別</th><th>門牌</th><th>中籤住戶</th><th>車位</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${escapeHtml(x.round)}</td><td>${escapeHtml(x.r.build)}</td><td>${escapeHtml(x.r.room)}</td><td>${escapeHtml(maskName(x.r.name))}</td><td style="font-size:14pt;font-weight:900">${x.seat} 號</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:12mm">目前尚無中籤結果。</td></tr>'}</tbody></table><p style="margin-top:8mm;font-size:10pt">本公告為查閱用途；如有疑義，請洽社區管理委員會。公告版已隱藏車牌與管理操作資訊。</p></section>`;
     document.body.classList.add('printing-announcement');window.print();const reset=()=>{document.body.classList.remove('printing-announcement');window.removeEventListener('afterprint',reset);};window.addEventListener('afterprint',reset);addLog('設定',`列印抽籤結果公告版：${currentResultRound}`);
   }
   function renderSummary() { renderResults(); }
@@ -7126,13 +7143,22 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   // ============ 版本化備份與完整備份 ============
-  function makeBackupSnapshot(){return {backupType:'稙村秀社區機車位抽籤系統_版本化備份',id:`b_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,backupTime:new Date().toISOString(),createdBy:currentUser?.name||'',appVersion:systemSettings.appVersion,residents:JSON.parse(JSON.stringify(residents)),lotteryResults:JSON.parse(JSON.stringify(lotteryResults)),originalLotteryResults:JSON.parse(JSON.stringify(originalLotteryResults)),systemSettings:JSON.parse(JSON.stringify(splitSystemSettingsForSync(systemSettings))),swapLogs:JSON.parse(JSON.stringify(swapLogs)),forfeitRecords:JSON.parse(JSON.stringify(forfeitRecords)),systemLogs:JSON.parse(JSON.stringify(systemLogs))};}
+  function makeBackupSnapshot(reason='手動建立'){return {backupType:'稙村秀社區機車位抽籤系統_版本化備份',reason,id:`b_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,backupTime:new Date().toISOString(),createdBy:currentUser?.name||'',appVersion:systemSettings.appVersion,residents:JSON.parse(JSON.stringify(residents)),lotteryResults:JSON.parse(JSON.stringify(lotteryResults)),originalLotteryResults:JSON.parse(JSON.stringify(originalLotteryResults)),systemSettings:JSON.parse(JSON.stringify(splitSystemSettingsForSync(systemSettings))),swapLogs:JSON.parse(JSON.stringify(swapLogs)),forfeitRecords:JSON.parse(JSON.stringify(forfeitRecords)),systemLogs:JSON.parse(JSON.stringify(systemLogs))};}
+  async function autoBackupBeforeMajorOperation(reason){
+    if(!currentUser||!['admin','director'].includes(currentUser.role)) return false;
+    const snapshot=makeBackupSnapshot(`重大操作前：${reason}`); versionedBackups.unshift(snapshot);versionedBackups=versionedBackups.slice(0,6);
+    const ok=await cloudSyncPush(); if(!ok){versionedBackups=versionedBackups.filter(x=>x.id!==snapshot.id);showAppToast(`無法完成「${reason}」前的自動備份，已中止操作。`,'warn',5000);return false;}
+    return true;
+  }
   async function createVersionedBackup(){
     if(!currentUser||currentUser.role!=='admin'){showAppToast('版本化備份僅限系統管理員建立。','warn');return;}
     versionedBackups.unshift(makeBackupSnapshot()); versionedBackups=versionedBackups.slice(0,6); const ok=await addLog('備份',`建立版本化備份（保留 ${versionedBackups.length} 份）`,{sync:false})&&await cloudSyncPush(); if(!ok){versionedBackups.shift();showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');return;}renderVersionedBackupList();showAppToast('已建立雲端版本化備份。','success');
   }
   function backupDiffSummary(b){const currentWins=getValidWinnerCount('第一輪')+getValidWinnerCount('第二輪')+getValidWinnerCount('第三輪')+getValidWinnerCount('候補');const backupWins=Object.values(b.lotteryResults||{}).reduce((n,x)=>n+Object.keys(x||{}).length,0);return `住戶 ${residents.length-b.residents.length>=0?'+':''}${residents.length-b.residents.length}；分配 ${currentWins-backupWins>=0?'+':''}${currentWins-backupWins}`;}
-  function renderVersionedBackupList(){const box=document.getElementById('versioned-backup-list-box');if(!box)return;box.style.display='block';if(!versionedBackups.length){box.innerHTML='<div class="empty">尚無版本化備份。建立備份後可在此比較並選擇性還原。</div>';return;}box.innerHTML=`<div class="card-title">版本化備份（最近 ${versionedBackups.length} 份）</div>${versionedBackups.map(b=>`<div class="management-item" style="margin-top:10px"><b>${new Date(b.backupTime).toLocaleString('zh-TW')}</b><span class="muted-note">建立者：${escapeHtml(b.createdBy||'—')}｜${escapeHtml(backupDiffSummary(b))}</span><div class="btn-row" style="margin-top:9px"><button class="btn btn-sm" onclick="restoreVersionedBackup('${b.id}','residents')">僅還原住戶</button><button class="btn btn-sm" onclick="restoreVersionedBackup('${b.id}','results')">僅還原抽籤結果</button><button class="btn btn-sm btn-danger" onclick="restoreVersionedBackup('${b.id}','all')">完整還原</button></div></div>`).join('')}`;}
+  function renderVersionedBackupList(){const box=document.getElementById('versioned-backup-list-box');if(!box)return;box.style.display='block';if(!versionedBackups.length){box.innerHTML='<div class="empty">尚無版本化備份。建立備份後可在此比較並選擇性還原。</div>';return;}box.innerHTML=`<div class="card-title">版本化備份（最近 ${versionedBackups.length} 份）</div>${versionedBackups.map(b=>`<div class="management-item" style="margin-top:10px"><b>${new Date(b.backupTime).toLocaleString('zh-TW')}</b><span class="muted-note">${escapeHtml(b.reason||'手動建立')}｜建立者：${escapeHtml(b.createdBy||'—')}｜${escapeHtml(backupDiffSummary(b))}</span><div class="btn-row" style="margin-top:9px"><button class="btn btn-sm" onclick="restoreVersionedBackup('${b.id}','residents')">僅還原住戶</button><button class="btn btn-sm" onclick="restoreVersionedBackup('${b.id}','results')">僅還原抽籤結果</button><button class="btn btn-sm btn-danger" onclick="restoreVersionedBackup('${b.id}','all')">完整還原</button></div></div>`).join('')}`;}
+  function renderBackupHealth(){const box=document.getElementById('annual-workflow-status');if(!box)return;const latest=versionedBackups[0], age=latest?Math.floor((Date.now()-new Date(latest.backupTime).getTime())/86400000):null;box.innerHTML=`<div class="lottery-preflight-grid"><div>最近備份<b>${latest?new Date(latest.backupTime).toLocaleString('zh-TW'):'尚無'}</b></div><div>備份數量／保留<b>${versionedBackups.length}／6 份</b></div><div>同步狀態<b>${cloudSyncReady?'正常':'待確認'}</b></div><div>還原演練<b>尚未記錄</b></div></div><div class="lottery-preflight-risk">${!latest||age>7?'建議立即建立備份。':'備份狀態正常；重大操作前會自動建立版本備份。'}</div>`;}
+  function openNewYearWizard(){if(!currentUser||currentUser.role!=='admin'){showAppToast('僅系統管理員可建立新年度。','warn');return;}document.getElementById('new-year-label').value=`${new Date().getFullYear()+1} 年度機車位抽籤`;document.getElementById('new-year-modal').classList.add('show');}
+  async function initializeNewYear(){const label=document.getElementById('new-year-label').value.trim();if(!label){showAppToast('請輸入新年度名稱。','warn');return;}if(!confirm(`確定建立「${label}」？目前年度會先封存，之後清空抽籤相關結果。`))return;if(!await autoBackupBeforeMajorOperation(`建立新年度：${label}`))return;await loadArchivesFromCloud();archives.push({id:archives.length?Math.max(...archives.map(a=>Number(a.id)||0))+1:1,label:`${label}－前年度封存`,archivedAt:new Date().toISOString(),archivedBy:currentUser.name,snapshot:makeBackupSnapshot('年度封存')});if(!await pushArchivesToCloud()){archives.pop();showAppToast('年度封存失敗，已中止新年度建立。','warn');return;}lotteryResults={"第一輪":{},"第二輪":{},"第三輪":{},"候補":{}};swapLogs=[];forfeitRecords=[];residents.forEach(r=>{r.assign1='';r.assign2='';r.assign3='';r.assignWaitlist='';r.waitlistExclusionOverride=false;r.plateVerification='prior';r.plateVerificationNote='新年度待核對';});currentRound='第一輪';await addLog('年度',`建立新年度：${label}；已封存前年度並保留 ${residents.length} 戶基本資料`,{sync:false});const ok=await cloudSyncPush();if(!ok){showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');return;}renderDashboard();renderResidents();renderResults();renderSwap();updateLotteryCards();initFloorplanSeats();renderBackupHealth();document.getElementById('new-year-modal').classList.remove('show');showAppToast('新年度已建立，請先核對住戶車牌資料。','success');}
   async function restoreVersionedBackup(id,scope){
     if(!currentUser||currentUser.role!=='admin'){showAppToast('僅系統管理員可還原版本化備份。','warn');return;} const b=versionedBackups.find(x=>x.id===id);if(!b)return;const labels={residents:'住戶資料',results:'抽籤結果與互換紀錄',all:'全部核心資料'};if(!confirm(`確定要還原此版本的「${labels[scope]}」嗎？目前資料會被覆蓋；還原前會先建立一份新版本備份。`))return;
     const before=makeBackupSnapshot();versionedBackups.unshift(before);versionedBackups=versionedBackups.slice(0,6);const current={residents,lotteryResults,originalLotteryResults,systemSettings,swapLogs,forfeitRecords,systemLogs};if(scope==='residents'||scope==='all')residents=JSON.parse(JSON.stringify(b.residents||[]));if(scope==='results'||scope==='all'){lotteryResults=JSON.parse(JSON.stringify(b.lotteryResults||{}));originalLotteryResults=JSON.parse(JSON.stringify(b.originalLotteryResults||b.lotteryResults||{}));swapLogs=JSON.parse(JSON.stringify(b.swapLogs||[]));forfeitRecords=JSON.parse(JSON.stringify(b.forfeitRecords||[]));}if(scope==='all')systemSettings={...systemSettings,...JSON.parse(JSON.stringify(b.systemSettings||{}))};normalizeSystemSettings();if(!validateCurrentAllocationState({alert:false}).ok){residents=current.residents;lotteryResults=current.lotteryResults;originalLotteryResults=current.originalLotteryResults;systemSettings=current.systemSettings;swapLogs=current.swapLogs;forfeitRecords=current.forfeitRecords;systemLogs=current.systemLogs;showAppToast('該版本與目前資料不相容，已取消還原。','warn');return;}const ok=await addLog('備份',`選擇性還原版本化備份：${labels[scope]}`,{sync:false})&&await cloudSyncPush();if(!ok){residents=current.residents;lotteryResults=current.lotteryResults;originalLotteryResults=current.originalLotteryResults;systemSettings=current.systemSettings;swapLogs=current.swapLogs;forfeitRecords=current.forfeitRecords;systemLogs=current.systemLogs;showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');return;}renderDashboard();renderResidents();renderResults();renderSwap();initFloorplanSeats();renderVersionedBackupList();showAppToast('版本化備份還原完成。','success');
