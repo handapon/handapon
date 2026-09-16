@@ -206,6 +206,7 @@
   .floorplan-toolkit{position:sticky;top:8px;z-index:15;padding:10px;background:rgba(255,255,255,.96);border:1px solid #cbd5e1;border-radius:var(--radius-card);box-shadow:0 8px 18px rgba(15,23,42,.08);backdrop-filter:blur(10px);margin-bottom:14px}.floorplan-toolkit .floorplan-toolbar{margin-bottom:8px}.floorplan-context{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #e2e8f0}.floorplan-context .legend-box{justify-content:flex-start;margin:0;font-size:12.5px}.floorplan-context-status{font-size:13px;font-weight:800;color:#475569}.log-detail{margin-top:10px;padding:9px 11px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:var(--radius-sm);font-size:12.5px;color:#475569;line-height:1.65}.log-detail b{color:#334155}
   #mobile-bottom-nav{display:none}@media(max-width:700px){body{padding-bottom:72px}#mobile-bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;bottom:0;left:0;right:0;z-index:1000;background:#fff;border-top:1px solid #cbd5e1;box-shadow:0 -6px 18px rgba(15,23,42,.1);padding:6px}.mobile-bottom-btn{border:0;background:transparent;color:#475569;font-size:11px;font-weight:800;padding:8px 3px;min-height:54px}.mobile-bottom-btn:active{background:#eff6ff;color:#1d4ed8;border-radius:8px}.guest-only-nav{display:none}.guest-mode .guest-only-nav{display:block}.guest-mode .admin-only-nav{display:none}}
   .filter-toolbar{align-items:end}.filter-toolbar .btn{height:44px;white-space:nowrap}#residents-table th:nth-child(1),#residents-table td:nth-child(1),#residents-table th:nth-child(18),#residents-table td:nth-child(18){background:#f8fafc}#residents-table th:nth-child(n+2):nth-child(-n+5),#residents-table td:nth-child(n+2):nth-child(-n+5){background:#f8fafc}#residents-table th:nth-child(n+6):nth-child(-n+10),#residents-table td:nth-child(n+6):nth-child(-n+10){background:#eff6ff}#residents-table th:nth-child(n+11):nth-child(-n+13),#residents-table td:nth-child(n+11):nth-child(-n+13){background:#f5f3ff}#residents-table th:nth-child(n+14):nth-child(-n+17),#residents-table td:nth-child(n+14):nth-child(-n+17){background:#f0fdf4}.lottery-action-note{margin-top:12px;font-size:13px;font-weight:700;line-height:1.6;color:#64748b}.lottery-action-note.blocked{color:#b45309;background:#fff7ed;border:1px solid #fdba74;border-radius:var(--radius-sm);padding:9px 11px}
+  .resident-mode-switch{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.resident-mode-switch .btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.resident-plate-quick{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 14px}.resident-plate-quick .btn.active{background:#eff6ff;color:#1d4ed8;border-color:#60a5fa}.resident-plate-view th:nth-child(n+6):nth-child(-n+13),.resident-plate-view td:nth-child(n+6):nth-child(-n+13){display:none}.resident-plate-view{min-width:790px!important}.resident-plate-view th:nth-child(n+14):nth-child(-n+17),.resident-plate-view td:nth-child(n+14):nth-child(-n+17){background:#f0fdf4!important}.resident-plate-view th:nth-child(5),.resident-plate-view td:nth-child(5){min-width:155px}.resident-plate-view .badge{white-space:normal;line-height:1.35}
   .form-section-title{margin:18px 0 9px;padding:8px 11px;background:#eff6ff;border-left:3px solid #2563eb;border-radius:var(--radius-sm);font-size:14px;font-weight:900;color:#1e3a8a}
   .settings-section.settings-search-hit{border:2px solid #60a5fa;background:#eff6ff;box-shadow:0 0 0 4px rgba(96,165,250,.16)}
   :where(button,input,select,textarea,[role="button"],summary):focus-visible{outline:3px solid #2563eb!important;outline-offset:3px;box-shadow:0 0 0 5px rgba(37,99,235,.16)!important}
@@ -703,8 +704,13 @@
   <div id="plate-warning-banner" style="display:none;margin-bottom:1.5rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:1.25rem;color:#9f1239"></div>
   
   <div class="card card-pad-lg">
+    <div class="resident-mode-switch" role="group" aria-label="住戶名單檢視模式">
+      <button class="btn btn-sm active" id="resident-mode-full" onclick="setResidentListMode('full')">完整管理表</button>
+      <button class="btn btn-sm" id="resident-mode-plate" onclick="setResidentListMode('plate')">車牌核對表</button>
+      <button class="btn btn-sm" id="resident-mode-pending" onclick="setResidentListMode('pending')">待核對清單</button>
+    </div>
     <div class="form-row-3 filter-toolbar" style="margin-bottom:1.25rem">
-      <input type="text" id="search-resident" placeholder="搜尋姓名 / 門牌 / 棟別" oninput="renderResidents()">
+      <input type="text" id="search-resident" placeholder="搜尋姓名 / 門牌 / 棟別 / 車牌" oninput="renderResidents()">
       <select id="filter-build" onchange="renderResidents()">
         <option value="">全部分棟</option>
         <option value="A1">A1</option><option value="A2">A2</option>
@@ -714,6 +720,13 @@
         <option value="E1">E1</option><option value="E2">E2</option>
       </select>
       <button class="btn btn-sm" onclick="toggleResidentAdvancedFilters()">更多篩選</button>
+    </div>
+    <div class="resident-plate-quick" id="resident-plate-quick" aria-label="車牌快速篩選">
+      <button class="btn btn-sm active" data-plate-quick="" onclick="setResidentPlateQuickFilter('')">全部住戶</button>
+      <button class="btn btn-sm" data-plate-quick="has-plate" onclick="setResidentPlateQuickFilter('has-plate')">有登記車牌</button>
+      <button class="btn btn-sm" data-plate-quick="multi" onclick="setResidentPlateQuickFilter('multi')">三張車牌</button>
+      <button class="btn btn-sm" data-plate-quick="inferred" onclick="setResidentPlateQuickFilter('inferred')">推定重機車牌</button>
+      <button class="btn btn-sm" data-plate-quick="needs-review" onclick="setResidentPlateQuickFilter('needs-review')">車牌待核對</button>
     </div>
     <div id="resident-advanced-filters" class="form-row-3 filter-toolbar" style="display:none;margin:-.5rem 0 1.25rem;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:var(--radius-sm)">
       <select id="filter-reserve" onchange="renderResidents()">
@@ -1674,6 +1687,8 @@
   let residentSortState = { column: null, dir: 1 };
   let resultSortState = { column: null, dir: 1 };
   let residentViewMode = 'table';
+  let residentListMode = 'full';
+  let residentPlateQuickFilter = '';
   let resultViewMode = 'table';
   let selectedLogIds = [];
   let toastIdSeq = 0;
@@ -3506,19 +3521,28 @@
   }
 
   // ================= 2. 住戶名單邏輯 =================
-  function renderResidents() {
+  function residentHasReviewIssue(r){return ['prior','pending'].includes(r.plateVerification||'current');}
+  function residentPlateValues(r){return [r.plate1,r.plate2,r.plate3,r.plateWaitlist].map(x=>String(x||'').trim()).filter(Boolean);}
+  function residentMatchesFilters(r){
     const search = document.getElementById("search-resident").value.toLowerCase();
     const bFilter = document.getElementById("filter-build").value;
     const rFilter = document.getElementById("filter-reserve").value;
     const plateVerifyFilter = document.getElementById("filter-plate-verify").value;
-
-    const filtered = residents.filter(r => {
-      const matchSearch = r.name.toLowerCase().includes(search) || r.room.toLowerCase().includes(search) || r.build.toLowerCase().includes(search);
-      const matchBuild = bFilter === "" || r.build === bFilter;
-      const matchReserve = rFilter === "" || r.reserve === rFilter;
-      const matchVerify = plateVerifyFilter === "" || (r.plateVerification || 'current') === plateVerifyFilter;
-      return matchSearch && matchBuild && matchReserve && matchVerify;
-    });
+    const plates=residentPlateValues(r);
+    const matchSearch = !search || String(r.name||'').toLowerCase().includes(search) || String(r.room||'').toLowerCase().includes(search) || String(r.build||'').toLowerCase().includes(search) || plates.some(p=>p.toLowerCase().includes(search));
+    const matchBuild = bFilter === "" || r.build === bFilter;
+    const matchReserve = rFilter === "" || r.reserve === rFilter;
+    const matchVerify = plateVerifyFilter === "" || (r.plateVerification || 'current') === plateVerifyFilter;
+    const matchMode = residentListMode !== 'pending' || residentHasReviewIssue(r);
+    const matchQuick = !residentPlateQuickFilter ||
+      (residentPlateQuickFilter==='has-plate' && plates.length>0) ||
+      (residentPlateQuickFilter==='multi' && [r.plate1,r.plate2,r.plate3].filter(x=>String(x||'').trim() && x!==PENDING_PLATE_LABEL).length>=3) ||
+      (residentPlateQuickFilter==='inferred' && plates.some(inferLargeMotorcycleType)) ||
+      (residentPlateQuickFilter==='needs-review' && residentHasReviewIssue(r));
+    return matchSearch && matchBuild && matchReserve && matchVerify && matchMode && matchQuick;
+  }
+  function renderResidents() {
+    const filtered = residents.filter(residentMatchesFilters);
 
     // 💡 依目前排序狀態排序（點擊表格欄位標題即可切換排序欄位/方向）
     if (residentSortState.column) {
@@ -3530,7 +3554,8 @@
       });
     }
 
-    document.getElementById("resident-count").innerText = `目前顯示 ${filtered.length} 筆住戶資料 (系統共建檔 ${residents.length} 筆)`;
+    const modeLabel={full:'完整管理表',plate:'車牌核對表',pending:'待核對清單'}[residentListMode]||'住戶名單';
+    document.getElementById("resident-count").innerText = `${modeLabel}｜目前顯示 ${filtered.length} 筆（系統共建檔 ${residents.length} 筆）`;
     const verifyCount=residents.filter(r=>r.plateVerification==='prior'||r.plateVerification==='pending').length;
     const pageMeta=document.getElementById('resident-page-meta'); if(pageMeta) pageMeta.textContent=`共 ${residents.length} 戶｜${verifyCount} 筆車牌待核對`;
 
@@ -3571,10 +3596,16 @@
       </tr>`;
     });
     document.getElementById("resident-tbody").innerHTML = html;
+    const table=document.getElementById('residents-table'),hint=document.querySelector('#page-residents .table-scroll-hint'),waitHint=document.getElementById('waitlist-col-hint');
+    if(table)table.classList.toggle('resident-plate-view',residentListMode!=='full');
+    if(hint)hint.textContent=residentListMode==='full'?'表格可左右滑動查看更多欄位':'車牌核對表保留住戶識別、車牌與操作欄位；可輸入完整或部分車牌搜尋。';
+    if(waitHint)waitHint.style.display=residentListMode==='full'?'block':'none';
   }
   function toggleResidentAdvancedFilters(){const box=document.getElementById('resident-advanced-filters');if(box)box.style.display=box.style.display==='none'?'grid':'none';}
-  function clearResidentFilters(){document.getElementById('search-resident').value='';document.getElementById('filter-build').value='';document.getElementById('filter-reserve').value='';document.getElementById('filter-plate-verify').value='';renderResidents();}
-  async function batchConfirmPlateVerification(){if(!confirm('確定將目前篩選結果的車牌核對狀態標記為「本年度已核對」嗎？'))return;const q=document.getElementById('search-resident').value.toLowerCase(),b=document.getElementById('filter-build').value,r=document.getElementById('filter-reserve').value,v=document.getElementById('filter-plate-verify').value;const targets=residents.filter(x=>(!q||x.name.toLowerCase().includes(q)||x.room.toLowerCase().includes(q)||x.build.toLowerCase().includes(q))&&(!b||x.build===b)&&(!r||x.reserve===r)&&(!v||(x.plateVerification||'current')===v));if(!targets.length){showAppToast('目前篩選條件沒有住戶。','info');return;}targets.forEach(x=>{x.plateVerification='current';x.plateVerificationNote='批次核對完成';});renderResidents();const ok=await addLog('住戶',`批次標記 ${targets.length} 戶車牌為本年度已核對`,{sync:false})&&await cloudSyncPush();if(!ok)showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}
+  function setResidentListMode(mode){residentListMode=['full','plate','pending'].includes(mode)?mode:'full';document.querySelectorAll('button[id^="resident-mode-"]').forEach(el=>el.classList.toggle('active',el.id===`resident-mode-${residentListMode}`));renderResidents();}
+  function setResidentPlateQuickFilter(filter){residentPlateQuickFilter=filter||'';document.querySelectorAll('[data-plate-quick]').forEach(el=>el.classList.toggle('active',el.dataset.plateQuick===residentPlateQuickFilter));renderResidents();}
+  function clearResidentFilters(){document.getElementById('search-resident').value='';document.getElementById('filter-build').value='';document.getElementById('filter-reserve').value='';document.getElementById('filter-plate-verify').value='';setResidentPlateQuickFilter('');setResidentListMode('full');}
+  async function batchConfirmPlateVerification(){if(!confirm('確定將目前篩選結果的車牌核對狀態標記為「本年度已核對」嗎？'))return;const targets=residents.filter(residentMatchesFilters);if(!targets.length){showAppToast('目前篩選條件沒有住戶。','info');return;}targets.forEach(x=>{x.plateVerification='current';x.plateVerificationNote='批次核對完成';});renderResidents();const ok=await addLog('住戶',`批次標記 ${targets.length} 戶車牌為本年度已核對`,{sync:false})&&await cloudSyncPush();if(!ok)showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}
 
   function setResidentViewMode(mode){
     residentViewMode = mode === 'card' ? 'card' : 'table';
