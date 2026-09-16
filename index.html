@@ -215,6 +215,11 @@
   .card,.settings-section,.management-item,.health-item,.data-card,.table-wrap,.modal-box,.csv-preview-table,.log-tl-content{border-radius:var(--radius-card)}
   .fp-outer-card,.fp-inner-box,#login-overlay>div,.modal-overlay .modal-box{border-radius:var(--radius-panel)}
   .card p,.card small,.muted-note,.data-card-sub,.data-card-label{font-weight:500}.review-summary div{background:var(--surface-info)}
+  /* 覆核視窗：內容可捲動，確認按鈕固定留在可視範圍內。 */
+  #lottery-review-modal .modal-card{display:block;max-height:calc(100dvh - 24px);overflow-y:auto;padding-bottom:0}
+  #lottery-review-modal .lottery-review-actions{position:sticky;bottom:0;z-index:2;margin-bottom:0!important;padding:14px 0 max(14px,env(safe-area-inset-bottom));background:linear-gradient(to bottom,rgba(255,255,255,.88),#fff 22%);border-top:1px solid #dbe3ef}
+  #lottery-review-confirm-btn{min-height:52px;padding:12px 20px;font-size:17px;font-weight:900;box-shadow:0 8px 18px rgba(37,99,235,.2)}
+  @media(max-width:600px){#lottery-review-modal{align-items:flex-end}#lottery-review-modal .modal-card{width:100%;max-width:none;max-height:calc(100dvh - 8px);border-radius:20px 20px 0 0}#lottery-review-modal .lottery-review-actions{justify-content:stretch!important;gap:10px}#lottery-review-modal .lottery-review-actions .btn{flex:1;min-height:50px}}
   #login-overlay{background-image:radial-gradient(circle at 15% 18%,rgba(96,165,250,.72),transparent 31%),radial-gradient(circle at 84% 76%,rgba(45,212,191,.48),transparent 30%),linear-gradient(135deg,#0f172a,#1e3a5f 52%,#0f766e);overflow:hidden}#login-overlay:before,#login-overlay:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.2);border-radius:50%;pointer-events:none}#login-overlay:before{width:420px;height:420px;left:-160px;bottom:-190px}#login-overlay:after{width:260px;height:260px;right:-70px;top:-90px}#login-overlay>div{position:relative;z-index:1;box-shadow:0 28px 70px -18px rgba(2,6,23,.55)!important}
   .my-result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:1rem}.my-result-slot{padding:.8rem;border:1px solid #bfdbfe;border-radius:10px;background:#fff;font-size:13px;font-weight:800;color:#475569}.my-result-slot b{display:block;color:#1d4ed8;font-size:16px;margin-top:4px}.seat-highlight{outline:4px solid #f59e0b;outline-offset:3px;animation:seatPulse 1s ease-in-out 3}@keyframes seatPulse{50%{transform:scale(1.08);box-shadow:0 0 0 7px rgba(245,158,11,.22)}}
 
@@ -535,7 +540,7 @@
     <button class="nav-tab active" onclick="showPage('dashboard')">總覽</button>
     <button class="nav-tab" id="nav-tab-residents" onclick="showPage('residents')">住戶名單</button>
     <button class="nav-tab" id="nav-tab-lottery" onclick="showPage('lottery')">執行抽籤</button>
-    <button class="nav-tab" onclick="showPage('results')">抽籤結果與總表</button>
+    <button class="nav-tab" id="nav-tab-results" onclick="showPage('results')">抽籤結果與總表</button>
     <button class="nav-tab" id="nav-tab-logs" onclick="showPage('logs')">操作紀錄</button>
     <button class="nav-tab" id="nav-tab-swap" onclick="showPage('swap')">車位互換</button>
     <button class="nav-tab" id="nav-tab-inquiry" onclick="showPage('inquiry')">中籤查詢</button>
@@ -552,7 +557,7 @@
   <button class="nav-tab active" onclick="showPage('dashboard');closeMobileMenu()">總覽</button>
   <button class="nav-tab" id="nav-tab-residents-mob" onclick="showPage('residents');closeMobileMenu()">住戶名單</button>
   <button class="nav-tab" id="nav-tab-lottery-mob" onclick="showPage('lottery');closeMobileMenu()">執行抽籤</button>
-  <button class="nav-tab" onclick="showPage('results');closeMobileMenu()">抽籤結果與總表</button>
+  <button class="nav-tab" id="nav-tab-results-mob" onclick="showPage('results');closeMobileMenu()">抽籤結果與總表</button>
   <button class="nav-tab" id="nav-tab-logs-mob" onclick="showPage('logs');closeMobileMenu()">操作紀錄</button>
   <button class="nav-tab" id="nav-tab-swap-mob" onclick="showPage('swap');closeMobileMenu()">車位互換</button>
   <button class="nav-tab" id="nav-tab-inquiry-mob" onclick="showPage('inquiry');closeMobileMenu()">中籤查詢</button>
@@ -1499,7 +1504,7 @@
       <div id="lottery-review-summary" class="review-summary"></div>
       <div id="lottery-review-impact" class="settings-risk-note" style="display:none"></div>
       <div class="review-row" style="margin-top:14px"><span>確認後，系統將再次驗證資料版本，並在抽籤期間暫時凍結基礎資料。</span></div>
-      <div class="btn-row mt-2" style="justify-content:flex-end;margin-top:1.25rem"><button class="btn" onclick="closeLotteryReviewModal()">返回</button><button class="btn btn-primary" id="lottery-review-confirm-btn" onclick="confirmLotteryReview()">我已核對，進入下一步</button></div>
+      <div class="btn-row mt-2 lottery-review-actions" style="justify-content:flex-end;margin-top:1.25rem"><button class="btn" onclick="closeLotteryReviewModal()">返回</button><button class="btn btn-primary" id="lottery-review-confirm-btn" onclick="confirmLotteryReview()">已確認，開始抽籤!</button></div>
     </div>
   </div>
   <div class="modal-overlay" id="new-year-modal" role="dialog" aria-modal="true" aria-labelledby="new-year-title"><div class="modal-box modal-card"><div class="modal-title" id="new-year-title">新年度建立精靈</div><p class="muted-note">系統將先建立版本備份與年度封存，接著保留住戶基本資料、將車牌核對狀態設為「去年資料待確認」，並清空抽籤、候補、棄權與互換資料。</p><label for="new-year-label">新年度名稱</label><input id="new-year-label" type="text" maxlength="40" placeholder="例：115 年度機車位抽籤"><div class="settings-risk-note" style="margin-top:14px">影響範圍：不會刪除住戶基本資料或歷年封存；會清空目前年度的抽籤、候補、棄權與互換結果。</div><div class="modal-footer"><button class="btn" onclick="document.getElementById('new-year-modal').classList.remove('show')">取消</button><button class="btn btn-primary" onclick="initializeNewYear()">確認建立新年度</button></div></div></div>
@@ -1791,22 +1796,22 @@
       return `<span class="badge badge-orange" title="尚未登記真實車牌，保留抽籤資格">🕒 ${PENDING_PLATE_LABEL}</span>`;
     }
     const inferred=inferLargeMotorcycleType(plateVal);
-    return `<code class="code-font">${escapeHtml(plateVal)}</code>${inferred?`<span class="badge ${inferred.level==='red'?'badge-red':'badge-orange'}" title="${escapeHtml(inferred.note)}" style="margin-top:4px">${escapeHtml(inferred.label)}</span>`:''}`;
+    return `<code class="code-font">${escapeHtml(plateVal)}</code>${inferred?`<span class="badge ${inferred.level==='red'?'badge-red':'badge-orange'}" title="${escapeHtml(inferred.note)}" style="margin-top:4px">${escapeHtml(plateVal)}：${escapeHtml(inferred.label)}</span>`:''}`;
   }
 
   // 僅依交通部已公布的「一車一號」代碼區間推定；號牌顏色／行照才是最終車種依據。
   function inferLargeMotorcycleType(value){
     const raw=normalizePlateValue(value),m=raw.match(/^([A-Z]{3})\d{4}$/);if(!m)return null;const p=m[1],between=(x,a,b)=>x>=a&&x<=b;
-    if(p==='EMA')return {level:'red',label:'推定電動紅牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
-    if(between(p,'EMB','EMC'))return {level:'yellow',label:'推定電動黃牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
-    if(between(p,'LGA','LMZ'))return {level:'red',label:'推定紅牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
-    if(between(p,'LAD','LFZ'))return {level:'yellow',label:'推定黃牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
+    if(p==='EMA')return {level:'red',label:'推定為電動紅牌重機車牌',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
+    if(between(p,'EMB','EMC'))return {level:'yellow',label:'推定為電動黃牌重機車牌',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
+    if(between(p,'LGA','LMZ'))return {level:'red',label:'推定為紅牌重機車牌',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
+    if(between(p,'LAD','LFZ'))return {level:'yellow',label:'推定為黃牌重機車牌',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
     return null;
   }
   function renderMotorcycleClassBadge(r){
-    const labels={ordinary:'確認一般機車',yellow:'確認黃牌大重機',red:'確認紅牌大重機','electric-yellow':'確認電動黃牌大重機','electric-red':'確認電動紅牌大重機',unknown:'待行照確認'};
+    const labels={ordinary:'確認一般機車車牌',yellow:'確認為黃牌重機車牌',red:'確認為紅牌重機車牌','electric-yellow':'確認為電動黃牌重機車牌','electric-red':'確認為電動紅牌重機車牌',unknown:'待行照確認'};
     if(r.motorcycleClass&&r.motorcycleClass!=='auto'){const danger=['red','electric-red'].includes(r.motorcycleClass);const caution=['yellow','electric-yellow','unknown'].includes(r.motorcycleClass);return `<br><span class="badge ${danger?'badge-red':caution?'badge-orange':'badge-green'}" title="${escapeHtml(r.motorcycleClassNote||'人工確認車種')}" style="margin-top:4px">${escapeHtml(labels[r.motorcycleClass]||'人工確認')}</span>`;}
-    const inferred=[r.plate1,r.plate2,r.plate3,r.plateWaitlist].map(inferLargeMotorcycleType).find(Boolean);return inferred?`<br><span class="badge ${inferred.level==='red'?'badge-red':'badge-orange'}" title="${escapeHtml(inferred.note)}" style="margin-top:4px">${escapeHtml(inferred.label)}</span>`:'';
+    return '';
   }
 
   function normalizeSystemSettings() {
@@ -3026,6 +3031,8 @@
     initUserBar();
     initApp();
     setResultViewMode('card');
+    // 住戶入口預設直接準備完整輪次總表；姓名仍由 getDisplayName() 去識別化。
+    selectResultRound('全部輪次');
     showFirstLoginGuide();
     startAutoSync();
     addLog("登入", "以社區住戶身分進入系統");
@@ -3081,6 +3088,10 @@
 
     const lotTabs = ['nav-tab-lottery', 'nav-tab-lottery-mob'];
     lotTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
+
+    // 結果總表是住戶必要的查詢功能；明確重設顯示狀態，避免同一頁先前管理模式遺留的樣式將其隱藏。
+    const resultTabs = ['nav-tab-results', 'nav-tab-results-mob'];
+    resultTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'block'; });
 
     const swapTabs = ['nav-tab-swap', 'nav-tab-swap-mob'];
     swapTabs.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isGuest ? 'none' : 'block'; });
@@ -5791,7 +5802,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       const plateValue = currentResultRound==='候補' ? r.plateWaitlist : (roundNumber ? r['plate'+roundNumber] : '');
       const status=seat ? '<span class="badge status-complete">中籤</span>' : (isExecuted ? (isParticipating?'<span class="badge status-pending">未中籤</span>':'<span class="badge status-pending">未參加</span>') : '<span class="badge status-pending">未執行</span>');
       const original=getOriginalUserSeat(currentResultRound,r.id); const changed=original&&Number(original)!==Number(seat);
-      html+=`<article class="data-card"><div class="data-card-head"><div><div class="data-card-title">${escapeHtml(r.build)} 棟 ${escapeHtml(r.room)} · ${escapeHtml(getDisplayName(r.name))}</div><div class="data-card-sub">${currentResultRound} · ${r.reserve==='Y'?'保留戶':'一般戶'}</div></div>${status}</div><div class="data-card-grid"><div class="data-card-item"><span class="data-card-label">目前使用車位</span><span class="data-card-value">${seat ? `<b class="seat-number">${seat}號</b>` : '-'}</span></div>${changed?`<div class="data-card-item"><span class="data-card-label">原抽中車位</span><span class="data-card-value"><b class="seat-number">${original}號</b></span></div>`:''}<div class="data-card-item"><span class="data-card-label">車牌</span><span class="data-card-value">${escapeHtml(renderPlateText(plateValue))}</span></div></div>${resultCardActions(r)}</article>`;
+      const guestResultsView=!!(currentUser&&currentUser.role==='guest');
+      html+=`<article class="data-card"><div class="data-card-head"><div><div class="data-card-title">${escapeHtml(r.build)} 棟 ${escapeHtml(r.room)} · ${escapeHtml(getDisplayName(r.name))}</div><div class="data-card-sub">${currentResultRound} · ${r.reserve==='Y'?'保留戶':'一般戶'}</div></div>${status}</div><div class="data-card-grid"><div class="data-card-item"><span class="data-card-label">目前使用車位</span><span class="data-card-value">${seat ? `<b class="seat-number">${seat}號</b>` : '-'}</span></div>${changed?`<div class="data-card-item"><span class="data-card-label">原抽中車位</span><span class="data-card-value"><b class="seat-number">${original}號</b></span></div>`:''}${guestResultsView?'':`<div class="data-card-item"><span class="data-card-label">車牌</span><span class="data-card-value">${escapeHtml(renderPlateText(plateValue))}</span></div>`}</div>${resultCardActions(r)}</article>`;
     });
     host.innerHTML=html || '<div class="empty"><strong>尚無符合條件的抽籤結果</strong><small>可切換輪次或篩選條件；若該輪尚未執行，管理員完成抽籤後會顯示結果。</small></div>';
   }
@@ -6615,9 +6627,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       content.innerHTML=`<div class="seat-detail-hero"><div class="seat-detail-number">${seat}號</div><span class="badge ${isVoid?'badge-gray':'badge-green'}">${status}</span></div><div class="data-card-item full" style="margin-bottom:14px"><span class="data-card-label">狀態說明</span><span class="data-card-value">${isVoid?'此車位已設定為作廢，不可分配。':'目前尚無住戶持有此車位。'}</span></div><div class="mobile-secondary-actions"><button class="btn btn-sm" onclick="closeSeatDetailModal();showPage('results')">前往抽籤結果</button></div>`;
       modal.classList.add('show'); return;
     }
+    const guestFloorplanView=!!(currentUser&&currentUser.role==='guest');
     const seatRows=[['第一輪',occupant.assign1,occupant.plate1],['第二輪',occupant.assign2,occupant.plate2],['第三輪',occupant.assign3,occupant.plate3],['候補',occupant.assignWaitlist,occupant.plateWaitlist]];
-    const detailRows=seatRows.filter(([,s])=>Number(s)>0).map(([round,s,plate])=>`<div class="seat-detail-item"><span class="seat-detail-label">${round}</span><span class="seat-detail-value">${Number(s)}號 · ${escapeHtml(plate||'未填寫')}</span></div>`).join('');
-    content.innerHTML=`<div class="seat-detail-hero"><div><div class="seat-detail-number">${seat}號</div><div class="seat-detail-status">${escapeHtml(status)}</div></div><span class="badge ${isSeatFromWaitlist(seat)?'badge-orange':'badge-blue'}">${isSeatFromWaitlist(seat)?'🎟️ 候補':'已分配'}</span></div><div class="seat-detail-grid"><div class="seat-detail-item"><span class="seat-detail-label">棟別</span><span class="seat-detail-value">${escapeHtml(occupant.build)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">門牌</span><span class="seat-detail-value">${escapeHtml(occupant.room)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">住戶姓名</span><span class="seat-detail-value">${escapeHtml(getDisplayName(occupant.name))}</span></div><div class="seat-detail-item"><span class="seat-detail-label">身分</span><span class="seat-detail-value">${occupant.reserve==='Y'?'保留戶':'一般戶'}</span></div><div class="seat-detail-item" style="grid-column:1/-1"><span class="seat-detail-label">持有車位與車牌</span><div class="seat-detail-grid" style="margin-top:6px">${detailRows || '<div class="seat-detail-item">目前沒有其他輪次車位資料</div>'}</div></div></div><div class="mobile-secondary-actions"><button class="btn btn-sm btn-primary" onclick="closeSeatDetailModal();showPage('results');selectResultRound('全部輪次')">前往全部抽籤結果</button><button class="btn btn-sm" onclick="closeSeatDetailModal();openSwapFromSeat(${Number(occupant.id)})">🔄 前往車位互換</button></div>`;
+    const detailRows=seatRows.filter(([,s])=>Number(s)>0).map(([round,s,plate])=>`<div class="seat-detail-item"><span class="seat-detail-label">${round}</span><span class="seat-detail-value">${Number(s)}號${guestFloorplanView?'':` · ${escapeHtml(plate||'未填寫')}`}</span></div>`).join('');
+    content.innerHTML=`<div class="seat-detail-hero"><div><div class="seat-detail-number">${seat}號</div><div class="seat-detail-status">${escapeHtml(status)}</div></div><span class="badge ${isSeatFromWaitlist(seat)?'badge-orange':'badge-blue'}">${isSeatFromWaitlist(seat)?'🎟️ 候補':'已分配'}</span></div><div class="seat-detail-grid"><div class="seat-detail-item"><span class="seat-detail-label">棟別</span><span class="seat-detail-value">${escapeHtml(occupant.build)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">門牌</span><span class="seat-detail-value">${escapeHtml(occupant.room)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">住戶姓名</span><span class="seat-detail-value">${escapeHtml(getDisplayName(occupant.name))}</span></div><div class="seat-detail-item"><span class="seat-detail-label">身分</span><span class="seat-detail-value">${occupant.reserve==='Y'?'保留戶':'一般戶'}</span></div><div class="seat-detail-item" style="grid-column:1/-1"><span class="seat-detail-label">${guestFloorplanView?'持有車位':'持有車位與車牌'}</span><div class="seat-detail-grid" style="margin-top:6px">${detailRows || '<div class="seat-detail-item">目前沒有其他輪次車位資料</div>'}</div></div></div><div class="mobile-secondary-actions"><button class="btn btn-sm btn-primary" onclick="closeSeatDetailModal();showPage('results');selectResultRound('全部輪次')">前往全部抽籤結果</button>${guestFloorplanView?'':`<button class="btn btn-sm" onclick="closeSeatDetailModal();openSwapFromSeat(${Number(occupant.id)})">前往車位互換</button>`}</div>`;
     modal.classList.add('show');
   }
   function closeSeatDetailModal(){ const modal=document.getElementById('seat-detail-modal'); if(modal) modal.classList.remove('show'); activeSeatDetail=null; }
