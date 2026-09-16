@@ -209,6 +209,7 @@
   .resident-mode-switch{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.resident-mode-switch .btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.resident-plate-quick{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 14px}.resident-plate-quick .btn.active{background:#eff6ff;color:#1d4ed8;border-color:#60a5fa}.resident-plate-view th:nth-child(n+6):nth-child(-n+13),.resident-plate-view td:nth-child(n+6):nth-child(-n+13){display:none}.resident-plate-view{min-width:790px!important}.resident-plate-view th:nth-child(n+14):nth-child(-n+17),.resident-plate-view td:nth-child(n+14):nth-child(-n+17){background:#f0fdf4!important}.resident-plate-view th:nth-child(5),.resident-plate-view td:nth-child(5){min-width:155px}.resident-plate-view .badge{white-space:normal;line-height:1.35}
   .quick-filter-tabs,.floorplan-quick-filters,.stats-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.quick-filter-tabs .btn.active,.floorplan-quick-filters .btn.active,.stats-filter-bar .btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.quick-filter-tabs .btn,.floorplan-quick-filters .btn{min-height:42px}.resident-plate-view tr.plate-row-confirmed{opacity:.58}.resident-plate-view tr.plate-row-attention td{background:#fff7ed!important}.resident-plate-view tr.plate-row-danger td{background:#fff1f2!important}.table-wrap thead th{position:sticky;top:0;z-index:4;box-shadow:0 1px 0 #cbd5e1}.card-query{background:linear-gradient(135deg,#eff6ff,#f8fafc);border-color:#bfdbfe}.card-attention{background:linear-gradient(135deg,#fff7ed,#fffbeb);border-color:#fdba74}.card-success{background:linear-gradient(135deg,#f0fdf4,#f8fafc);border-color:#86efac}.page-loading-note{display:none;position:sticky;top:64px;z-index:850;margin:8px auto;max-width:1180px;padding:10px 14px;background:#eff6ff;border:1px solid #93c5fd;border-radius:var(--radius-sm);color:#1e3a8a;font-size:13px;font-weight:900;box-shadow:0 8px 18px rgba(37,99,235,.12)}.page-loading-note.show{display:block}
   .page-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid #dbe3ef}.page-subtabs .btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.resident-actions-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.settings-layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:start}.settings-side-nav{position:sticky;top:72px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:var(--radius-card);padding:10px}.settings-side-nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:10px;border-radius:var(--radius-sm);font:inherit;font-weight:800;color:#334155;cursor:pointer}.settings-side-nav button:hover,.settings-side-nav button.active{background:#eff6ff;color:#1d4ed8}.settings-content{min-width:0}.manual-upload-status{display:none;margin-top:10px;padding:8px 10px;border-radius:var(--radius-sm);background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a;font-size:13px;font-weight:800}.manual-upload-status.show{display:block}@media(max-width:850px){.settings-layout{grid-template-columns:1fr}.settings-side-nav{position:static;display:flex;overflow:auto;gap:6px}.settings-side-nav button{white-space:nowrap;width:auto}.settings-side-nav strong{display:none}}
+  .page-purpose{margin:.45rem 0 0;color:#64748b;font-size:14px;font-weight:500;line-height:1.6}.page .section-title{font-size:28px;line-height:1.2}.page .card-title{font-size:18px}.page .form-section-title{font-size:14px;letter-spacing:.2px}.table-wrap tbody tr:nth-child(even){background:rgba(248,250,252,.72)}.table-wrap tbody tr:hover{background:#eff6ff!important}.table-wrap th{background:#eaf0f8!important;color:#1e3a5f}.results-summary-strip span,.status-complete,.status-action,.status-caution,.status-danger,.status-pending{min-height:30px;display:inline-flex;align-items:center}.filter-active-chip{display:inline-flex;align-items:center;min-height:30px;padding:4px 10px;border-radius:999px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;font-size:12px;font-weight:800;margin-left:8px}#page-results .seat-number{font-size:1.75em;padding:4px 7px;border-radius:var(--radius-sm);background:#eff6ff}#page-results .data-card-value{font-size:16px}#page-results .status-pending{font-weight:600}.btn-danger{margin-top:8px}.advanced-ops .btn-danger+.btn-danger{margin-left:10px}@media(max-width:700px){.data-card-grid{grid-template-columns:1fr}.data-card-item.full{grid-column:auto}.page .section-title{font-size:24px}.resident-actions-toolbar{margin-top:12px!important}.filter-active-chip{display:block;width:max-content;margin:6px 0 0}}
   .form-section-title{margin:18px 0 9px;padding:8px 11px;background:#eff6ff;border-left:3px solid #2563eb;border-radius:var(--radius-sm);font-size:14px;font-weight:900;color:#1e3a8a}
   .settings-section.settings-search-hit{border:2px solid #60a5fa;background:#eff6ff;box-shadow:0 0 0 4px rgba(96,165,250,.16)}
   :where(button,input,select,textarea,[role="button"],summary):focus-visible{outline:3px solid #2563eb!important;outline-offset:3px;box-shadow:0 0 0 5px rgba(37,99,235,.16)!important}
@@ -2606,6 +2607,8 @@
           systemLogs = Array.isArray(data.systemLogs) ? data.systemLogs : (data.systemLogs ? Object.values(data.systemLogs) : []);
           versionedBackups = Array.isArray(data.versionedBackups) ? data.versionedBackups : (data.versionedBackups ? Object.values(data.versionedBackups) : []);
           originalLotteryResults = data.originalLotteryResults || {};
+          // 手冊改用獨立路徑，避免大型 PDF 與背景圖／平面圖一起回寫造成請求過大。
+          await loadManualsFromCloud();
           repairKnownResidentNameArtifacts();
           // 💡 記錄這次拉取到的雲端資料版本時間戳，供之後推送時比對是否有版本衝突
           lastKnownServerModified = (data._meta && data._meta.lastModified) ? Number(data._meta.lastModified) : 0;
@@ -3211,6 +3214,7 @@
 
   function initApp() {
     initReadingPreferences();
+    decoratePagePurposes();
     wireAccessibleLabels();
     repairKnownResidentNameArtifacts();
     setupSettingsAccordion();
@@ -3229,6 +3233,7 @@
     checkPlateWarnings();
     renderBackupHealth();
   }
+  function decoratePagePurposes(){const copy={dashboard:'目前年度作業摘要與待處理事項。',residents:'管理住戶資格、車牌資料與年度核對狀態。',lottery:'依目前輪次執行覆核、抽籤與結果確認。',results:'查看各輪結果；管理員可另行建立公告與列印。',swap:'檢視及處理符合規則的車位互換。',floorplan:'依車位狀態與輪次快速定位配置。',settings:'維護系統設定、資料安全與年度作業。',guide:'提供各角色對應的操作指引。'};Object.entries(copy).forEach(([page,text])=>{const root=document.getElementById(`page-${page}`),title=root?.querySelector('.section-title');if(title&&!title.parentElement.querySelector('.page-purpose')){const note=document.createElement('div');note.className='page-purpose';note.textContent=text;title.after(note);}});}
 
   function setupSettingsAccordion(){
     const page=document.getElementById('page-settings'); if(!page||page.dataset.accordionReady==='1') return;
@@ -3643,7 +3648,8 @@
     }
 
     const modeLabel={full:'完整管理表',plate:'車牌核對表',pending:'待核對清單'}[residentListMode]||'住戶名單';
-    document.getElementById("resident-count").innerText = `${modeLabel}｜目前顯示 ${filtered.length} 筆（系統共建檔 ${residents.length} 筆）`;
+    const activeFilterCount=[document.getElementById('search-resident')?.value,document.getElementById('filter-build')?.value,document.getElementById('filter-reserve')?.value,document.getElementById('filter-plate-verify')?.value,residentPlateQuickFilter,residentListMode!=='full'?residentListMode:''].filter(Boolean).length;
+    document.getElementById("resident-count").innerHTML = `${escapeHtml(modeLabel)}｜目前顯示 ${filtered.length} 筆（系統共建檔 ${residents.length} 筆）${activeFilterCount?`<span class="filter-active-chip">已套用 ${activeFilterCount} 項條件</span>`:''}`;
     const verifyCount=residents.filter(r=>r.plateVerification==='prior'||r.plateVerification==='pending').length;
     const pageMeta=document.getElementById('resident-page-meta'); if(pageMeta) pageMeta.textContent=`共 ${residents.length} 戶｜${verifyCount} 筆車牌待核對`;
 
@@ -8245,6 +8251,19 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   // ================= 12. 操作手冊(PDF) 動態預覽與權限管理 =================
+  // 手冊採獨立 Firebase 節點，避免每次上傳都覆寫整包 media（背景、平面圖、兩份 PDF）。
+  async function loadManualsFromCloud(){
+    if(!FIREBASE_DB_URL||FIREBASE_DB_URL.includes('YOUR-FIREBASE'))return false;
+    try{const res=await fetch(`${FIREBASE_DB_URL}parkingData/manuals.json?_t=${Date.now()}`,{cache:'no-store'});if(!res.ok)throw new Error(`HTTP ${res.status}`);const data=await res.json()||{};['director','resident'].forEach(type=>{const value=data?.[type]?.data||data?.[type];if(typeof value==='string'&&value.startsWith('data:application/pdf'))systemSettings[type==='director'?'directorManualPdf':'residentManualPdf']=value;});return true;}catch(e){console.warn('讀取獨立操作手冊失敗，改用舊版 media 手冊：',e);return false;}
+  }
+  async function pushManualToCloud(type,data){
+    if(!currentUser||currentUser.role!=='admin')throw new Error('僅系統管理員可上傳操作手冊');
+    if(!FIREBASE_DB_URL||FIREBASE_DB_URL.includes('YOUR-FIREBASE'))throw new Error('尚未設定 Firebase');
+    const path=type==='director'?'director':'resident';
+    const res=await fetch(`${FIREBASE_DB_URL}parkingData/manuals/${path}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data?{data,updatedAt:{'.sv':'timestamp'},updatedBy:currentUser.name||''}:null)});
+    if(!res.ok)throw new Error(`Firebase 回應 HTTP ${res.status}`);
+    return true;
+  }
   function renderGuide() {
     const isGuest = currentUser.role === 'guest';
     const isAdmin = currentUser.role === 'admin';
@@ -8311,13 +8330,14 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       else systemSettings.residentManualPdf = base64Str;
       renderGuide();
       showStatus(`正在上傳「${file.name}」，請勿關閉頁面…`);
-      const mediaOk = await cloudSyncPushMedia();
+      let mediaOk=false,uploadError='';
+      try{mediaOk=await pushManualToCloud(type,base64Str);}catch(err){uploadError=err?.message||String(err);}
       if (!mediaOk) {
         if (type === 'director') systemSettings.directorManualPdf = oldPdf;
         else systemSettings.residentManualPdf = oldPdf;
         renderGuide();
-        showStatus('上傳失敗，已保留原有手冊；請確認網路後重試。');
-        alert(CLOUD_SYNC_FAIL_MSG + `\n\n${type === 'director' ? '社區主任版' : '一般住戶版'}操作手冊尚未發布到雲端，本機已回復原檔。`);
+        showStatus(`上傳失敗（${uploadError||'無法連線'}），已保留原有手冊。`);
+        alert(`操作手冊上傳失敗：${uploadError||'無法寫入 Firebase'}\n\n本機已回復原檔；請確認 Firebase Rules 是否允許 parkingData/manuals 路徑寫入。`);
         inputElem.value='';
         return;
       }
@@ -8338,7 +8358,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       if (type === 'director') systemSettings.directorManualPdf = "";
       else systemSettings.residentManualPdf = "";
       renderGuide();
-      const mediaOk = await cloudSyncPushMedia();
+      let mediaOk=false;try{mediaOk=await pushManualToCloud(type,null);}catch(e){console.error('刪除手冊失敗：',e);}
       if (!mediaOk) {
         if (type === 'director') systemSettings.directorManualPdf = oldPdf;
         else systemSettings.residentManualPdf = oldPdf;
