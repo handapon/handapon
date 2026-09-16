@@ -692,6 +692,7 @@
     </div>
     <div class="btn-row" style="margin:0">
       <button class="btn btn-primary" id="btn-add-resident" onclick="openAddModal()">新增住戶</button>
+      <button class="btn" id="btn-motorcycle-stats" onclick="showPage('motorcycle-stats')">重機車牌統計</button>
       <button class="btn" onclick="exportCSV()">匯出全資料 CSV</button>
       <button class="btn btn-success" onclick="exportExcel('residents-table', '住戶名單')">匯出名單 Excel</button>
       <button class="btn btn-primary" id="btn-export-registration-word" onclick="exportResidentRegistrationFormsWord()">📝 匯出住戶機車位登記表 Word</button>
@@ -775,6 +776,19 @@
         <tbody id="resident-tbody"></tbody>
       </table>
     </div>
+  </div>
+</div>
+
+<!-- ===== 2A. 重機車牌統計 ===== -->
+<div id="page-motorcycle-stats" class="page">
+  <div class="flex-between" style="margin-bottom:1.5rem">
+    <div style="display:flex;align-items:center;gap:12px"><button class="btn btn-sm" onclick="showPage('residents')">返回住戶名單</button><div><div class="section-title" style="margin:0">重機車牌統計</div><div class="muted-note">依每一張車牌的代碼區間推定；請以行照及實體號牌為最終依據。</div></div></div>
+    <button class="btn" onclick="window.print()">列印統計表</button>
+  </div>
+  <div id="motorcycle-stats-summary" class="results-summary-strip" aria-live="polite"></div>
+  <div class="card card-pad-lg">
+    <div class="table-wrap"><table id="motorcycle-stats-table"><thead><tr><th>住戶</th><th>棟別</th><th>門牌</th><th>車號</th><th>推定重機種類</th></tr></thead><tbody id="motorcycle-stats-tbody"></tbody></table></div>
+    <div id="motorcycle-stats-empty" class="empty" style="display:none"><strong>目前沒有可推定的重機車牌</strong><small>系統只統計符合已知代碼區間的單一車牌；人工確認仍應以行照為準。</small></div>
   </div>
 </div>
 
@@ -1829,6 +1843,25 @@
     return '';
   }
 
+  // 統計以「車牌」而非「住戶」為單位：同戶多車時，只有符合代碼區間的那一張會被列入。
+  function getInferredMotorcyclePlateRows(){
+    const fields=['plate1','plate2','plate3','plateWaitlist'];
+    return residents.flatMap(r=>fields.map(field=>{
+      const plate=String(r[field]||'').trim(),inferred=inferLargeMotorcycleType(plate);
+      return inferred?{r,plate,inferred}:null;
+    }).filter(Boolean));
+  }
+  function renderMotorcycleStats(){
+    const tbody=document.getElementById('motorcycle-stats-tbody'),summary=document.getElementById('motorcycle-stats-summary'),empty=document.getElementById('motorcycle-stats-empty');
+    if(!tbody||!summary||!empty)return;
+    const rows=getInferredMotorcyclePlateRows();
+    const count=label=>rows.filter(x=>x.inferred.label===label).length;
+    const labels=['推定為紅牌重機車牌','推定為黃牌重機車牌','推定為電動紅牌重機車牌','推定為電動黃牌重機車牌'];
+    summary.innerHTML=`<span class="summary-primary">合計 ${rows.length} 張推定重機車牌</span>${labels.map(label=>{const n=count(label);return n?`<span class="${label.includes('紅牌')?'status-danger':'status-caution'}">${escapeHtml(label.replace('推定為','').replace('車牌',''))} ${n} 張</span>`:'';}).join('')}`;
+    tbody.innerHTML=rows.map(({r,plate,inferred})=>`<tr><td>${escapeHtml(r.name)}</td><td class="text-center">${escapeHtml(r.build)}</td><td class="text-center">${escapeHtml(r.room)}</td><td><code class="code-font">${escapeHtml(plate)}</code></td><td><span class="badge ${inferred.level==='red'?'badge-red':'badge-orange'}" title="${escapeHtml(inferred.note)}">${escapeHtml(inferred.label)}</span></td></tr>`).join('');
+    empty.style.display=rows.length?'none':'grid';
+  }
+
   function normalizeSystemSettings() {
     const total = Number(systemSettings.totalSeats);
     systemSettings.totalSeats = Number.isFinite(total) && total > 0 ? Math.floor(total) : 122;
@@ -2806,7 +2839,7 @@
       if (currentUser.role === 'guest' && sessionUsername === 'guest') {
         currentUser = { name: '社區住戶', role: 'guest', username: 'guest' };
         currentResultRound = '全部輪次';
-        resultViewMode = 'card';
+        resultViewMode = 'table';
         initUserBar();
         startAutoSync();
         return;
@@ -3054,7 +3087,7 @@
     if(bgCarouselTimer) clearInterval(bgCarouselTimer);
     initUserBar();
     initApp();
-    setResultViewMode('card');
+    setResultViewMode('table');
     // 住戶入口預設直接準備完整輪次總表；姓名仍由 getDisplayName() 去識別化。
     selectResultRound('全部輪次');
     showFirstLoginGuide();
@@ -3146,6 +3179,8 @@
       const canExportRegistration = currentUser.role === 'admin' || currentUser.role === 'director';
       registrationExportBtn.style.display = canExportRegistration ? 'inline-block' : 'none';
     }
+    const motorcycleStatsBtn=document.getElementById('btn-motorcycle-stats');
+    if(motorcycleStatsBtn) motorcycleStatsBtn.style.display=isGuest?'none':'inline-block';
   }
 
   function initApp() {
@@ -3198,7 +3233,7 @@
       if (overlay) overlay.style.display = 'flex';
       return;
     }
-    if(currentUser.role==='guest' && ['residents','lottery','swap','logs','settings'].includes(pageId)){showAppToast('住戶模式僅提供結果、查詢、平面圖與公告。','info');pageId='dashboard';}
+    if(currentUser.role==='guest' && ['residents','motorcycle-stats','lottery','swap','logs','settings'].includes(pageId)){showAppToast('住戶模式僅提供結果、查詢、平面圖與公告。','info');pageId='dashboard';}
     if (pageId === 'residents' && currentUser.role === 'guest') {
       alert("權限不足！一般住戶無法檢視住戶名單。");
       return;
@@ -3219,6 +3254,10 @@
       alert("權限不足！系統設定僅限系統管理員檢視與操作。");
       return;
     }
+    if (pageId === 'motorcycle-stats' && !['admin','director'].includes(currentUser.role)) {
+      alert("權限不足！重機車牌統計僅限管理人員檢視。");
+      return;
+    }
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     
@@ -3232,6 +3271,7 @@
 
     if(pageId === 'dashboard') { renderDashboard(); }
     if(pageId === 'residents') { renderResidents(); checkPlateWarnings(); }
+    if(pageId === 'motorcycle-stats') renderMotorcycleStats();
     if(pageId === 'results') renderResults();
     if(pageId === 'summary') renderSummary();
     if(pageId === 'logs') renderLogs();
@@ -5828,7 +5868,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   function resultCardActions(r){
-    return `<div class="data-card-actions"><button class="btn btn-sm btn-primary" onclick="printNotificationSlip(${Number(r.id)})">🖨️ 列印通知單</button></div>`;
+    if(!currentUser || currentUser.role==='guest') return '';
+    return `<div class="data-card-actions"><button class="btn btn-sm btn-primary" onclick="printNotificationSlip(${Number(r.id)})">列印通知單</button></div>`;
   }
   function getOriginalUserSeat(round,id){const bucket=originalLotteryResults?.[round]||{};return Number(bucket[`p_${id}`]??bucket[id]??'')||'';}
 
@@ -6594,9 +6635,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           <div>第三輪分配：<b style="color:var(--primary)">${s3}</b></div>
           <div>🎟️ 候補狀態：<b style="color:#c2410c">${sW}</b></div>
         </div>
-        <div class="btn-row" style="margin-top:1.25rem">
-          <button class="btn btn-primary btn-sm" onclick="printNotificationSlip(${r.id})">🖨️ 列印個人中籤通知單</button>
-        </div>
+        ${currentUser&&currentUser.role!=='guest'?`<div class="btn-row" style="margin-top:1.25rem"><button class="btn btn-primary btn-sm" onclick="printNotificationSlip(${r.id})">列印個人中籤通知單</button></div>`:''}
       </div>`;
     });
     resultBox.style.display = "block";
