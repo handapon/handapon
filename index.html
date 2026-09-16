@@ -284,7 +284,7 @@
     body.mobile-card-mode .table-wrap{display:none}
     body.mobile-card-mode #residents-card-list,body.mobile-card-mode #results-card-list{display:block}
   }
-  @media(min-width:1025px){.mobile-card-list{display:none !important}}
+  @media(min-width:1025px){.mobile-card-list{display:none !important}.guest-mode #results-card-list{display:block!important}}
   @media(max-width:1024px){
     .nav-tabs{display:none}
     .nav-hamburger{display:flex}
@@ -2802,6 +2802,15 @@
         return;
       }
       const sessionUsername = String(currentUser.username || '').trim().toLowerCase();
+      // 住戶查詢是公開入口，不存在 accountsList；重新整理時不可誤當成已刪除的管理帳號。
+      if (currentUser.role === 'guest' && sessionUsername === 'guest') {
+        currentUser = { name: '社區住戶', role: 'guest', username: 'guest' };
+        currentResultRound = '全部輪次';
+        resultViewMode = 'card';
+        initUserBar();
+        startAutoSync();
+        return;
+      }
       const liveAcc = accountsList.find(a => String(a.username || '').trim().toLowerCase() === sessionUsername);
       if (!liveAcc) {
         localStorage.removeItem('lottery_user');
