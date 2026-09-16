@@ -208,6 +208,7 @@
   .filter-toolbar{align-items:end}.filter-toolbar .btn{height:44px;white-space:nowrap}#residents-table th:nth-child(1),#residents-table td:nth-child(1),#residents-table th:nth-child(18),#residents-table td:nth-child(18){background:#f8fafc}#residents-table th:nth-child(n+2):nth-child(-n+5),#residents-table td:nth-child(n+2):nth-child(-n+5){background:#f8fafc}#residents-table th:nth-child(n+6):nth-child(-n+10),#residents-table td:nth-child(n+6):nth-child(-n+10){background:#eff6ff}#residents-table th:nth-child(n+11):nth-child(-n+13),#residents-table td:nth-child(n+11):nth-child(-n+13){background:#f5f3ff}#residents-table th:nth-child(n+14):nth-child(-n+17),#residents-table td:nth-child(n+14):nth-child(-n+17){background:#f0fdf4}.lottery-action-note{margin-top:12px;font-size:13px;font-weight:700;line-height:1.6;color:#64748b}.lottery-action-note.blocked{color:#b45309;background:#fff7ed;border:1px solid #fdba74;border-radius:var(--radius-sm);padding:9px 11px}
   .resident-mode-switch{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.resident-mode-switch .btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.resident-plate-quick{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 14px}.resident-plate-quick .btn.active{background:#eff6ff;color:#1d4ed8;border-color:#60a5fa}.resident-plate-view th:nth-child(n+6):nth-child(-n+13),.resident-plate-view td:nth-child(n+6):nth-child(-n+13){display:none}.resident-plate-view{min-width:790px!important}.resident-plate-view th:nth-child(n+14):nth-child(-n+17),.resident-plate-view td:nth-child(n+14):nth-child(-n+17){background:#f0fdf4!important}.resident-plate-view th:nth-child(5),.resident-plate-view td:nth-child(5){min-width:155px}.resident-plate-view .badge{white-space:normal;line-height:1.35}
   .quick-filter-tabs,.floorplan-quick-filters,.stats-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.quick-filter-tabs .btn.active,.floorplan-quick-filters .btn.active,.stats-filter-bar .btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.quick-filter-tabs .btn,.floorplan-quick-filters .btn{min-height:42px}.resident-plate-view tr.plate-row-confirmed{opacity:.58}.resident-plate-view tr.plate-row-attention td{background:#fff7ed!important}.resident-plate-view tr.plate-row-danger td{background:#fff1f2!important}.table-wrap thead th{position:sticky;top:0;z-index:4;box-shadow:0 1px 0 #cbd5e1}.card-query{background:linear-gradient(135deg,#eff6ff,#f8fafc);border-color:#bfdbfe}.card-attention{background:linear-gradient(135deg,#fff7ed,#fffbeb);border-color:#fdba74}.card-success{background:linear-gradient(135deg,#f0fdf4,#f8fafc);border-color:#86efac}.page-loading-note{display:none;position:sticky;top:64px;z-index:850;margin:8px auto;max-width:1180px;padding:10px 14px;background:#eff6ff;border:1px solid #93c5fd;border-radius:var(--radius-sm);color:#1e3a8a;font-size:13px;font-weight:900;box-shadow:0 8px 18px rgba(37,99,235,.12)}.page-loading-note.show{display:block}
+  .page-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid #dbe3ef}.page-subtabs .btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.resident-actions-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.settings-layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:start}.settings-side-nav{position:sticky;top:72px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:var(--radius-card);padding:10px}.settings-side-nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:10px;border-radius:var(--radius-sm);font:inherit;font-weight:800;color:#334155;cursor:pointer}.settings-side-nav button:hover,.settings-side-nav button.active{background:#eff6ff;color:#1d4ed8}.settings-content{min-width:0}.manual-upload-status{display:none;margin-top:10px;padding:8px 10px;border-radius:var(--radius-sm);background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a;font-size:13px;font-weight:800}.manual-upload-status.show{display:block}@media(max-width:850px){.settings-layout{grid-template-columns:1fr}.settings-side-nav{position:static;display:flex;overflow:auto;gap:6px}.settings-side-nav button{white-space:nowrap;width:auto}.settings-side-nav strong{display:none}}
   .form-section-title{margin:18px 0 9px;padding:8px 11px;background:#eff6ff;border-left:3px solid #2563eb;border-radius:var(--radius-sm);font-size:14px;font-weight:900;color:#1e3a8a}
   .settings-section.settings-search-hit{border:2px solid #60a5fa;background:#eff6ff;box-shadow:0 0 0 4px rgba(96,165,250,.16)}
   :where(button,input,select,textarea,[role="button"],summary):focus-visible{outline:3px solid #2563eb!important;outline-offset:3px;box-shadow:0 0 0 5px rgba(37,99,235,.16)!important}
@@ -693,7 +694,7 @@
       <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
       <div><div class="section-title" style="margin:0">住戶名單管理</div><div id="resident-page-meta" class="muted-note">載入中…</div></div>
     </div>
-    <div class="btn-row" style="margin:0">
+    <div class="resident-actions-toolbar" style="margin:0">
       <button class="btn btn-primary" id="btn-add-resident" onclick="openAddModal()">新增住戶</button>
       <button class="btn" id="btn-motorcycle-stats" onclick="showPage('motorcycle-stats')">重機車牌統計</button>
       <button class="btn" onclick="exportCSV()">匯出全資料 CSV</button>
@@ -892,8 +893,10 @@
     <div id="lottery-preview" style="display:none;margin-top:1.5rem;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #bbf7d0;box-shadow:0 4px 10px rgba(0,0,0,0.04);max-height:400px;overflow-y:auto;line-height:1.8;font-size:15px;font-weight:600"></div>
   </div>
 
-  <div class="card" style="background:linear-gradient(135deg,#fefce8 0%,#fff7ed 100%);border-color:#fde68a">
-    <div class="card-title" style="border-left-color:#d97706">🎟️ 候補抽籤（第三輪後剩餘車位 / 住戶棄權車位）</div>
+  <details class="advanced-ops" id="lottery-waitlist-ops">
+    <summary>候補作業與遞補抽籤</summary>
+  <div class="card" style="background:linear-gradient(135deg,#fefce8 0%,#fff7ed 100%);border-color:#fde68a;margin-top:12px">
+    <div class="card-title" style="border-left-color:#d97706">候補抽籤（第三輪後剩餘車位 / 住戶棄權車位）</div>
     <p style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:700;line-height:1.8">
       適用時機：三輪抽籤結束後仍有剩餘（未作廢、未分配）車位，或有住戶棄權釋出車位時，可從「候補名單」中登記過的住戶（且目前完全未持有任何車位者優先）隨機抽出遞補。請先到「住戶名單」頁面為有意願候補的住戶勾選「候補登記」，登記後才會出現在下方候補人數中。
     </p>
@@ -903,6 +906,7 @@
     </div>
     <div id="waitlist-preview" style="display:none;margin-top:1.5rem;padding:1.5rem;background:#fff;border-radius:12px;border:1px solid #fde68a;max-height:300px;overflow-y:auto;line-height:1.8;font-size:15px;font-weight:600"></div>
   </div>
+  </details>
 </div>
 
 <!-- ===== 4. 抽籤結果與彙整總表整合 ===== -->
@@ -919,25 +923,27 @@
       <button class="btn btn-primary" id="btn-print-announcement" onclick="printAnnouncement()">列印公告版</button>
     </div>
   </div>
+  <div class="page-subtabs" id="results-section-tabs"><button class="btn btn-sm active" data-results-section="query" onclick="setResultsSection('query')">查詢</button><button class="btn btn-sm" data-results-section="announcement" onclick="setResultsSection('announcement')">公告與列印</button></div>
+  <div id="results-announcement-note" class="card card-display" style="display:none;margin-bottom:1rem"><div class="card-title">公告與列印</div><p class="muted-note">公告版會隱藏車牌與管理操作；匯出與列印僅限系統管理員。</p></div>
 
   <div id="results-view-banner" class="results-view-banner" style="display:none"></div>
 
-  <div class="round-tabs" id="result-round-tabs">
+  <div class="round-tabs results-query-content" id="result-round-tabs">
     <div class="round-tab active" data-round="第一輪" onclick="selectResultRound('第一輪')">第一輪</div>
     <div class="round-tab" data-round="第二輪" onclick="selectResultRound('第二輪')">第二輪</div>
     <div class="round-tab" data-round="第三輪" onclick="selectResultRound('第三輪')">第三輪</div>
     <div class="round-tab" data-round="候補" onclick="selectResultRound('候補')">🎟️ 候補</div>
     <div class="round-tab" data-round="全部輪次" onclick="selectResultRound('全部輪次')">全部輪次總表</div>
   </div>
-  <div class="quick-filter-tabs" aria-label="結果快速篩選">
+  <div class="quick-filter-tabs results-query-content" aria-label="結果快速篩選">
     <button class="btn btn-sm active" data-result-quick="all" onclick="setResultQuickFilter('all')">全部</button>
     <button class="btn btn-sm" data-result-quick="got" onclick="setResultQuickFilter('got')">僅看中籤者</button>
     <button class="btn btn-sm" data-result-quick="no" onclick="setResultQuickFilter('no')">僅看未中籤者</button>
     <button class="btn btn-sm" data-result-quick="waitlist" onclick="setResultQuickFilter('waitlist')">候補者</button>
   </div>
-  <div id="results-summary-strip" class="results-summary-strip" aria-live="polite"></div>
+  <div id="results-summary-strip" class="results-summary-strip results-query-content" aria-live="polite"></div>
 
-  <div class="card card-pad-lg">
+  <div class="card card-pad-lg results-query-content" id="results-query-panel">
     <div class="form-row" style="margin-bottom:1.5rem">
       <input type="text" id="search-result" placeholder="搜尋姓名 / 門牌 / 車位號碼" oninput="renderResults()">
       <select id="filter-result-type" onchange="syncResultQuickFilter();renderResults()">
@@ -1192,6 +1198,7 @@
         </div>
       </div>
       <div id="preview-director-manual" class="pdf-preview-box"></div>
+      <div id="manual-upload-status-director" class="manual-upload-status" role="status"></div>
     </div>
 
     <div class="card" id="guide-resident-card" style="padding:1.5rem;margin-bottom:1.5rem">
@@ -1205,6 +1212,7 @@
         </div>
       </div>
       <div id="preview-resident-manual" class="pdf-preview-box"></div>
+      <div id="manual-upload-status-resident" class="manual-upload-status" role="status"></div>
     </div>
   </div>
 
@@ -1232,6 +1240,7 @@
     <button class="btn btn-sm" onclick="showPage('dashboard')">⬅ 回到總覽</button>
     <div class="section-title" style="margin:0">系統設定與權限維護</div>
   </div>
+  <div id="settings-health-strip" class="results-summary-strip" aria-live="polite"></div>
   <div class="card card-display" style="padding:1rem;margin-bottom:1rem"><label for="settings-search" style="display:block;margin-bottom:6px">搜尋設定項目</label><div style="display:flex;gap:8px"><input id="settings-search" type="search" placeholder="例如：候補、互換、備份、車位、帳號" oninput="filterSettingsSections()"><button class="btn btn-sm" onclick="clearSettingsSearch()">清除搜尋</button></div><div id="settings-search-note" class="muted-note" style="margin-top:6px">輸入關鍵字後會顯示相關設定區塊。</div></div>
   
   <div class="card">
@@ -3188,7 +3197,7 @@
     const exportBtns = ['btn-export-csv', 'btn-export-excel', 'btn-export-pdf', 'btn-print', 'btn-print-announcement'];
     exportBtns.forEach(id => {
       const el = document.getElementById(id);
-      if(el) el.style.display = isGuest ? 'none' : 'inline-block';
+      if(el) el.style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
     });
     const registrationExportBtn = document.getElementById('btn-export-registration-word');
     if (registrationExportBtn) {
@@ -3197,6 +3206,7 @@
     }
     const motorcycleStatsBtn=document.getElementById('btn-motorcycle-stats');
     if(motorcycleStatsBtn) motorcycleStatsBtn.style.display=isGuest?'none':'inline-block';
+    setResultsSection('query');
   }
 
   function initApp() {
@@ -3226,7 +3236,7 @@
     const groups=[['一般設定',[]],['車位設定',[]],['候補管理',[]],['互換管理',[]],['帳號權限',[]],['備份與診斷',[]]];
     const pick=text=>/候補/.test(text)?2:/互換/.test(text)?3:/帳號|主任|待審核/.test(text)?4:/備份|封存|診斷|歷史/.test(text)?5:/車位與 B1|作廢車位/.test(text)?1:0;
     cards.forEach(card=>groups[pick(card.innerText)].push(card));
-    groups.forEach(([title,list],index)=>{if(!list.length)return;const details=document.createElement('details');details.className='settings-section'+(title==='候補管理'?' risk-section':'');details.dataset.sectionTitle=title;details.open=index<2;const summary=document.createElement('summary');summary.textContent=title;details.appendChild(summary);list.forEach(card=>details.appendChild(card));page.appendChild(details);});
+    const layout=document.createElement('div');layout.className='settings-layout';const nav=document.createElement('nav');nav.className='settings-side-nav';nav.setAttribute('aria-label','系統設定目錄');nav.innerHTML='<strong style="display:block;padding:8px 10px">設定目錄</strong>';const content=document.createElement('div');content.className='settings-content';layout.append(nav,content);groups.forEach(([title,list],index)=>{if(!list.length)return;const details=document.createElement('details');details.className='settings-section'+(title==='候補管理'?' risk-section':'');details.dataset.sectionTitle=title;details.id=`settings-section-${index}`;details.open=index<2;const summary=document.createElement('summary');summary.textContent=title;details.appendChild(summary);list.forEach(card=>details.appendChild(card));content.appendChild(details);const btn=document.createElement('button');btn.type='button';btn.textContent=title;btn.onclick=()=>{details.open=true;details.scrollIntoView({behavior:'smooth',block:'start'});nav.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===btn));};nav.appendChild(btn);});page.appendChild(layout);
     page.dataset.accordionReady='1'; updateSettingsRiskInfo(); refreshSettingsSectionSummaries();
   }
   function settingsSectionSummary(title){
@@ -3239,6 +3249,7 @@
     return '';
   }
   function refreshSettingsSectionSummaries(){document.querySelectorAll('#page-settings details.settings-section').forEach(section=>{const title=section.dataset.sectionTitle||'',summary=section.querySelector('summary');if(summary)summary.textContent=`${title}｜${settingsSectionSummary(title)}`;});}
+  function renderSettingsHealthStrip(){const box=document.getElementById('settings-health-strip');if(!box)return;const latest=versionedBackups[0],year=archives.length?archives[archives.length-1]?.label:'目前年度';box.innerHTML=`<span class="${cloudSyncReady?'status-complete':'status-danger'}">Firebase：${cloudSyncReady?'正常':'待確認'}</span><span class="status-action">最近備份：${latest?new Date(latest.backupTime).toLocaleString('zh-TW'):'尚無'}</span><span class="status-pending">年度：${escapeHtml(year||'未命名')}</span><span class="${systemSettings.swapEnabled?'status-complete':'status-pending'}">互換：${systemSettings.swapEnabled?'開放':'關閉'}</span><span class="status-caution">候補：${residents.filter(r=>r.waitlist==='Y').length} 人登記</span>`;}
   function filterSettingsSections(){
     const q=String(document.getElementById('settings-search')?.value||'').trim().toLowerCase();
     const sections=[...document.querySelectorAll('#page-settings details.settings-section')];
@@ -3307,6 +3318,7 @@
     if(pageId === 'floorplan') { initFloorplanSeats(); } 
     if(pageId === 'settings' && currentUser.role === 'admin') {
       refreshSettingsSectionSummaries();
+      renderSettingsHealthStrip();
       document.getElementById("set-app-title").value = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
       document.getElementById("set-total-seats").value = systemSettings.totalSeats;
       document.getElementById("set-b1-limit").value = systemSettings.b1Limit || Math.floor(systemSettings.totalSeats / 2);
@@ -5942,6 +5954,15 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     document.querySelectorAll('[data-result-quick]').forEach(el=>el.classList.toggle('active',el.dataset.resultQuick===type));
     renderResults();
   }
+  function setResultsSection(section){
+    const isAdmin=currentUser&&currentUser.role==='admin';
+    const safe=section==='announcement'&&isAdmin?'announcement':'query';
+    document.querySelectorAll('[data-results-section]').forEach(el=>{el.classList.toggle('active',el.dataset.resultsSection===safe);el.style.display=(el.dataset.resultsSection==='announcement'&&!isAdmin)?'none':'';});
+    document.querySelectorAll('.results-query-content').forEach(el=>el.style.display=safe==='query'?'':'none');
+    const actions=document.getElementById('results-export-btns'),note=document.getElementById('results-announcement-note');
+    if(actions)actions.style.display=safe==='announcement'&&isAdmin?'flex':'none';
+    if(note)note.style.display=safe==='announcement'&&isAdmin?'block':'none';
+  }
   function syncResultQuickFilter(){const type=document.getElementById('filter-result-type')?.value||'all';document.querySelectorAll('[data-result-quick]').forEach(el=>el.classList.toggle('active',el.dataset.resultQuick===type));}
 
   function renderResults() {
@@ -8266,13 +8287,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function uploadManual(type, inputElem) {
     const file = inputElem.files[0];
     if (!file) return;
-    if (file.type !== "application/pdf") {
+    const status=document.getElementById(`manual-upload-status-${type}`);
+    const showStatus=text=>{if(status){status.textContent=text;status.classList.add('show');}};
+    const isPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name||'');
+    if (!isPdf) {
       alert("請上傳 PDF 格式的檔案！");
       inputElem.value = "";
       return;
     }
-    if (file.size > 4 * 1024 * 1024) { 
-      alert("檔案過大！為確保系統連線順暢，請上傳小於 4MB 的 PDF 檔案。");
+    // Base64 約增加三分之一體積；限制原檔 2MB，避免與既有圖片／手冊一併寫入時超過 Realtime Database 請求限制。
+    if (file.size > 2 * 1024 * 1024) {
+      alert("檔案過大！請上傳小於 2MB 的 PDF；系統以 Base64 儲存，較大的原檔可能使同步失敗。");
       inputElem.value = "";
       return;
     }
@@ -8281,23 +8306,29 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const reader = new FileReader();
     reader.onload = async function(e) {
       const base64Str = e.target.result;
+      if(!String(base64Str||'').startsWith('data:application/pdf')){showStatus('檔案讀取失敗，請重新選擇 PDF。');inputElem.value='';return;}
       if (type === 'director') systemSettings.directorManualPdf = base64Str;
       else systemSettings.residentManualPdf = base64Str;
       renderGuide();
+      showStatus(`正在上傳「${file.name}」，請勿關閉頁面…`);
       const mediaOk = await cloudSyncPushMedia();
       if (!mediaOk) {
         if (type === 'director') systemSettings.directorManualPdf = oldPdf;
         else systemSettings.residentManualPdf = oldPdf;
         renderGuide();
+        showStatus('上傳失敗，已保留原有手冊；請確認網路後重試。');
         alert(CLOUD_SYNC_FAIL_MSG + `\n\n${type === 'director' ? '社區主任版' : '一般住戶版'}操作手冊尚未發布到雲端，本機已回復原檔。`);
         inputElem.value='';
         return;
       }
       const logOk = await addLog("設定", `管理員上傳更新 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊`);
       if (!logOk) console.warn('手冊已同步，但操作紀錄同步失敗');
+      showStatus(`上傳完成：${file.name}`);
       alert(`已成功上傳並更新 ${type === 'director' ? '社區主任版' : '一般住戶版'} 操作手冊！`);
       inputElem.value='';
     };
+    reader.onerror=()=>{showStatus('檔案讀取失敗，請重新選擇 PDF。');inputElem.value='';};
+    showStatus(`正在讀取「${file.name}」…`);
     reader.readAsDataURL(file);
   }
 
