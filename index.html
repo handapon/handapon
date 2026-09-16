@@ -577,11 +577,11 @@
     <h3 id="login-modal-title" style="margin-bottom:1.75rem;text-align:center;font-size:24px;color:var(--text-main);font-weight:900;letter-spacing:-0.5px">稙村秀社區機車位電腦抽籤系統</h3>
     <div class="login-entry-heading">管理員登入</div><div style="margin-bottom:1.25rem">
       <label for="login-user">管理帳號</label>
-      <input type="text" id="login-user" placeholder="請輸入管理帳號">
+      <input type="text" id="login-user" placeholder="請輸入管理帳號" onfocus="renderLoginAnnouncement('admin')">
     </div>
     <div style="margin-bottom:.4rem">
       <label for="login-pw">密碼</label>
-      <div class="password-control"><input type="password" id="login-pw" placeholder="請輸入密碼" onkeyup="checkLoginCapsLock(event)"><button type="button" onclick="toggleLoginPassword()">顯示</button></div>
+      <div class="password-control"><input type="password" id="login-pw" placeholder="請輸入密碼" onfocus="renderLoginAnnouncement('admin')" onkeyup="checkLoginCapsLock(event)"><button type="button" onclick="toggleLoginPassword()">顯示</button></div>
     </div>
     <div id="login-capslock" class="login-inline-note" style="display:none">Caps Lock 已開啟</div>
     <div id="login-error" style="color:#dc2626;font-size:14px;font-weight:900;margin-bottom:1.25rem;display:none;text-align:left">帳號或密碼不正確。</div>
@@ -591,7 +591,7 @@
        <hr style="border:none;border-top:2px solid #cbd5e1;">
        <span style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#fff;padding:0 14px;font-size:14px;color:#475569;font-weight:800">或</span>
     </div>
-    <button class="guest-entry-btn btn" style="width:100%;padding:1.25rem;color:var(--primary);border-color:#60a5fa;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);font-size:17px;font-weight:900;box-shadow:0 8px 18px rgba(37,99,235,.18);" onclick="guestLogin()">進入住戶查詢</button><div class="guest-entry-note">不需帳號密碼，可查詢結果、平面圖與公告。</div><div id="login-health-note" class="login-inline-note">系統健康：連線檢查中</div><div class="login-announcement">系統訊息：請依社區公告辦理登記截止日與抽籤日期。</div>
+    <button class="guest-entry-btn btn" style="width:100%;padding:1.25rem;color:var(--primary);border-color:#60a5fa;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);font-size:17px;font-weight:900;box-shadow:0 8px 18px rgba(37,99,235,.18);" onfocus="renderLoginAnnouncement('guest')" onmouseenter="renderLoginAnnouncement('guest')" onclick="guestLogin()">進入住戶查詢</button><div class="guest-entry-note">不需帳號密碼，可查詢結果、平面圖與公告。</div><div id="login-health-note" class="login-inline-note">系統健康：連線檢查中</div><div id="login-announcement" class="login-announcement" style="display:none"><b id="login-announcement-title"></b><div id="login-announcement-content"></div></div>
   </div>
 </div>
 
@@ -1206,6 +1206,11 @@
       <label for="set-quick-guide">「系統快速導覽」說明文字 (支援換行)</label>
       <textarea id="set-quick-guide" rows="8"></textarea>
     </div>
+    <div class="form-section-title">登入頁公告</div>
+    <div class="form-row"><div><label for="set-login-announcement-title">公告標題</label><input id="set-login-announcement-title" type="text" maxlength="60" placeholder="例：本年度機車位登記公告"></div><div><label for="set-login-announcement-audience">顯示對象</label><select id="set-login-announcement-audience"><option value="all">全部</option><option value="guest">僅住戶</option><option value="admin">僅管理員</option></select></div></div>
+    <div><label for="set-login-announcement-content">公告內容</label><textarea id="set-login-announcement-content" rows="4" maxlength="500" placeholder="輸入登入頁顯示的系統訊息，可換行。"></textarea></div>
+    <div class="form-row" style="margin-top:12px"><div><label for="set-login-announcement-start">公告開始日期</label><input id="set-login-announcement-start" type="date"></div><div><label for="set-login-announcement-end">公告結束日期</label><input id="set-login-announcement-end" type="date"></div></div>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input id="set-login-announcement-enabled" type="checkbox">啟用登入頁公告</label>
     <div class="btn-row mt-2" style="margin-top:1.5rem">
       <button class="btn btn-primary" onclick="saveTitleVersionSettings()">儲存系統標題與導覽設定</button>
     </div>
@@ -1644,7 +1649,7 @@
     if (ok) {
       inputElem.style.borderColor = '';
       inputElem.style.boxShadow = '';
-      inputElem.title = '車牌格式正確';
+      const inferred=inferLargeMotorcycleType(value); inputElem.title=inferred?`車牌格式正確；${inferred.label}（請以行照確認）`:'車牌格式正確';
     } else {
       inputElem.style.borderColor = '#dc2626';
       inputElem.style.boxShadow = '0 0 0 4px rgba(220,38,38,0.12)';
@@ -1754,6 +1759,12 @@
     customFp1: "",
     customFp2: "",
     quickGuideText: defaultQuickGuide,
+    loginAnnouncementEnabled: false,
+    loginAnnouncementTitle: "",
+    loginAnnouncementContent: "",
+    loginAnnouncementStart: "",
+    loginAnnouncementEnd: "",
+    loginAnnouncementAudience: "all",
     directorManualPdf: "", 
     residentManualPdf: ""  
   };
@@ -1777,7 +1788,18 @@
     if (plateVal === PENDING_PLATE_LABEL) {
       return `<span class="badge badge-orange" title="尚未登記真實車牌，保留抽籤資格">🕒 ${PENDING_PLATE_LABEL}</span>`;
     }
-    return `<code class="code-font">${escapeHtml(plateVal)}</code>`;
+    const inferred=inferLargeMotorcycleType(plateVal);
+    return `<code class="code-font">${escapeHtml(plateVal)}</code>${inferred?`<span class="badge ${inferred.level==='red'?'badge-red':'badge-orange'}" title="${escapeHtml(inferred.note)}" style="margin-top:4px">${escapeHtml(inferred.label)}</span>`:''}`;
+  }
+
+  // 僅依交通部已公布的「一車一號」代碼區間推定；號牌顏色／行照才是最終車種依據。
+  function inferLargeMotorcycleType(value){
+    const raw=normalizePlateValue(value),m=raw.match(/^([A-Z]{3})\d{4}$/);if(!m)return null;const p=m[1],between=(x,a,b)=>x>=a&&x<=b;
+    if(p==='EMA')return {level:'red',label:'推定電動紅牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
+    if(between(p,'EMB','EMC'))return {level:'yellow',label:'推定電動黃牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
+    if(between(p,'LGA','LMZ'))return {level:'red',label:'推定紅牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
+    if(between(p,'LAD','LFZ'))return {level:'yellow',label:'推定黃牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
+    return null;
   }
 
   function normalizeSystemSettings() {
@@ -2788,6 +2810,14 @@
     if (brandEl) {
       brandEl.innerHTML = `<span class="brand-mark" aria-hidden="true">稙</span><span>${escapeHtml(titleText)}</span><span class="app-version-label">${escapeHtml(systemSettings.appVersion || '')}</span>`;
     }
+    renderLoginAnnouncement('all');
+  }
+
+  function renderLoginAnnouncement(audience='all'){
+    const box=document.getElementById('login-announcement'),title=document.getElementById('login-announcement-title'),content=document.getElementById('login-announcement-content');if(!box||!title||!content)return;
+    const s=systemSettings||{},today=getLocalDateStamp(new Date()),target=s.loginAnnouncementAudience||'all';
+    const visible=!!s.loginAnnouncementEnabled&&!!String(s.loginAnnouncementContent||'').trim()&&(target==='all'||target===audience)&&(!s.loginAnnouncementStart||today>=s.loginAnnouncementStart)&&(!s.loginAnnouncementEnd||today<=s.loginAnnouncementEnd);
+    box.style.display=visible?'block':'none';if(!visible)return;title.textContent=s.loginAnnouncementTitle||'系統公告';content.textContent=s.loginAnnouncementContent;
   }
 
   function applyLoginBackground() {
@@ -2912,6 +2942,7 @@
   function updateLoginHealth(ok){const el=document.getElementById('login-health-note');if(!el)return;el.textContent=ok?'系統健康：Firebase 連線正常':'系統健康：同步異常；可查詢，暫勿執行抽籤。';el.style.color=ok?'#15803d':'#b91c1c';}
 
   async function doLogin() {
+    renderLoginAnnouncement('admin');
     const u = document.getElementById("login-user").value.trim();
     const p = document.getElementById("login-pw").value.trim();
 
@@ -2970,6 +3001,7 @@
   }
 
   async function guestLogin() {
+    renderLoginAnnouncement('guest');
     const guestBtn = document.querySelector('#login-overlay button[onclick="guestLogin()"]');
     if (guestBtn) { guestBtn.disabled = true; guestBtn.innerHTML = '<span class="spinner-icon dark"></span>進入中，同步最新資料...'; }
 
@@ -3174,6 +3206,12 @@
       document.getElementById("set-ab-end").value = systemSettings.abEnd;
       document.getElementById("set-app-version").value = systemSettings.appVersion;
       document.getElementById("set-quick-guide").value = systemSettings.quickGuideText || defaultQuickGuide;
+      document.getElementById('set-login-announcement-enabled').checked=!!systemSettings.loginAnnouncementEnabled;
+      document.getElementById('set-login-announcement-title').value=systemSettings.loginAnnouncementTitle||'';
+      document.getElementById('set-login-announcement-content').value=systemSettings.loginAnnouncementContent||'';
+      document.getElementById('set-login-announcement-start').value=systemSettings.loginAnnouncementStart||'';
+      document.getElementById('set-login-announcement-end').value=systemSettings.loginAnnouncementEnd||'';
+      document.getElementById('set-login-announcement-audience').value=systemSettings.loginAnnouncementAudience||'all';
       renderDirectorsList();
       renderPendingAudits();
       renderLoginBgList();
@@ -6740,6 +6778,13 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     systemSettings.appTitle = titleVal;
     systemSettings.appVersion = ver;
     systemSettings.quickGuideText = document.getElementById("set-quick-guide").value.trim();
+    systemSettings.loginAnnouncementEnabled=document.getElementById('set-login-announcement-enabled').checked;
+    systemSettings.loginAnnouncementTitle=document.getElementById('set-login-announcement-title').value.trim();
+    systemSettings.loginAnnouncementContent=document.getElementById('set-login-announcement-content').value.trim();
+    systemSettings.loginAnnouncementStart=document.getElementById('set-login-announcement-start').value;
+    systemSettings.loginAnnouncementEnd=document.getElementById('set-login-announcement-end').value;
+    systemSettings.loginAnnouncementAudience=document.getElementById('set-login-announcement-audience').value;
+    if(systemSettings.loginAnnouncementStart&&systemSettings.loginAnnouncementEnd&&systemSettings.loginAnnouncementStart>systemSettings.loginAnnouncementEnd){alert('登入頁公告的開始日期不可晚於結束日期。');Object.assign(systemSettings,snapshot);return;}
     applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
     const ok = await addLog("設定", `更新系統標題與快速導覽設定`, {sync:false}) && await cloudSyncPush();
     if (!ok) {
