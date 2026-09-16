@@ -1436,6 +1436,8 @@
       <div><label for="res-plate-verify">車牌年度核對狀態</label><select id="res-plate-verify"><option value="current">本年度已核對</option><option value="prior">去年資料待確認</option><option value="pending">待住戶補件／核對</option></select></div>
       <div><label for="res-plate-verify-note">核對備註</label><input type="text" id="res-plate-verify-note" maxlength="80" placeholder="例：已比對 115 年登記表"></div>
     </div>
+    <div class="form-row" style="margin-top:14px"><div><label for="res-motorcycle-class">大型重機人工確認</label><select id="res-motorcycle-class"><option value="auto">未人工確認（採系統推定）</option><option value="ordinary">確認為一般機車</option><option value="yellow">確認為黃牌大重機</option><option value="red">確認為紅牌大重機</option><option value="electric-yellow">確認為電動黃牌大重機</option><option value="electric-red">確認為電動紅牌大重機</option><option value="unknown">待行照確認</option></select></div><div><label for="res-motorcycle-source">確認依據</label><select id="res-motorcycle-source"><option value="">未提供</option><option value="plate">系統號牌推定</option><option value="license">已查驗行車執照</option><option value="resident">住戶聲明</option><option value="admin">管理員確認</option></select></div></div>
+    <div style="margin-top:10px"><label for="res-motorcycle-note">車種確認備註</label><input id="res-motorcycle-note" type="text" maxlength="100" placeholder="例：已查驗行照，650cc 黃牌"></div>
     <div style="font-size:12.5px;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:9px 12px;margin-top:10px;font-weight:700;line-height:1.6">「去年資料待確認」只做管理提醒，不會取消抽籤資格；社區主任可依本年度登記表逐戶核對後改為「本年度已核對」。</div>
     <div style="font-size:12.5px;color:#475569;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;margin-top:14px;font-weight:700;line-height:1.6">💡 車牌格式：支援台灣現行各型機車（含燃油機車新舊式號牌、電動機車、大型重型機車、微型電動二輪車等）。英文字母 I、O 不使用；數字沒有限制，可以包含 4。中間連字號「-」可省略，系統會自動排版。尚無車牌請勾選「新戶待補」。</div>
     <div class="modal-footer">
@@ -1800,6 +1802,11 @@
     if(between(p,'LGA','LMZ'))return {level:'red',label:'推定紅牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
     if(between(p,'LAD','LFZ'))return {level:'yellow',label:'推定黃牌大重機',note:'依已知號牌代碼推定；請以行照及實體號牌確認。'};
     return null;
+  }
+  function renderMotorcycleClassBadge(r){
+    const labels={ordinary:'確認一般機車',yellow:'確認黃牌大重機',red:'確認紅牌大重機','electric-yellow':'確認電動黃牌大重機','electric-red':'確認電動紅牌大重機',unknown:'待行照確認'};
+    if(r.motorcycleClass&&r.motorcycleClass!=='auto'){const danger=['red','electric-red'].includes(r.motorcycleClass);const caution=['yellow','electric-yellow','unknown'].includes(r.motorcycleClass);return `<br><span class="badge ${danger?'badge-red':caution?'badge-orange':'badge-green'}" title="${escapeHtml(r.motorcycleClassNote||'人工確認車種')}" style="margin-top:4px">${escapeHtml(labels[r.motorcycleClass]||'人工確認')}</span>`;}
+    const inferred=[r.plate1,r.plate2,r.plate3,r.plateWaitlist].map(inferLargeMotorcycleType).find(Boolean);return inferred?`<br><span class="badge ${inferred.level==='red'?'badge-red':'badge-orange'}" title="${escapeHtml(inferred.note)}" style="margin-top:4px">${escapeHtml(inferred.label)}</span>`:'';
   }
 
   function normalizeSystemSettings() {
@@ -3531,7 +3538,7 @@
         <td class="text-center">${r.id}</td>
         <td class="text-center"><b>${escapeHtml(r.build)}</b></td>
         <td class="text-center"><b>${escapeHtml(r.room)}</b></td>
-        <td><b>${escapeHtml(getDisplayName(r.name))}</b>${r.plateVerification==='prior'?'<br><span class="badge status-caution" title="請依本年度登記表核對車牌">去年資料待確認</span>':r.plateVerification==='pending'?'<br><span class="badge status-caution" title="等待住戶補件或核對">待核對</span>':''}</td>
+        <td><b>${escapeHtml(getDisplayName(r.name))}</b>${r.plateVerification==='prior'?'<br><span class="badge status-caution" title="請依本年度登記表核對車牌">去年資料待確認</span>':r.plateVerification==='pending'?'<br><span class="badge status-caution" title="等待住戶補件或核對">待核對</span>':''}${renderMotorcycleClassBadge(r)}</td>
         <td class="text-center col-group-start"><button class="yn-btn ${r.r1==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r1')">${r.r1}</button></td>
         <td class="text-center"><button class="yn-btn ${r.r2==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r2')">${r.r2}</button></td>
         <td class="text-center"><button class="yn-btn ${r.r3==='Y'?'yes':'no'}" onclick="toggleResidentRound(${r.id}, 'r3')">${r.r3}</button></td>
@@ -3763,6 +3770,7 @@
     document.getElementById("res-plateW").value = "";
     document.getElementById("res-plate-verify").value = "current";
     document.getElementById("res-plate-verify-note").value = "";
+    document.getElementById('res-motorcycle-class').value='auto';document.getElementById('res-motorcycle-source').value='';document.getElementById('res-motorcycle-note').value='';
     syncPendingPlateCheckbox(1, "");
     syncPendingPlateCheckbox(2, "");
     syncPendingPlateCheckbox(3, "");
@@ -3797,6 +3805,7 @@
     document.getElementById("res-plateW").value = r.plateWaitlist || "";
     document.getElementById("res-plate-verify").value = r.plateVerification || "current";
     document.getElementById("res-plate-verify-note").value = r.plateVerificationNote || "";
+    document.getElementById('res-motorcycle-class').value=r.motorcycleClass||'auto';document.getElementById('res-motorcycle-source').value=r.motorcycleClassSource||'';document.getElementById('res-motorcycle-note').value=r.motorcycleClassNote||'';
     syncPendingPlateCheckbox(1, r.plate1);
     syncPendingPlateCheckbox(2, r.plate2);
     syncPendingPlateCheckbox(3, r.plate3);
@@ -3861,6 +3870,7 @@
     const rawPlateW = document.getElementById("res-plateW").value;
     const plateVerification = document.getElementById("res-plate-verify").value;
     const plateVerificationNote = document.getElementById("res-plate-verify-note").value.trim();
+    const motorcycleClass=document.getElementById('res-motorcycle-class').value, motorcycleClassSource=document.getElementById('res-motorcycle-source').value, motorcycleClassNote=document.getElementById('res-motorcycle-note').value.trim();
     const plateErrors = [
       ['車牌 1', rawPlate1], ['車牌 2', rawPlate2], ['車牌 3', rawPlate3], ['候補車牌', rawPlateW]
     ].filter(([, v]) => String(v ?? '').trim() && !isValidTaiwanPlate(v, true))
@@ -4055,6 +4065,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       }
     }
 
+    const existingMotorcycleRecord=id===''?null:residents.find(x=>Number(x.id)===Number(id));
+    const motorcycleRecordUnchanged=existingMotorcycleRecord&&motorcycleClass!=='auto'&&existingMotorcycleRecord.motorcycleClass===motorcycleClass&&existingMotorcycleRecord.motorcycleClassSource===motorcycleClassSource&&existingMotorcycleRecord.motorcycleClassNote===motorcycleClassNote;
+    const motorcycleClassConfirmedAt=motorcycleClass==='auto'?'':(motorcycleRecordUnchanged?(existingMotorcycleRecord.motorcycleClassConfirmedAt||''):new Date().toISOString());
+    const motorcycleClassConfirmedBy=motorcycleClass==='auto'?'':(motorcycleRecordUnchanged?(existingMotorcycleRecord.motorcycleClassConfirmedBy||''):(currentUser?.name||''));
     const data = {
       build, room, name,
       r1, r2, r3,
@@ -4062,7 +4076,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       pref1, pref2, pref3,
       plate1, plate2, plate3,
       plateWaitlist: plateW,
-      plateVerification, plateVerificationNote
+      plateVerification, plateVerificationNote, motorcycleClass, motorcycleClassSource, motorcycleClassNote,
+      motorcycleClassConfirmedAt, motorcycleClassConfirmedBy
     };
 
     if(id === "") {
