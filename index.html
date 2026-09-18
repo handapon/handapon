@@ -496,6 +496,18 @@
   .announcement-sheet-brand{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:4mm}.announcement-sheet-brand .brand-mark{width:28px;height:28px}.announcement-sheet-signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:10mm;margin-top:12mm;padding-top:6mm;border-top:1px solid #64748b;font-size:10pt}.announcement-sheet-signatures div{min-height:14mm;border-bottom:1px solid #64748b}.announcement-page-footer{display:flex;justify-content:space-between;margin-top:7mm;font-size:9pt;color:#475569}.announcement-page-footer .page-no::after{content:"第 " counter(page) " 頁"}
   @media(min-width:1050px){.page-hero-status{justify-content:flex-end}}
   @media(max-width:700px){.page-hero{padding:14px 16px}.page-hero .section-title{font-size:24px}.page-hero-status{gap:6px}.page-hero-status span{font-size:11.5px}.page-hero-status .hero-status-details>div{left:0;right:auto}.table-wrap thead tr:not(.table-group-row) th{top:32px}}
+  /* ===== 簡潔操作模式與高頻工作流 ===== */
+  .dashboard-title-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:1.25rem}
+  .dashboard-title-row.page-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start}.dashboard-title-row.page-hero .page-purpose,.dashboard-title-row.page-hero .page-hero-status{grid-column:1/-1}
+  .dashboard-title-row .section-title{margin:0}
+  #page-dashboard:not(.dashboard-detail) .dashboard-secondary{display:none}
+  .resident-verify-view .table-group-row{display:none}
+  .resident-verify-view th:nth-child(1),.resident-verify-view td:nth-child(1),.resident-verify-view th:nth-child(2),.resident-verify-view td:nth-child(2),.resident-verify-view th:nth-child(n+6):nth-child(-n+13),.resident-verify-view td:nth-child(n+6):nth-child(-n+13),.resident-verify-view th:nth-child(18),.resident-verify-view td:nth-child(18){display:none}
+  .resident-verify-view{min-width:720px!important}.resident-verify-view th:nth-child(3),.resident-verify-view th:nth-child(4),.resident-verify-view th:nth-child(5){background:#eef6ff!important}.resident-verify-view th:nth-child(n+14):nth-child(-n+17){background:#effcf5!important}
+  .floorplan-mobile-shortcuts{display:none}
+  .settings-favorites{display:grid;gap:6px;padding:8px 0 12px;margin:0 0 8px;border-bottom:1px solid #dbe3ef}.settings-favorites-label{font-size:12px;font-weight:900;color:#64748b;padding:0 10px;letter-spacing:.04em}.settings-side-nav .settings-favorite{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:8px 10px;font-size:13px}.settings-side-nav .settings-favorite:hover{background:#dbeafe}
+  .table-wrap tbody tr:hover td{background:#eff6ff!important}.table-wrap tbody tr:focus-within td{background:#dbeafe!important;outline:1px solid #60a5fa;outline-offset:-1px}
+  @media(max-width:700px){body{padding-bottom:82px}#mobile-bottom-nav{grid-template-columns:repeat(5,1fr);padding:5px}.mobile-bottom-btn{min-height:62px;font-size:10.5px;padding:5px 2px}.mobile-bottom-btn.active{background:#eff6ff;color:#1d4ed8;border-radius:var(--radius-sm)}.floorplan-mobile-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.dashboard-title-row{align-items:flex-start}.dashboard-title-row .btn{flex:0 0 auto}.resident-verify-view{min-width:640px!important}}
 </style>
 </head>
 <body>
@@ -639,10 +651,12 @@
   <button class="mobile-bottom-btn admin-only-nav" onclick="showPage('residents')">住戶</button>
   <button class="mobile-bottom-btn admin-only-nav" onclick="showPage('lottery')">抽籤</button>
   <button class="mobile-bottom-btn admin-only-nav" onclick="showPage('settings')">設定</button>
+  <button class="mobile-bottom-btn admin-only-nav" onclick="toggleMobileMenu()">更多</button>
   <button class="mobile-bottom-btn guest-only-nav" onclick="showPage('inquiry')">我的結果</button>
   <button class="mobile-bottom-btn guest-only-nav" onclick="showPage('results')">結果</button>
   <button class="mobile-bottom-btn guest-only-nav" onclick="showPage('floorplan')">平面圖</button>
   <button class="mobile-bottom-btn guest-only-nav" onclick="showPage('dashboard')">公告</button>
+  <button class="mobile-bottom-btn guest-only-nav" onclick="toggleMobileMenu()">更多</button>
 </nav>
 
 <!-- ===== 登入對話框 ===== -->
@@ -671,7 +685,7 @@
 
 <!-- ===== 1. 總覽 ===== -->
 <div id="page-dashboard" class="page active">
-  <div class="section-title">機車位抽籤總覽</div>
+  <div class="dashboard-title-row"><div class="section-title">機車位抽籤總覽</div><button id="dashboard-view-toggle" class="btn btn-sm" onclick="toggleDashboardDetail()" aria-expanded="false">查看完整總覽</button></div>
 
   <div class="card" id="my-parking-result-card" style="display:none;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#93c5fd">
     <div class="card-title">🎉 我的車位結果</div>
@@ -687,7 +701,7 @@
     <div id="management-dashboard" class="management-dashboard" aria-live="polite"></div>
   </div>
 
-  <div class="card" id="guest-quick-nav" style="display:none;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border-color:#93c5fd;margin-bottom:1.75rem">
+  <div class="card dashboard-secondary" id="guest-quick-nav" style="display:none;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border-color:#93c5fd;margin-bottom:1.75rem">
     <div class="card-title" style="border-left-color:#2563eb">📱 快速前往</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
       <button class="btn btn-primary" style="padding:1.1rem .75rem;font-size:15px;white-space:normal;line-height:1.4" onclick="showPage('results')">📊<br>抽籤結果<br>與總表</button>
@@ -697,7 +711,7 @@
     </div>
   </div>
 
-  <div class="card" id="staff-quick-nav" style="display:none;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border-color:#93c5fd;margin-bottom:1.75rem">
+  <div class="card dashboard-secondary" id="staff-quick-nav" style="display:none;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border-color:#93c5fd;margin-bottom:1.75rem">
     <div class="card-title" style="border-left-color:#2563eb">📱 快速前往（手機/平板選單打不開時可從這裡切換頁面）</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px">
       <button class="btn btn-primary" style="padding:.9rem .6rem;font-size:14px;white-space:normal;line-height:1.35" onclick="showPage('residents')">👥<br>住戶名單</button>
@@ -726,8 +740,8 @@
 
 
 
-  <div class="stats-grid" id="dash-stats"></div>
-  <div class="grid-2">
+  <div class="stats-grid dashboard-secondary" id="dash-stats"></div>
+  <div class="grid-2 dashboard-secondary">
     <div class="card">
       <div class="card-title">各輪抽籤狀態</div>
       <div id="dash-rounds"></div>
@@ -737,7 +751,7 @@
       <div id="dash-quick-guide" style="font-size:15px;color:#1e293b;line-height:1.8;padding:0.25rem;font-weight:600"></div>
     </div>
   </div>
-  <div class="card">
+  <div class="card dashboard-secondary">
     <div class="flex-between" style="margin-bottom:1.5rem">
       <div class="card-title" style="margin:0">車位即時分配圖</div>
     </div>
@@ -777,6 +791,7 @@
       <button class="btn btn-sm active" id="resident-mode-full" onclick="setResidentListMode('full')">完整管理表</button>
       <button class="btn btn-sm" id="resident-mode-plate" onclick="setResidentListMode('plate')">車牌核對表</button>
       <button class="btn btn-sm" id="resident-mode-pending" onclick="setResidentListMode('pending')">待核對清單</button>
+      <button class="btn btn-sm" id="resident-mode-verify" onclick="setResidentListMode('verify')">核對模式</button>
     </div>
     <div class="form-row-3 filter-toolbar" style="margin-bottom:1.25rem">
       <input type="text" id="search-resident" placeholder="搜尋姓名 / 門牌 / 棟別 / 車牌" oninput="renderResidents()">
@@ -1194,6 +1209,7 @@
   </div>
 
   <div class="floorplan-toolkit">
+    <div class="floorplan-mobile-shortcuts" aria-label="平面圖手機快捷操作"><button class="btn btn-sm btn-primary" onclick="showMyFloorplanSeat()">我的車位</button><button class="btn btn-sm" onclick="focusFloorplanSearch()">搜尋車位</button></div>
     <div class="floorplan-toolbar">
       <input type="text" id="floorplan-search" placeholder="搜尋車位號碼／姓名／門牌／車牌" oninput="filterFloorplanView()">
       <select id="floorplan-status-filter" onchange="filterFloorplanView()">
@@ -1789,6 +1805,7 @@
   let residentViewMode = 'table';
   let residentListMode = 'full';
   let residentPlateQuickFilter = '';
+  let dashboardDetailMode = false;
   let resultViewMode = 'table';
   let selectedLogIds = [];
   let toastIdSeq = 0;
@@ -3279,6 +3296,8 @@
   function initApp() {
     initReadingPreferences();
     enhanceNavigationIcons();
+    initDashboardDetailMode();
+    initGlobalKeyboardShortcuts();
     decoratePagePurposes();
     wireAccessibleLabels();
     repairKnownResidentNameArtifacts();
@@ -3299,19 +3318,24 @@
     renderBackupHealth();
   }
   function navigationIconSvg(name){const paths={dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',residents:'<circle cx="12" cy="8" r="3.5"/><path d="M5 21c.8-4 3.1-6 7-6s6.2 2 7 6"/>',lottery:'<path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M12 14v6M8 21h8"/><path d="M17 6h2a2 2 0 0 1 0 4h-2"/>',results:'<path d="M5 20V10M12 20V4M19 20v-7"/><path d="M3 20h18"/>',logs:'<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8.5"/>',swap:'<path d="M7 7h11l-3-3M17 17H6l3 3"/><path d="M18 7l-3-3M6 17l3 3"/>',inquiry:'<circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/>',floorplan:'<path d="M4 5l6-2 5 2 5-2v16l-5 2-5-2-6 2V5Z"/><path d="M10 3v16M15 5v16"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.1 2.1-.06-.06A1.7 1.7 0 0 0 15.76 19l-.1.04a1.7 1.7 0 0 0-1.04 1.56v.1h-3v-.1A1.7 1.7 0 0 0 10.58 19l-.1-.04a1.7 1.7 0 0 0-1.88.34l-.06.06-2.1-2.1.06-.06A1.7 1.7 0 0 0 6.84 15l-.04-.1A1.7 1.7 0 0 0 5.24 13.86h-.1v-3h.1A1.7 1.7 0 0 0 6.8 9.82l.04-.1A1.7 1.7 0 0 0 6.5 7.84l-.06-.06 2.1-2.1.06.06a1.7 1.7 0 0 0 1.88.34l.1-.04a1.7 1.7 0 0 0 1.04-1.56v-.1h3v.1a1.7 1.7 0 0 0 1.04 1.56l.1.04a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.1 2.1-.06.06a1.7 1.7 0 0 0-.34 1.88l.04.1a1.7 1.7 0 0 0 1.56 1.04h.1v3h-.1A1.7 1.7 0 0 0 19.44 14.9l-.04.1Z"/>',guide:'<path d="M4 5.5A3.5 3.5 0 0 1 7.5 4H12v16H7.5A3.5 3.5 0 0 0 4 23V5.5ZM20 5.5A3.5 3.5 0 0 0 16.5 4H12v16h4.5A3.5 3.5 0 0 1 20 23V5.5Z"/>'};return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name]||paths.dashboard}</svg>`;}
-  function enhanceNavigationIcons(){document.querySelectorAll('.nav-tab,.mobile-bottom-btn').forEach(el=>{if(el.querySelector('.nav-icon'))return;const target=String(el.getAttribute('onclick')||'').match(/showPage\('([^']+)'\)/)?.[1]||'dashboard';const icon=document.createElement('span');icon.className='nav-icon';icon.innerHTML=navigationIconSvg(target);el.prepend(icon);el.classList.add('has-nav-icon');});}
-  function decoratePagePurposes(){const copy={dashboard:'目前年度作業摘要與待處理事項。',residents:'管理住戶資格、車牌資料與年度核對狀態。',lottery:'依目前輪次執行覆核、抽籤與結果確認。',results:'查看各輪結果；管理員可另行建立公告與列印。',swap:'檢視及處理符合規則的車位互換。',floorplan:'依車位狀態與輪次快速定位配置。',settings:'維護系統設定、資料安全與年度作業。',guide:'提供各角色對應的操作指引。'},tones={dashboard:'success',residents:'info',lottery:'attention',results:'info',swap:'attention',floorplan:'info',settings:'danger',guide:'info'};Object.entries(copy).forEach(([page,text])=>{const root=document.getElementById(`page-${page}`),title=root?.querySelector('.section-title'),host=title?.parentElement;if(title&&host){host.classList.add('page-hero');host.dataset.heroTone=tones[page]||'info';if(!host.querySelector('.page-purpose')){const note=document.createElement('div');note.className='page-purpose';note.textContent=text;title.after(note);}if(!host.querySelector('.page-hero-status')){const status=document.createElement('div');status.className='page-hero-status';status.dataset.pageHero=page;host.appendChild(status);}}});renderPageHeroStatuses();}
+  function enhanceNavigationIcons(){document.querySelectorAll('.nav-tab,.mobile-bottom-btn').forEach(el=>{if(el.querySelector('.nav-icon'))return;const target=String(el.getAttribute('onclick')||'').match(/showPage\('([^']+)'\)/)?.[1]||(el.textContent.includes('更多')?'guide':'dashboard');const icon=document.createElement('span');icon.className='nav-icon';icon.innerHTML=navigationIconSvg(target);el.prepend(icon);el.classList.add('has-nav-icon');});}
+  function decoratePagePurposes(){const copy={dashboard:'目前年度作業摘要與待處理事項。',residents:'管理住戶資格、車牌資料與年度核對狀態。',lottery:'依目前輪次執行覆核、抽籤與結果確認。',results:'查看各輪結果；管理員可另行建立公告與列印。',swap:'檢視及處理符合規則的車位互換。',floorplan:'依車位狀態與輪次快速定位配置。',settings:'維護系統設定、資料安全與年度作業。',guide:'提供各角色對應的操作指引。'},tones={dashboard:'success',residents:'info',lottery:'attention',results:'info',swap:'attention',floorplan:'info',settings:'danger',guide:'info'};Object.entries(copy).forEach(([page,text])=>{const root=document.getElementById(`page-${page}`),title=root?.querySelector('.section-title');if(!title||!root)return;let host=title.parentElement;if(host===root){host=document.createElement('div');host.className='page-hero';title.before(host);host.appendChild(title);}host.classList.add('page-hero');host.dataset.heroTone=tones[page]||'info';if(!host.querySelector('.page-purpose')){const note=document.createElement('div');note.className='page-purpose';note.textContent=text;title.after(note);}if(!host.querySelector('.page-hero-status')){const status=document.createElement('div');status.className='page-hero-status';status.dataset.pageHero=page;host.appendChild(status);}});renderPageHeroStatuses();}
   function renderPageHeroStatuses(){const used=new Set(Object.values(lotteryResults||{}).flatMap(x=>Object.values(x||{})).map(Number).filter(n=>n>0)).size,available=Math.max(0,Number(systemSettings.totalSeats||0)-Number((systemSettings.voidSeats||[]).length)-used),frozen=isLotteryDataFrozen();document.querySelectorAll('.page-hero-status').forEach(box=>{const page=box.dataset.pageHero;let items=page==='lottery'?[currentRound||'第一輪',frozen?'資料已凍結':'資料可編輯',`可用 ${available} 位`,cloudSyncReady?'同步正常':'同步待確認']:page==='results'?[currentResultRound||'第一輪',`中籤 ${getValidWinnerCount(currentResultRound||'第一輪')} 位`,cloudSyncReady?'同步正常':'同步待確認']:page==='residents'?[`住戶 ${residents.length} 戶`,`待核對 ${residents.filter(r=>['prior','pending'].includes(r.plateVerification)).length} 筆`,cloudSyncReady?'同步正常':'同步待確認']:[cloudSyncReady?'同步正常':'同步待確認'];const pill=x=>{const text=String(x),tone=/同步正常|資料已凍結/.test(text)?' hero-status-good':/待確認|待核對/.test(text)?' hero-status-warn':'';return `<span class="${tone.trim()}">${escapeHtml(text)}</span>`;};const visible=items.slice(0,3),extra=items.slice(3);box.innerHTML=visible.map(pill).join('')+(extra.length?`<details class="hero-status-details"><summary>更多狀態</summary><div>${extra.map(pill).join('')}</div></details>`:'');});}
 
+  function initDashboardDetailMode(){try{dashboardDetailMode=localStorage.getItem('parking_dashboard_detail')==='1';}catch(_){}const page=document.getElementById('page-dashboard'),btn=document.getElementById('dashboard-view-toggle');if(page)page.classList.toggle('dashboard-detail',dashboardDetailMode);if(btn){btn.textContent=dashboardDetailMode?'收合完整總覽':'查看完整總覽';btn.setAttribute('aria-expanded',String(dashboardDetailMode));}}
+  function toggleDashboardDetail(){dashboardDetailMode=!dashboardDetailMode;try{localStorage.setItem('parking_dashboard_detail',dashboardDetailMode?'1':'0');}catch(_){}initDashboardDetailMode();}
+  function updateMobileNavigationState(pageId){document.querySelectorAll('#mobile-bottom-nav .mobile-bottom-btn').forEach(btn=>{const target=String(btn.getAttribute('onclick')||'').match(/showPage\('([^']+)'\)/)?.[1];btn.classList.toggle('active',target===pageId);});}
+  function initGlobalKeyboardShortcuts(){if(document.body.dataset.keyboardShortcutsReady==='1')return;document.body.dataset.keyboardShortcutsReady='1';document.addEventListener('keydown',event=>{const target=event.target,tag=String(target?.tagName||'').toLowerCase(),editing=['input','textarea','select'].includes(tag)||target?.isContentEditable;if(event.key==='Escape'){const closeButtons=[...document.querySelectorAll('.modal.show [data-close],.modal.show .close,.modal.show button[aria-label*="關閉"]')];if(closeButtons[0]){event.preventDefault();closeButtons[0].click();return;}document.querySelectorAll('.modal.show,.bg-fade[style*="flex"]').forEach(el=>{if(el.id==='login-overlay')return;el.classList.remove('show');el.style.display='none';});return;}if(event.key==='/'&&!editing&&!event.ctrlKey&&!event.metaKey&&!event.altKey){event.preventDefault();const page=document.querySelector('.page.active')?.id||'';const search=page==='page-residents'?document.getElementById('search-resident'):page==='page-results'?document.getElementById('search-result'):page==='page-floorplan'?document.getElementById('floorplan-search'):page==='page-logs'?document.getElementById('log-search'):document.querySelector('.page.active input[type="search"],.page.active input[type="text"]');search?.focus();search?.select?.();return;}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)&&target?.closest?.('.table-wrap')&&['td','th','button','input'].includes(tag)){const cells=[...target.closest('table')?.querySelectorAll('tbody td')||[]].filter(x=>x.offsetParent!==null);const current=target.closest('td,th');const index=cells.indexOf(current);if(index<0)return;const cols=current.parentElement?.children.length||1;let next=index;if(event.key==='ArrowRight')next=index+1;if(event.key==='ArrowLeft')next=index-1;if(event.key==='ArrowDown')next=index+cols;if(event.key==='ArrowUp')next=index-cols;const cell=cells[next];if(cell){event.preventDefault();const focusable=cell.querySelector('button,input,select,a,[tabindex]');if(!focusable)cell.tabIndex=0;(focusable||cell).focus();}}});}
   function setupSettingsAccordion(){
     const page=document.getElementById('page-settings'); if(!page||page.dataset.accordionReady==='1') return;
     const cards=[...page.querySelectorAll(':scope > .card')]; if(!cards.length) return;
     const groups=[['一般設定',[]],['車位設定',[]],['候補管理',[]],['互換管理',[]],['帳號權限',[]],['備份與診斷',[]]];
     const pick=text=>/候補/.test(text)?2:/互換/.test(text)?3:/帳號|主任|待審核/.test(text)?4:/備份|封存|診斷|歷史/.test(text)?5:/車位與 B1|作廢車位/.test(text)?1:0;
     cards.forEach(card=>groups[pick(card.innerText)].push(card));
-    const layout=document.createElement('div');layout.className='settings-layout';const nav=document.createElement('nav');nav.className='settings-side-nav';nav.setAttribute('aria-label','系統設定目錄');nav.innerHTML='<strong style="display:block;padding:8px 10px">設定目錄</strong>';const content=document.createElement('div');content.className='settings-content';layout.append(nav,content);groups.forEach(([title,list],index)=>{if(!list.length)return;const details=document.createElement('details');details.className='settings-section'+(title==='候補管理'?' risk-section':'');details.dataset.sectionTitle=title;details.id=`settings-section-${index}`;details.open=index<2;const summary=document.createElement('summary');summary.textContent=title;details.appendChild(summary);list.forEach(card=>details.appendChild(card));content.appendChild(details);const btn=document.createElement('button');btn.type='button';btn.textContent=title;btn.onclick=()=>{details.open=true;details.scrollIntoView({behavior:'smooth',block:'start'});nav.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===btn));};nav.appendChild(btn);});page.appendChild(layout);
+    const layout=document.createElement('div');layout.className='settings-layout';const nav=document.createElement('nav');nav.className='settings-side-nav';nav.setAttribute('aria-label','系統設定目錄');nav.innerHTML='<strong style="display:block;padding:8px 10px">設定目錄</strong><div class="settings-favorites"><span class="settings-favorites-label">常用設定</span><button class="settings-favorite" type="button" onclick="openSettingsShortcut(&quot;year&quot;)">年度與公告</button><button class="settings-favorite" type="button" onclick="openSettingsShortcut(&quot;swap&quot;)">互換開關</button><button class="settings-favorite" type="button" onclick="openSettingsShortcut(&quot;void&quot;)">作廢車位</button><button class="settings-favorite" type="button" onclick="openSettingsShortcut(&quot;backup&quot;)">備份與還原</button></div>';const content=document.createElement('div');content.className='settings-content';layout.append(nav,content);groups.forEach(([title,list],index)=>{if(!list.length)return;const details=document.createElement('details');details.className='settings-section'+(title==='候補管理'?' risk-section':'');details.dataset.sectionTitle=title;details.id=`settings-section-${index}`;details.open=index<2;const summary=document.createElement('summary');summary.textContent=title;details.appendChild(summary);list.forEach(card=>details.appendChild(card));content.appendChild(details);const btn=document.createElement('button');btn.type='button';btn.textContent=title;btn.onclick=()=>{details.open=true;details.scrollIntoView({behavior:'smooth',block:'start'});nav.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===btn));};nav.appendChild(btn);});page.appendChild(layout);
     page.dataset.accordionReady='1'; updateSettingsRiskInfo(); refreshSettingsSectionSummaries();
   }
+  function openSettingsShortcut(key){const targets={year:'set-app-version',swap:'swap-start-date',void:'set-void-seats',backup:'versioned-backup-list-box'};const el=document.getElementById(targets[key]);if(!el)return;const section=el.closest('details.settings-section');if(section)section.open=true;el.scrollIntoView({behavior:'smooth',block:'center'});el.focus?.();}
   function settingsSectionSummary(title){
     if(title==='一般設定')return `系統版本 ${systemSettings.appVersion||'—'}`;
     if(title==='車位設定')return `共 ${systemSettings.totalSeats||0} 位／作廢 ${(systemSettings.voidSeats||[]).length} 位`;
@@ -3410,6 +3434,7 @@
       renderPendingAudits();
       renderLoginBgList();
     }
+    updateMobileNavigationState(pageId);
     renderPageHeroStatuses();
   }
 
@@ -3716,7 +3741,7 @@
       });
     }
 
-    const modeLabel={full:'完整管理表',plate:'車牌核對表',pending:'待核對清單'}[residentListMode]||'住戶名單';
+    const modeLabel={full:'完整管理表',plate:'車牌核對表',pending:'待核對清單',verify:'核對模式'}[residentListMode]||'住戶名單';
     const activeFilterCount=[document.getElementById('search-resident')?.value,document.getElementById('filter-build')?.value,document.getElementById('filter-reserve')?.value,document.getElementById('filter-plate-verify')?.value,residentPlateQuickFilter,residentListMode!=='full'?residentListMode:''].filter(Boolean).length;
     document.getElementById("resident-count").innerHTML = `${escapeHtml(modeLabel)}｜目前顯示 ${filtered.length} 筆（系統共建檔 ${residents.length} 筆）${activeFilterCount?`<span class="filter-active-chip">已套用 ${activeFilterCount} 項條件</span>`:''}`;
     const verifyCount=residents.filter(r=>r.plateVerification==='prior'||r.plateVerification==='pending').length;
@@ -3764,12 +3789,12 @@
     });
     document.getElementById("resident-tbody").innerHTML = html;
     const table=document.getElementById('residents-table'),hint=document.querySelector('#page-residents .table-scroll-hint'),waitHint=document.getElementById('waitlist-col-hint');
-    if(table)table.classList.toggle('resident-plate-view',residentListMode!=='full');
-    if(hint)hint.textContent=residentListMode==='full'?'表格可左右滑動查看更多欄位':'車牌核對表保留住戶識別、車牌與操作欄位；可輸入完整或部分車牌搜尋。';
+    if(table){table.classList.toggle('resident-plate-view',['plate','pending'].includes(residentListMode));table.classList.toggle('resident-verify-view',residentListMode==='verify');}
+    if(hint)hint.textContent=residentListMode==='full'?'表格可左右滑動查看更多欄位':residentListMode==='verify'?'核對模式只保留棟別、門牌、姓名、車牌、年度核對狀態與重機推定，適合逐筆對照紙本登記表。':'車牌核對表保留住戶識別、車牌與操作欄位；可輸入完整或部分車牌搜尋。';
     if(waitHint)waitHint.style.display=residentListMode==='full'?'block':'none';
   }
   function toggleResidentAdvancedFilters(){const box=document.getElementById('resident-advanced-filters');if(box)box.style.display=box.style.display==='none'?'grid':'none';}
-  function setResidentListMode(mode){residentListMode=['full','plate','pending'].includes(mode)?mode:'full';document.querySelectorAll('button[id^="resident-mode-"]').forEach(el=>el.classList.toggle('active',el.id===`resident-mode-${residentListMode}`));renderResidents();}
+  function setResidentListMode(mode){residentListMode=['full','plate','pending','verify'].includes(mode)?mode:'full';document.querySelectorAll('button[id^="resident-mode-"]').forEach(el=>el.classList.toggle('active',el.id===`resident-mode-${residentListMode}`));renderResidents();}
   function setResidentPlateQuickFilter(filter){residentPlateQuickFilter=filter||'';document.querySelectorAll('[data-plate-quick]').forEach(el=>el.classList.toggle('active',el.dataset.plateQuick===residentPlateQuickFilter));renderResidents();}
   function clearResidentFilters(){document.getElementById('search-resident').value='';document.getElementById('filter-build').value='';document.getElementById('filter-reserve').value='';document.getElementById('filter-plate-verify').value='';setResidentPlateQuickFilter('');setResidentListMode('full');}
   async function batchConfirmPlateVerification(){if(!confirm('確定將目前篩選結果的車牌核對狀態標記為「本年度已核對」嗎？'))return;const targets=residents.filter(residentMatchesFilters);if(!targets.length){showAppToast('目前篩選條件沒有住戶。','info');return;}targets.forEach(x=>{x.plateVerification='current';x.plateVerificationNote='批次核對完成';});renderResidents();const ok=await addLog('住戶',`批次標記 ${targets.length} 戶車牌為本年度已核對`,{sync:false})&&await cloudSyncPush();if(!ok)showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}
@@ -6925,6 +6950,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const q=document.getElementById('floorplan-search'); const f=document.getElementById('floorplan-status-filter');
     if(q) q.value=''; if(f) f.value='all'; document.querySelectorAll('[data-floorplan-quick]').forEach(el=>el.classList.toggle('active',el.dataset.floorplanQuick==='all')); initFloorplanSeats();
   }
+  function focusFloorplanSearch(){const input=document.getElementById('floorplan-search');if(!input)return;input.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>input.focus(),180);}
+  function showMyFloorplanSeat(){let room=String(document.getElementById('my-result-room')?.value||'').trim();if(!room){room=String(window.prompt('請輸入您的門牌以定位車位：')||'').trim();}if(!room)return;const normalized=room.replace(/\s+/g,'').toUpperCase();const resident=residents.find(r=>`${String(r.build||'')}${String(r.room||'')}`.replace(/\s+/g,'').toUpperCase()===normalized||String(r.room||'').replace(/\s+/g,'').toUpperCase()===normalized);if(!resident){showAppToast('找不到相符門牌，請確認輸入格式。','warn');return;}const seat=[resident.assign1,resident.assign2,resident.assign3,resident.assignWaitlist].map(Number).find(n=>n>0);if(!seat){showAppToast('此門牌目前沒有已分配車位。','info');return;}highlightFloorplanSeat(seat);}
   function setFloorplanQuickFilter(filter){
     floorplanStatusFilter=['all','free','used','void','waitlist'].includes(filter)?filter:'all';
     const select=document.getElementById('floorplan-status-filter'); if(select)select.value=floorplanStatusFilter;
