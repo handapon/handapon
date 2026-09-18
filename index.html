@@ -516,6 +516,13 @@
   .floorplan-status-cards{display:grid;grid-template-columns:repeat(4,minmax(100px,1fr));gap:8px;margin:0 0 10px}.floorplan-status-card{padding:8px 10px;border:1px solid #dbe3ef;border-radius:var(--radius-sm);background:#fff;font-size:12px;color:#64748b}.floorplan-status-card b{display:block;margin-top:2px;font-size:18px;color:#0f172a;font-variant-numeric:tabular-nums}.floorplan-status-card.free{border-color:#86efac;background:#f0fdf4}.floorplan-status-card.used{border-color:#93c5fd;background:#eff6ff}.floorplan-status-card.wait{border-color:#fdba74;background:#fff7ed}.floorplan-status-card.void{border-color:#cbd5e1;background:#f8fafc}
   .page-loading-note.show{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#f8fafc 25%,#eff6ff 50%,#f8fafc 75%);background-size:200% 100%;animation:loadingShimmer .8s ease-in-out infinite}.page-loading-note.show::before{content:"";width:22px;height:12px;border-radius:999px;background:#cbd5e1;box-shadow:30px 0 0 #dbeafe,60px 0 0 #cbd5e1;animation:loadingPulse .7s ease-in-out infinite alternate}@keyframes loadingShimmer{to{background-position:-200% 0}}@keyframes loadingPulse{to{opacity:.45}}
   @media(max-width:700px){.card,.card.card-attention,.card.card-success,.risk-section{padding:16px}.dashboard-command-card{padding:18px}.result-progress{grid-template-columns:1fr 1fr}.floorplan-status-cards{grid-template-columns:1fr 1fr}.seat-watermark::after{font-size:58px}}
+  /* ===== 管理辨識、操作列與稽核輔助 ===== */
+  #sync-status-indicator{margin-left:auto;min-height:30px;display:inline-flex;align-items:center;gap:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#475569}.sync-online{border-color:#86efac!important;background:#f0fdf4!important;color:#166534!important}.sync-offline{border-color:#fca5a5!important;background:#fef2f2!important;color:#991b1b!important}.sync-syncing{border-color:#93c5fd!important;background:#eff6ff!important;color:#1d4ed8!important}
+  .data-mark{min-height:30px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid;font-size:12px;font-weight:900}.data-mark::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.data-mark.result{color:#1d4ed8;background:#eff6ff;border-color:#93c5fd}.data-mark.wait{color:#c2410c;background:#fff7ed;border-color:#fdba74}.data-mark.void{color:#475569;background:#f8fafc;border-color:#cbd5e1}.data-mark.swap{color:#7c3aed;background:#f5f3ff;border-color:#c4b5fd}
+  .action-icon-btn{min-width:34px!important;width:34px;height:34px!important;min-height:34px!important;padding:7px!important;display:inline-grid!important;place-items:center!important;border-radius:var(--radius-sm)!important}.action-icon-btn svg{width:17px;height:17px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}.resident-filter-return{display:none;position:fixed;right:14px;bottom:90px;z-index:940;border-radius:999px;box-shadow:var(--shadow-float)}.resident-filter-return.show{display:inline-flex}
+  .seat-history{margin-top:14px;border-top:1px dashed #cbd5e1;padding-top:12px}.seat-history summary{cursor:pointer;font-size:13px;font-weight:900;color:#1e3a5f}.seat-history-list{display:grid;gap:7px;margin-top:10px}.seat-history-item{padding:8px 10px;border-left:3px solid #93c5fd;background:#f8fafc;border-radius:var(--radius-sm);font-size:12px;line-height:1.55;color:#475569}.seat-history-item.forfeit{border-left-color:#f87171;background:#fff7f7}.seat-history-item.swap{border-left-color:#a78bfa;background:#faf5ff}
+  .archive-diff{margin-top:12px;padding:12px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:var(--radius-sm);font-size:13px;line-height:1.7}.archive-diff b{color:#1e3a8a}
+  @media(max-width:700px){#sync-status-indicator{position:fixed;right:10px;top:6px;z-index:1150;font-size:11px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user-bar{padding-right:150px}.resident-filter-return.show{bottom:86px}}
 </style>
 </head>
 <body>
@@ -802,7 +809,7 @@
       <button class="btn btn-sm" id="resident-mode-pending" onclick="setResidentListMode('pending')">待核對清單</button>
       <button class="btn btn-sm" id="resident-mode-verify" onclick="setResidentListMode('verify')">核對模式</button>
     </div>
-    <div class="form-row-3 filter-toolbar" style="margin-bottom:1.25rem">
+    <div id="resident-filter-toolbar" class="form-row-3 filter-toolbar" style="margin-bottom:1.25rem">
       <input type="text" id="search-resident" placeholder="搜尋姓名 / 門牌 / 棟別 / 車牌" oninput="renderResidents()">
       <select id="filter-build" onchange="renderResidents()">
         <option value="">全部分棟</option>
@@ -1356,6 +1363,9 @@
     <div><label for="set-login-announcement-content">公告內容</label><textarea id="set-login-announcement-content" rows="4" maxlength="500" placeholder="輸入登入頁顯示的系統訊息，可換行。"></textarea></div>
     <div class="form-row" style="margin-top:12px"><div><label for="set-login-announcement-start">公告開始日期</label><input id="set-login-announcement-start" type="date"></div><div><label for="set-login-announcement-end">公告結束日期</label><input id="set-login-announcement-end" type="date"></div></div>
     <label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input id="set-login-announcement-enabled" type="checkbox">啟用登入頁公告</label>
+    <div class="form-section-title">公告通知模板</div>
+    <div class="form-row"><div><label for="announcement-template-type">模板類型</label><select id="announcement-template-type" onchange="loadAnnouncementTemplate()"><option value="lottery">抽籤公告</option><option value="waitlist">候補通知</option><option value="forfeit">棄權確認</option><option value="swap">互換完成通知</option></select></div><div class="info-row"><span class="info-row-icon">i</span><span>可使用 <b>{門牌}</b>、<b>{車位}</b>、<b>{輪次}</b> 作為通知時的替換欄位。</span></div></div>
+    <div><label for="announcement-template-content">模板內容</label><textarea id="announcement-template-content" rows="4" maxlength="600" placeholder="輸入此類型的通知文字"></textarea></div>
     <div class="btn-row mt-2" style="margin-top:1.5rem">
       <button class="btn btn-primary" onclick="saveTitleVersionSettings()">儲存系統標題與導覽設定</button>
     </div>
@@ -1638,6 +1648,7 @@
 <!-- 💡 回到頁首浮動按鈕：頁面較長時（如系統設定、操作手冊）方便快速回到頂端，捲動一段距離後才會顯示 -->
 <button id="back-to-top-btn" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="回到頁首"
   style="display:none;position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;border:none;box-shadow:0 6px 16px rgba(37,99,235,0.4);font-size:20px;cursor:pointer;z-index:850;align-items:center;justify-content:center">⬆</button>
+<button id="resident-filter-return" class="btn btn-sm resident-filter-return" onclick="document.getElementById('resident-filter-toolbar')?.scrollIntoView({behavior:'smooth',block:'start'})" title="回到住戶篩選列">回到篩選</button>
 
   <div class="modal-overlay" id="lottery-review-modal" role="dialog" aria-modal="true" aria-labelledby="lottery-review-title">
     <div class="modal-box modal-card">
@@ -1656,6 +1667,14 @@
       <div id="csv-preview-summary" class="review-summary"></div>
       <div id="csv-preview-details" class="csv-preview-table"></div>
       <div class="btn-row mt-2" style="justify-content:flex-end;margin-top:1.25rem"><button class="btn" onclick="cancelCsvImport()">取消</button><button class="btn btn-primary" onclick="confirmCsvImport()">確認正式匯入</button></div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="csv-mapping-modal" role="dialog" aria-modal="true" aria-labelledby="csv-mapping-title">
+    <div class="modal-box modal-card">
+      <div class="modal-title" id="csv-mapping-title">CSV 欄位對照</div>
+      <p class="muted-note">先確認來源欄名要匯入到哪一項資料。帶 <b>＊</b> 的欄位為必要欄位；其餘可保留「不匯入」。確認後仍會顯示差異報告，不會立刻寫入資料。</p>
+      <div id="csv-mapping-fields" class="form-row-3"></div>
+      <div class="btn-row mt-2" style="justify-content:flex-end;margin-top:1.25rem"><button class="btn" onclick="cancelCsvMapping()">取消</button><button class="btn btn-primary" onclick="applyCsvMapping()">套用對照並預覽</button></div>
     </div>
   </div>
   <script>
@@ -1929,6 +1948,7 @@
   // 最多保留六份可比較、可選擇性還原的雲端版本快照；不保存帳號密碼雜湊。
   let versionedBackups = [];
   let pendingCsvImport = null;
+  let pendingCsvRows = null;
   let lotteryReviewApproval = null;
   let lotteryDataFreeze = { active:false, round:'', startedAt:0 };
   // 本年度曾主動棄權的紀錄：用來防止棄權住戶立即進入候補最高優先層級。
@@ -2838,8 +2858,10 @@
   // 💡 捲動超過一定距離才顯示「回到頁首」按鈕，避免一開始就佔用畫面空間
   window.addEventListener('scroll', function () {
     const btn = document.getElementById('back-to-top-btn');
-    if (!btn) return;
-    btn.style.display = (window.scrollY > 400) ? 'flex' : 'none';
+    if (btn) btn.style.display = (window.scrollY > 400) ? 'flex' : 'none';
+    const filterBtn=document.getElementById('resident-filter-return');
+    const onResidents=document.getElementById('page-residents')?.classList.contains('active');
+    if(filterBtn)filterBtn.classList.toggle('show',!!onResidents&&window.scrollY>520);
   }, { passive: true });
 
   // 💡 重要修正：瀏覽器對「背景分頁」的計時器（setInterval/setTimeout）會大幅節流甚至暫停，
@@ -3331,6 +3353,7 @@
     renderBackupHealth();
   }
   function navigationIconSvg(name){const paths={dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',residents:'<circle cx="12" cy="8" r="3.5"/><path d="M5 21c.8-4 3.1-6 7-6s6.2 2 7 6"/>',lottery:'<path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M12 14v6M8 21h8"/><path d="M17 6h2a2 2 0 0 1 0 4h-2"/>',results:'<path d="M5 20V10M12 20V4M19 20v-7"/><path d="M3 20h18"/>',logs:'<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8.5"/>',swap:'<path d="M7 7h11l-3-3M17 17H6l3 3"/><path d="M18 7l-3-3M6 17l3 3"/>',inquiry:'<circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/>',floorplan:'<path d="M4 5l6-2 5 2 5-2v16l-5 2-5-2-6 2V5Z"/><path d="M10 3v16M15 5v16"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.1 2.1-.06-.06A1.7 1.7 0 0 0 15.76 19l-.1.04a1.7 1.7 0 0 0-1.04 1.56v.1h-3v-.1A1.7 1.7 0 0 0 10.58 19l-.1-.04a1.7 1.7 0 0 0-1.88.34l-.06.06-2.1-2.1.06-.06A1.7 1.7 0 0 0 6.84 15l-.04-.1A1.7 1.7 0 0 0 5.24 13.86h-.1v-3h.1A1.7 1.7 0 0 0 6.8 9.82l.04-.1A1.7 1.7 0 0 0 6.5 7.84l-.06-.06 2.1-2.1.06.06a1.7 1.7 0 0 0 1.88.34l.1-.04a1.7 1.7 0 0 0 1.04-1.56v-.1h3v.1a1.7 1.7 0 0 0 1.04 1.56l.1.04a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.1 2.1-.06.06a1.7 1.7 0 0 0-.34 1.88l.04.1a1.7 1.7 0 0 0 1.56 1.04h.1v3h-.1A1.7 1.7 0 0 0 19.44 14.9l-.04.1Z"/>',guide:'<path d="M4 5.5A3.5 3.5 0 0 1 7.5 4H12v16H7.5A3.5 3.5 0 0 0 4 23V5.5ZM20 5.5A3.5 3.5 0 0 0 16.5 4H12v16h4.5A3.5 3.5 0 0 1 20 23V5.5Z"/>'};return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name]||paths.dashboard}</svg>`;}
+  function actionIconSvg(kind){const path={edit:'<path d="m4 16 0 4 4 0L19 9l-4-4L4 16Z"/><path d="m13 7 4 4"/>',print:'<path d="M7 9V3h10v6M7 18h10v3H7z"/><path d="M5 9h14a2 2 0 0 1 2 2v5H3v-5a2 2 0 0 1 2-2Z"/>',delete:'<path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6"/>',history:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'}[kind]||'';return `<svg viewBox="0 0 24 24" aria-hidden="true">${path}</svg>`;}
   function enhanceNavigationIcons(){document.querySelectorAll('.nav-tab,.mobile-bottom-btn').forEach(el=>{if(el.querySelector('.nav-icon'))return;const target=String(el.getAttribute('onclick')||'').match(/showPage\('([^']+)'\)/)?.[1]||(el.textContent.includes('更多')?'guide':'dashboard');const icon=document.createElement('span');icon.className='nav-icon';icon.innerHTML=navigationIconSvg(target);el.prepend(icon);el.classList.add('has-nav-icon');});}
   function decoratePagePurposes(){const copy={dashboard:'目前年度作業摘要與待處理事項。',residents:'管理住戶資格、車牌資料與年度核對狀態。',lottery:'依目前輪次執行覆核、抽籤與結果確認。',results:'查看各輪結果；管理員可另行建立公告與列印。',swap:'檢視及處理符合規則的車位互換。',floorplan:'依車位狀態與輪次快速定位配置。',settings:'維護系統設定、資料安全與年度作業。',guide:'提供各角色對應的操作指引。'},tones={dashboard:'success',residents:'info',lottery:'attention',results:'info',swap:'attention',floorplan:'info',settings:'danger',guide:'info'};Object.entries(copy).forEach(([page,text])=>{const root=document.getElementById(`page-${page}`),title=root?.querySelector('.section-title');if(!title||!root)return;let host=title.parentElement;if(host===root){host=document.createElement('div');host.className='page-hero';title.before(host);host.appendChild(title);}host.classList.add('page-hero');host.dataset.heroTone=tones[page]||'info';if(!host.querySelector('.page-purpose')){const note=document.createElement('div');note.className='page-purpose';note.textContent=text;title.after(note);}if(!host.querySelector('.page-hero-status')){const status=document.createElement('div');status.className='page-hero-status';status.dataset.pageHero=page;host.appendChild(status);}});renderPageHeroStatuses();}
   function renderPageHeroStatuses(){const used=new Set(Object.values(lotteryResults||{}).flatMap(x=>Object.values(x||{})).map(Number).filter(n=>n>0)).size,available=Math.max(0,Number(systemSettings.totalSeats||0)-Number((systemSettings.voidSeats||[]).length)-used),frozen=isLotteryDataFrozen();document.querySelectorAll('.page-hero-status').forEach(box=>{const page=box.dataset.pageHero;let items=page==='lottery'?[currentRound||'第一輪',frozen?'資料已凍結':'資料可編輯',`可用 ${available} 位`,cloudSyncReady?'同步正常':'同步待確認']:page==='results'?[currentResultRound||'第一輪',`中籤 ${getValidWinnerCount(currentResultRound||'第一輪')} 位`,cloudSyncReady?'同步正常':'同步待確認']:page==='residents'?[`住戶 ${residents.length} 戶`,`待核對 ${residents.filter(r=>['prior','pending'].includes(r.plateVerification)).length} 筆`,cloudSyncReady?'同步正常':'同步待確認']:[cloudSyncReady?'同步正常':'同步待確認'];const pill=x=>{const text=String(x),tone=/同步正常|資料已凍結/.test(text)?' hero-status-good':/待確認|待核對/.test(text)?' hero-status-warn':'';return `<span class="${tone.trim()}">${escapeHtml(text)}</span>`;};const visible=items.slice(0,3),extra=items.slice(3);box.innerHTML=visible.map(pill).join('')+(extra.length?`<details class="hero-status-details"><summary>更多狀態</summary><div>${extra.map(pill).join('')}</div></details>`:'');});}
@@ -3443,6 +3466,7 @@
       document.getElementById('set-login-announcement-start').value=systemSettings.loginAnnouncementStart||'';
       document.getElementById('set-login-announcement-end').value=systemSettings.loginAnnouncementEnd||'';
       document.getElementById('set-login-announcement-audience').value=systemSettings.loginAnnouncementAudience||'all';
+      loadAnnouncementTemplate();
       renderDirectorsList();
       renderPendingAudits();
       renderLoginBgList();
@@ -3450,6 +3474,7 @@
     updateMobileNavigationState(pageId);
     renderPageHeroStatuses();
   }
+  function loadAnnouncementTemplate(){const type=document.getElementById('announcement-template-type')?.value,box=document.getElementById('announcement-template-content');if(!type||!box)return;const defaults={lottery:'本年度 {輪次} 抽籤結果已公告，請住戶至系統查詢。',waitlist:'您已獲候補遞補 {車位} 號車位，請依社區規定完成確認。',forfeit:'已收到 {門牌} 對 {輪次} {車位} 號車位的棄權確認。',swap:'車位互換已完成，{門牌} 的使用車位為 {車位}。'};box.value=(systemSettings.announcementTemplates||{})[type]||defaults[type]||'';}
 
   function toggleMobileMenu() {
     document.getElementById('nav-hamburger').classList.toggle('open');
@@ -3777,7 +3802,7 @@
       const rowClass=hasInvalidPlate?'plate-row-danger':(residentHasReviewIssue(r)||hasInferredMotorcycle?'plate-row-attention':'plate-row-confirmed');
       html += `<tr class="${rowClass}">
         <td class="text-center col-group-start">
-          <div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-sm" onclick="openEditModal(${r.id})">編輯</button></div>
+          <div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-sm action-icon-btn" onclick="openEditModal(${r.id})" title="編輯住戶資料" aria-label="編輯住戶資料">${actionIconSvg('edit')}</button></div>
         </td>
         <td class="text-center">${r.id}</td>
         <td class="text-center"><b>${escapeHtml(r.build)}</b></td>
@@ -3800,7 +3825,7 @@
         <td class="text-center">${renderPlateCell(r.plate2)}</td>
         <td class="text-center">${renderPlateCell(r.plate3)}</td>
         <td class="text-center">${renderPlateCell(r.plateWaitlist)}</td>
-        <td class="text-center col-group-start"><div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-sm" onclick="printNotificationSlip(${r.id})" title="列印個人中籤通知單">列印</button><button class="btn btn-sm btn-danger" onclick="deleteResident(${r.id})">刪除</button></div></td>
+        <td class="text-center col-group-start"><div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-sm action-icon-btn" onclick="printNotificationSlip(${r.id})" title="列印個人中籤通知單" aria-label="列印個人中籤通知單">${actionIconSvg('print')}</button><button class="btn btn-sm btn-danger action-icon-btn" onclick="deleteResident(${r.id})" title="刪除住戶" aria-label="刪除住戶">${actionIconSvg('delete')}</button></div></td>
       </tr>`;
     });
     document.getElementById("resident-tbody").innerHTML = html;
@@ -4642,14 +4667,36 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const plates=rawPlates.map(v=>v&&isValidTaiwanPlate(v,true)?formatTaiwanPlate(v):'');
     return {build,room,name,reserve:yn(read('身分','身份','reserve')),r1:plates[0]?'Y':'N',r2:plates[1]?'Y':'N',r3:plates[2]?'Y':'N',plate1:plates[0],plate2:plates[1],plate3:plates[2],plateWaitlist:plates[3],waitlist:plates[3]?'Y':yn(read('候補登記','waitlist')),pref1:Number((read('指定1','指定車位1','pref1').match(/\d+/)||[])[0])||'',pref2:Number((read('指定2','指定車位2','pref2').match(/\d+/)||[])[0])||'',pref3:Number((read('指定3','指定車位3','pref3').match(/\d+/)||[])[0])||'',_invalid:invalid};
   }
+  const CSV_MAPPING_FIELDS=[
+    ['build','棟別','＊'],['room','門牌／房號','＊'],['name','姓名','＊'],['reserve','身分／保留戶',''],
+    ['plate1','第一輪車牌',''],['plate2','第二輪車牌',''],['plate3','第三輪車牌',''],['plateWaitlist','候補車牌',''],['waitlist','候補登記',''],
+    ['pref1','指定車位 1',''],['pref2','指定車位 2',''],['pref3','指定車位 3','']
+  ];
+  function csvDefaultMapping(header){
+    const norm=v=>String(v||'').trim().replace(/\s+/g,'').toLowerCase(); const h=header.map(norm);
+    const aliases={build:['棟別','building','build'],room:['門牌','房號','room'],name:['姓名','住戶姓名','name'],reserve:['身分','身份','reserve'],plate1:['車牌1','plate1'],plate2:['車牌2','plate2'],plate3:['車牌3','plate3'],plateWaitlist:['候補車牌','車牌候補','platewaitlist'],waitlist:['候補登記','waitlist'],pref1:['指定1','指定車位1','pref1'],pref2:['指定2','指定車位2','pref2'],pref3:['指定3','指定車位3','pref3']};
+    return Object.fromEntries(CSV_MAPPING_FIELDS.map(([key])=>[key,aliases[key].map(norm).map(x=>h.indexOf(x)).find(x=>x>=0)??-1]));
+  }
+  function openCsvMapping(rows){
+    pendingCsvRows=rows; const header=rows[0].map(v=>String(v||'').trim()), map=csvDefaultMapping(header), box=document.getElementById('csv-mapping-fields');
+    box.innerHTML=CSV_MAPPING_FIELDS.map(([key,label,required])=>`<div><label for="csv-map-${key}">${escapeHtml(label)}${required}</label><select id="csv-map-${key}"><option value="-1">不匯入</option>${header.map((v,i)=>`<option value="${i}" ${map[key]===i?'selected':''}>${escapeHtml(v||`欄 ${i+1}`)}</option>`).join('')}</select></div>`).join('');
+    document.getElementById('csv-mapping-modal').classList.add('show');
+  }
+  function cancelCsvMapping(){pendingCsvRows=null;document.getElementById('csv-mapping-modal').classList.remove('show');}
+  function applyCsvMapping(){
+    if(!pendingCsvRows)return; const map=Object.fromEntries(CSV_MAPPING_FIELDS.map(([key])=>[key,Number(document.getElementById(`csv-map-${key}`).value)]));
+    if(['build','room','name'].some(key=>map[key]<0)){showAppToast('請為棟別、門牌與姓名選擇來源欄位。','warn');return;}
+    const data=pendingCsvRows, header=[...data[0]]; Object.entries(map).forEach(([key,index])=>{if(index>=0)header[index]=key;}); document.getElementById('csv-mapping-modal').classList.remove('show'); pendingCsvRows=null; buildCsvImportPreview([header,...data.slice(1)]);
+  }
+  function buildCsvImportPreview(rows){
+    const header=rows[0].map(v=>String(v||'').trim().replace(/\s+/g,'').toLowerCase()); const existing=new Map(residents.map(r=>[`${r.build}|${r.room}`.toLowerCase(),r])); const incoming=new Set(); const plan=[]; const count={add:0,update:0,skip:0,conflict:0};
+    rows.slice(1).forEach((row,i)=>{if(row.every(v=>!String(v||'').trim()))return; const c=csvPreviewCandidate(row,header), key=`${c.build}|${c.room}`.toLowerCase(); let status='新增',reason='新門牌'; if(!c.room||!c.name){status='略過';reason='缺少門牌或姓名';}else if(c._invalid){status='衝突';reason='含格式不正確的車牌';}else if(incoming.has(key)){status='衝突';reason='CSV 內有重複門牌';}else if(existing.has(key)){status='更新';reason='符合既有門牌';} incoming.add(key); if(status==='新增')count.add++;else if(status==='更新')count.update++;else if(status==='略過')count.skip++;else count.conflict++;plan.push({line:i+2,status,reason,c});});
+    pendingCsvImport={plan,count}; const sum=document.getElementById('csv-preview-summary');sum.innerHTML=`<div>新增<b>${count.add} 筆</b></div><div>更新<b>${count.update} 筆</b></div><div>略過<b>${count.skip} 筆</b></div><div>衝突<b>${count.conflict} 筆</b></div>`; document.getElementById('csv-preview-details').innerHTML=`<table><thead><tr><th>列</th><th>狀態</th><th>住戶</th><th>說明</th></tr></thead><tbody>${plan.map(x=>`<tr><td>${x.line}</td><td>${x.status}</td><td>${escapeHtml(`${x.c.build}-${x.c.room} ${x.c.name}`)}</td><td>${escapeHtml(x.reason)}</td></tr>`).join('')}</tbody></table>`;document.getElementById('csv-preview-modal').classList.add('show');
+  }
   function importCSV(inputElem){
     if(blockFrozenMutation('CSV 匯入')){inputElem.value='';return;} if(!currentUser||currentUser.role==='guest'){showAppToast('一般住戶僅提供查詢，不允許匯入住戶資料。','warn');inputElem.value='';return;}
     const file=inputElem.files?.[0]; if(!file)return; const reader=new FileReader();
-    reader.onload=e=>{const rows=parseCSVText(String(e.target.result||'').replace(/^\uFEFF/,'')); if(rows.length<2){showAppToast('CSV 檔案沒有可讀取的資料。','warn');return;}
-      const header=rows[0].map(v=>String(v||'').trim().replace(/\s+/g,'').toLowerCase()); const existing=new Map(residents.map(r=>[`${r.build}|${r.room}`.toLowerCase(),r])); const incoming=new Set(); const plan=[]; const count={add:0,update:0,skip:0,conflict:0};
-      rows.slice(1).forEach((row,i)=>{if(row.every(v=>!String(v||'').trim()))return; const c=csvPreviewCandidate(row,header), key=`${c.build}|${c.room}`.toLowerCase(); let status='新增',reason='新門牌'; if(!c.room||!c.name){status='略過';reason='缺少門牌或姓名';}else if(c._invalid){status='衝突';reason='含格式不正確的車牌';}else if(incoming.has(key)){status='衝突';reason='CSV 內有重複門牌';}else if(existing.has(key)){status='更新';reason='符合既有門牌';} incoming.add(key); if(status==='新增')count.add++;else if(status==='更新')count.update++;else if(status==='略過')count.skip++;else count.conflict++;plan.push({line:i+2,status,reason,c});});
-      pendingCsvImport={plan,count}; const sum=document.getElementById('csv-preview-summary');sum.innerHTML=`<div>新增<b>${count.add} 筆</b></div><div>更新<b>${count.update} 筆</b></div><div>略過<b>${count.skip} 筆</b></div><div>衝突<b>${count.conflict} 筆</b></div>`; document.getElementById('csv-preview-details').innerHTML=`<table><thead><tr><th>列</th><th>狀態</th><th>住戶</th><th>說明</th></tr></thead><tbody>${plan.map(x=>`<tr><td>${x.line}</td><td>${x.status}</td><td>${escapeHtml(`${x.c.build}-${x.c.room} ${x.c.name}`)}</td><td>${escapeHtml(x.reason)}</td></tr>`).join('')}</tbody></table>`;document.getElementById('csv-preview-modal').classList.add('show');inputElem.value='';
-    }; reader.readAsText(file,'UTF-8');
+    reader.onload=e=>{const rows=parseCSVText(String(e.target.result||'').replace(/^\uFEFF/,'')); if(rows.length<2){showAppToast('CSV 檔案沒有可讀取的資料。','warn');return;} openCsvMapping(rows); inputElem.value='';}; reader.readAsText(file,'UTF-8');
   }
   function cancelCsvImport(){pendingCsvImport=null;document.getElementById('csv-preview-modal').classList.remove('show');}
   async function confirmCsvImport(){
@@ -6225,7 +6272,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const r=currentResultRound, n=r==='第一輪'?1:r==='第二輪'?2:r==='第三輪'?3:0;
     const eligible=n?residents.filter(x=>x[`r${n}`]==='Y'&&String(x[`plate${n}`]||'').trim()).length:r==='候補'?residents.filter(x=>x.waitlist==='Y').length:residents.length;
     const winners=r==='全部輪次'?['第一輪','第二輪','第三輪','候補'].reduce((a,x)=>a+getValidWinnerCount(x),0):getValidWinnerCount(r);
-    box.innerHTML=`<span class="summary-primary">${r}</span><span class="status-action">合格 ${eligible} 位</span><span class="status-complete">中籤 ${winners} 位</span><span class="status-pending">未中籤 ${Math.max(0,eligible-winners)} 位</span><span class="status-danger">作廢 ${(systemSettings.voidSeats||[]).length} 位</span>`;
+    box.innerHTML=`<span class="summary-primary">${r}</span><span class="data-mark result">中籤 ${winners} 位</span><span class="status-pending">未中籤 ${Math.max(0,eligible-winners)} 位</span><span class="data-mark wait">候補 ${r==='候補'?winners:residents.filter(x=>x.waitlist==='Y').length} 位</span><span class="data-mark void">作廢 ${(systemSettings.voidSeats||[]).length} 位</span>`;
     renderResultsProgress();
   }
   function renderResultsProgress(){const host=document.getElementById('result-progress');if(!host)return;const rounds=[['第一輪',1],['第二輪',2],['第三輪',3]],hasWinner=r=>getValidWinnerCount(r)>0,participants=n=>residents.filter(x=>x[`r${n}`]==='Y'&&String(x[`plate${n}`]||'').trim()).length;const completed=rounds.map(([name,n])=>hasWinner(name)||participants(n)===0);const steps=rounds.map(([name,n],i)=>{const count=participants(n),done=hasWinner(name),previousReady=i===0||completed.slice(0,i).every(Boolean);const state=done?'done':count===0?'conditional':previousReady?'ready':'pending';const note=done?`已完成｜${getValidWinnerCount(name)} 位中籤`:count===0?'無合格報名，免執行':previousReady?'符合條件，可視報名執行':'待前輪完成';return `<div class="result-progress-step ${state}">${name}<small>${note}</small></div>`;});const waitCount=residents.filter(x=>x.waitlist==='Y').length,free=getLeftoverFreeSeats().length,officialReady=completed.every(Boolean),waitDone=hasWinner('候補'),waitState=waitDone?'done':waitCount===0?'conditional':officialReady&&free>0?'ready':officialReady?'conditional':'pending',waitNote=waitDone?`已遞補｜${getValidWinnerCount('候補')} 位`:waitCount===0?'無候補登記，免執行':officialReady&&free>0?`可遞補｜尚有 ${free} 位`:officialReady?'無可分配車位，免執行':'待正式輪次結束';steps.push(`<div class="result-progress-step ${waitState}">候補<small>${waitNote}</small></div>`);host.innerHTML=steps.join('');}
@@ -6885,6 +6932,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   // ================= 8. 平面圖功能 =================
+  function buildSeatHistory(seat){const n=Number(seat),items=[];const original=originalLotteryResults||{};['第一輪','第二輪','第三輪','候補'].forEach(round=>{Object.entries(original[round]||{}).forEach(([id,s])=>{if(Number(s)===n){const r=residents.find(x=>Number(x.id)===Number(id));items.push({type:'result',text:`原始抽籤：${round}｜${r?`${r.build}-${r.room} ${getDisplayName(r.name)}`:`住戶 ID ${id}`}`});}});});(swapLogs||[]).forEach(log=>{if(String(log.desc||'').includes(`${n}號`)||Number(log.seatA)===n||Number(log.seatB)===n)items.push({type:'swap',text:`互換：${log.time||'未記錄時間'}｜${log.desc||'已完成車位互換'}`});});(forfeitRecords||[]).forEach(rec=>{if(Number(rec.seat)===n)items.push({type:'forfeit',text:`棄權釋出：${rec.round||'未知輪次'}｜${rec.time||rec.createdAt||'未記錄時間'}`});});const holder=getSeatOccupant(n);if(holder)items.push({type:isSeatFromWaitlist(n)?'wait':'result',text:`目前使用權：${holder.build}-${holder.room} ${getDisplayName(holder.name)}${isSeatFromWaitlist(n)?'｜候補遞補':'｜正式分配'}`});return items;}
   function openSeatDetail(seatNum){
     const seat=Number(seatNum);
     activeSeatDetail = seat; if(!Number.isInteger(seat) || seat<1) return;
@@ -6901,7 +6949,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const guestFloorplanView=!!(currentUser&&currentUser.role==='guest');
     const seatRows=[['第一輪',occupant.assign1,occupant.plate1],['第二輪',occupant.assign2,occupant.plate2],['第三輪',occupant.assign3,occupant.plate3],['候補',occupant.assignWaitlist,occupant.plateWaitlist]];
     const detailRows=seatRows.filter(([,s])=>Number(s)>0).map(([round,s,plate])=>`<div class="seat-detail-item"><span class="seat-detail-label">${round}</span><span class="seat-detail-value">${Number(s)}號${guestFloorplanView?'':` · ${escapeHtml(plate||'未填寫')}`}</span></div>`).join('');
-    content.innerHTML=`<div class="seat-detail-hero"><div><div class="seat-detail-number">${seat}號</div><div class="seat-detail-status">${escapeHtml(status)}</div></div><span class="badge ${isSeatFromWaitlist(seat)?'badge-orange':'badge-blue'}">${isSeatFromWaitlist(seat)?'🎟️ 候補':'已分配'}</span></div><div class="seat-detail-grid"><div class="seat-detail-item"><span class="seat-detail-label">棟別</span><span class="seat-detail-value">${escapeHtml(occupant.build)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">門牌</span><span class="seat-detail-value">${escapeHtml(occupant.room)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">住戶姓名</span><span class="seat-detail-value">${escapeHtml(getDisplayName(occupant.name))}</span></div><div class="seat-detail-item"><span class="seat-detail-label">身分</span><span class="seat-detail-value">${occupant.reserve==='Y'?'保留戶':'一般戶'}</span></div><div class="seat-detail-item" style="grid-column:1/-1"><span class="seat-detail-label">${guestFloorplanView?'持有車位':'持有車位與車牌'}</span><div class="seat-detail-grid" style="margin-top:6px">${detailRows || '<div class="seat-detail-item">目前沒有其他輪次車位資料</div>'}</div></div></div><div class="mobile-secondary-actions"><button class="btn btn-sm btn-primary" onclick="closeSeatDetailModal();showPage('results');selectResultRound('全部輪次')">前往全部抽籤結果</button>${guestFloorplanView?'':`<button class="btn btn-sm" onclick="closeSeatDetailModal();openSwapFromSeat(${Number(occupant.id)})">前往車位互換</button>`}</div>`;
+    const history=guestFloorplanView?[]:buildSeatHistory(seat);const historyHtml=guestFloorplanView?'':`<details class="seat-history"><summary>車位使用權歷程（${history.length} 筆）</summary><div class="seat-history-list">${history.map(x=>`<div class="seat-history-item ${x.type==='forfeit'?'forfeit':x.type==='swap'?'swap':''}">${escapeHtml(x.text)}</div>`).join('')||'<div class="seat-history-item">尚無可追溯歷程；新操作會自動累積於此。</div>'}</div></details>`;
+    content.innerHTML=`<div class="seat-detail-hero"><div><div class="seat-detail-number">${seat}號</div><div class="seat-detail-status">${escapeHtml(status)}</div></div><span class="badge ${isSeatFromWaitlist(seat)?'badge-orange':'badge-blue'}">${isSeatFromWaitlist(seat)?'候補':'已分配'}</span></div><div class="seat-detail-grid"><div class="seat-detail-item"><span class="seat-detail-label">棟別</span><span class="seat-detail-value">${escapeHtml(occupant.build)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">門牌</span><span class="seat-detail-value">${escapeHtml(occupant.room)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">住戶姓名</span><span class="seat-detail-value">${escapeHtml(getDisplayName(occupant.name))}</span></div><div class="seat-detail-item"><span class="seat-detail-label">身分</span><span class="seat-detail-value">${occupant.reserve==='Y'?'保留戶':'一般戶'}</span></div><div class="seat-detail-item" style="grid-column:1/-1"><span class="seat-detail-label">${guestFloorplanView?'持有車位':'持有車位與車牌'}</span><div class="seat-detail-grid" style="margin-top:6px">${detailRows || '<div class="seat-detail-item">目前沒有其他輪次車位資料</div>'}</div></div></div>${historyHtml}<div class="mobile-secondary-actions"><button class="btn btn-sm btn-primary" onclick="closeSeatDetailModal();showPage('results');selectResultRound('全部輪次')">前往全部抽籤結果</button>${guestFloorplanView?'':`<button class="btn btn-sm" onclick="closeSeatDetailModal();openSwapFromSeat(${Number(occupant.id)})">前往車位互換</button>`}</div>`;
     modal.classList.add('show');
   }
   function closeSeatDetailModal(){ const modal=document.getElementById('seat-detail-modal'); if(modal) modal.classList.remove('show'); activeSeatDetail=null; }
@@ -7094,6 +7143,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     systemSettings.loginAnnouncementStart=document.getElementById('set-login-announcement-start').value;
     systemSettings.loginAnnouncementEnd=document.getElementById('set-login-announcement-end').value;
     systemSettings.loginAnnouncementAudience=document.getElementById('set-login-announcement-audience').value;
+    const templateType=document.getElementById('announcement-template-type')?.value;
+    if(templateType){systemSettings.announcementTemplates=systemSettings.announcementTemplates||{};systemSettings.announcementTemplates[templateType]=document.getElementById('announcement-template-content')?.value.trim()||'';}
     if(systemSettings.loginAnnouncementStart&&systemSettings.loginAnnouncementEnd&&systemSettings.loginAnnouncementStart>systemSettings.loginAnnouncementEnd){alert('登入頁公告的開始日期不可晚於結束日期。');Object.assign(systemSettings,snapshot);return;}
     applySystemBranding(); initUserBar(); renderDashboard(); renderGuide();
     const ok = await addLog("設定", `更新系統標題與快速導覽設定`, {sync:false}) && await cloudSyncPush();
@@ -7742,7 +7793,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           <span style="font-size:12.5px;color:var(--text-muted);font-weight:700">封存時間：${new Date(a.archivedAt).toLocaleString('zh-TW')}　封存人：${escapeHtml(a.archivedBy || '未知')}　住戶數：${(a.snapshot.residents||[]).length}　已分配車位數：${winnerCount}</span>
         </div>
         <div class="btn-row" style="margin:0">
-          <button class="btn btn-sm" onclick="viewArchive(${a.id})">👁️ 檢視</button>
+          <button class="btn btn-sm" onclick="viewArchive(${a.id})">檢視</button>
+          <button class="btn btn-sm" onclick="compareArchiveResidents(${a.id})">年度異動</button>
           <button class="btn btn-sm btn-success" onclick="downloadArchive(${a.id})">💾 下載</button>
           <button class="btn btn-sm btn-danger" onclick="deleteArchive(${a.id})">🗑️ 刪除</button>
         </div>
@@ -7751,6 +7803,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     box.innerHTML = html;
   }
 
+  function compareArchiveResidents(archiveId){const a=archives.find(x=>Number(x.id)===Number(archiveId));if(!a)return;const oldRows=a.snapshot?.residents||[],oldByRoom=new Map(oldRows.map(r=>[`${r.build}|${r.room}`.toLowerCase(),r])),nowByRoom=new Map(residents.map(r=>[`${r.build}|${r.room}`.toLowerCase(),r]));const added=residents.filter(r=>!oldByRoom.has(`${r.build}|${r.room}`.toLowerCase())),removed=oldRows.filter(r=>!nowByRoom.has(`${r.build}|${r.room}`.toLowerCase())),changed=[];residents.forEach(r=>{const old=oldByRoom.get(`${r.build}|${r.room}`.toLowerCase());if(!old)return;const diffs=[];if(String(old.name||'')!==String(r.name||''))diffs.push('姓名／住戶');if([old.plate1,old.plate2,old.plate3,old.plateWaitlist].join('|')!==[r.plate1,r.plate2,r.plate3,r.plateWaitlist].join('|'))diffs.push('車牌');if([old.r1,old.r2,old.r3,old.waitlist,old.reserve].join('|')!==[r.r1,r.r2,r.r3,r.waitlist,r.reserve].join('|'))diffs.push('資格');if(diffs.length)changed.push(`${r.build}-${r.room}：${diffs.join('、')}`);});const box=document.getElementById('archive-list-box');box.style.display='block';box.innerHTML=`<div class="flex-between" style="margin-bottom:12px"><b>年度住戶異動比對｜${escapeHtml(a.label)}</b><button class="btn btn-sm" onclick="showArchiveList()">返回封存列表</button></div><div class="archive-diff"><b>新增 ${added.length} 戶</b>｜${added.map(r=>`${r.build}-${r.room}`).join('、')||'無'}<br><b>搬離 ${removed.length} 戶</b>｜${removed.map(r=>`${r.build}-${r.room}`).join('、')||'無'}<br><b>資料變更 ${changed.length} 戶</b>｜${changed.join('；')||'無'}<br><span class="muted-note">比對基準為封存時的門牌；門牌本身若變動會分別列入搬離與新增，供管理員人工確認。</span></div>`;}
   function viewArchive(archiveId) {
     const a = archives.find(x => x.id === archiveId);
     if (!a) return;
