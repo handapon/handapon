@@ -493,7 +493,7 @@
   .table-wrap thead tr:not(.table-group-row) th{top:34px;z-index:5}
   .empty{padding:var(--space-5);box-shadow:none}
   .empty::after{content:"請依頁面說明完成下一步，或調整目前篩選條件。";font-size:13px;font-weight:500;color:var(--text-muted);line-height:1.6;text-align:center}
-  .announcement-sheet-brand{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:4mm}.announcement-sheet-brand .brand-mark{width:28px;height:28px}.announcement-sheet-signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:10mm;margin-top:12mm;padding-top:6mm;border-top:1px solid #64748b;font-size:10pt}.announcement-sheet-signatures div{min-height:14mm;border-bottom:1px solid #64748b}.announcement-page-footer{display:flex;justify-content:space-between;margin-top:7mm;font-size:9pt;color:#475569}.announcement-page-footer .page-no::after{content:"第 " counter(page) " 頁"}
+  .announcement-sheet-brand{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:4mm}.announcement-sheet-brand .brand-mark{width:28px;height:28px}.announcement-sheet-signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:10mm;margin-top:12mm;padding-top:6mm;border-top:1px solid #64748b;font-size:10pt}.announcement-sheet-signatures div{min-height:14mm;border-bottom:1px solid #64748b}.announcement-page-footer{display:flex;justify-content:space-between;margin-top:7mm;font-size:9pt;color:#475569}.announcement-page-footer .page-no::after{content:"第 " counter(page) " 頁"}.announcement-verify{display:flex;align-items:center;gap:5mm;margin:8mm 0 0;padding:4mm;border:1px solid #cbd5e1;background:#f8fafc;font-size:9pt}.announcement-verify img{width:25mm;height:25mm;background:#fff}.announcement-verify small{display:block;word-break:break-all;color:#475569}
   @media(min-width:1050px){.page-hero-status{justify-content:flex-end}}
   @media(max-width:700px){.page-hero{padding:14px 16px}.page-hero .section-title{font-size:24px}.page-hero-status{gap:6px}.page-hero-status span{font-size:11.5px}.page-hero-status .hero-status-details>div{left:0;right:auto}.table-wrap thead tr:not(.table-group-row) th{top:32px}}
   /* ===== 簡潔操作模式與高頻工作流 ===== */
@@ -508,6 +508,14 @@
   .settings-favorites{display:grid;gap:6px;padding:8px 0 12px;margin:0 0 8px;border-bottom:1px solid #dbe3ef}.settings-favorites-label{font-size:12px;font-weight:900;color:#64748b;padding:0 10px;letter-spacing:.04em}.settings-side-nav .settings-favorite{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:8px 10px;font-size:13px}.settings-side-nav .settings-favorite:hover{background:#dbeafe}
   .table-wrap tbody tr:hover td{background:#eff6ff!important}.table-wrap tbody tr:focus-within td{background:#dbeafe!important;outline:1px solid #60a5fa;outline-offset:-1px}
   @media(max-width:700px){body{padding-bottom:82px}#mobile-bottom-nav{grid-template-columns:repeat(5,1fr);padding:5px}.mobile-bottom-btn{min-height:62px;font-size:10.5px;padding:5px 2px}.mobile-bottom-btn.active{background:#eff6ff;color:#1d4ed8;border-radius:var(--radius-sm)}.floorplan-mobile-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.dashboard-title-row{align-items:flex-start}.dashboard-title-row .btn{flex:0 0 auto}.resident-verify-view{min-width:640px!important}}
+  /* ===== 指揮卡、結果與表單質感元件 ===== */
+  .card{padding:20px}.card.card-attention,.card.card-success,.risk-section{padding:24px}.dashboard-command-card{position:relative;overflow:hidden;padding:24px;border-color:#bfdbfe;box-shadow:var(--shadow-float)}.dashboard-command-card::after{content:"";position:absolute;width:180px;height:180px;right:-70px;top:-100px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.14),transparent 68%);pointer-events:none}.dashboard-command-main,.dashboard-command-actions{position:relative;z-index:1}.dashboard-command-sync{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:900;color:#166534}.dashboard-command-sync::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.dashboard-command-sync.is-pending{color:#b45309}.dashboard-command-sync.is-danger{color:#b91c1c}
+  .number-value{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-size:1.55em;line-height:1;font-weight:950;letter-spacing:-.03em}.number-unit{font-size:.58em;font-weight:800;color:var(--text-muted);margin-left:3px;letter-spacing:0}.seat-watermark{position:relative;overflow:hidden;background:linear-gradient(135deg,#eff6ff,#f8fbff)!important;border-color:#bfdbfe!important}.seat-watermark::after{content:attr(data-seat-watermark);position:absolute;right:10px;bottom:-12px;font-size:74px;font-weight:950;line-height:1;color:rgba(37,99,235,.08);pointer-events:none;font-variant-numeric:tabular-nums}.seat-watermark>*{position:relative;z-index:1}
+  .info-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-left:3px solid #60a5fa;background:#f8fbff;border-radius:var(--radius-sm);color:#475569;font-size:13px;line-height:1.6}.info-row-icon{width:18px;height:18px;flex:0 0 18px;color:#2563eb}.info-row summary{cursor:pointer;font-weight:900;color:#1e3a5f}.info-row details{flex:1}.field-helper{display:block;margin-top:5px;font-size:12px;font-weight:500;color:#64748b;line-height:1.5}.field-required{color:#b91c1c;font-size:12px;margin-left:4px}.field-error{display:block;min-height:18px;margin-top:5px;font-size:12px;font-weight:700;color:#b91c1c}.field-error:empty{display:none}
+  .result-progress{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px}.result-progress-step{position:relative;padding:10px 10px 10px 28px;border:1px solid #cbd5e1;border-radius:var(--radius-sm);background:#f8fafc;color:#475569;font-size:12px;font-weight:800}.result-progress-step::before{content:"";position:absolute;left:10px;top:13px;width:10px;height:10px;border-radius:50%;background:#94a3b8}.result-progress-step.done{background:#f0fdf4;border-color:#86efac;color:#166534}.result-progress-step.done::before{background:#16a34a}.result-progress-step.ready{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}.result-progress-step.ready::before{background:#2563eb}.result-progress-step.conditional{background:#fffbeb;border-color:#fde68a;color:#a16207}.result-progress-step.conditional::before{background:#d97706}.result-progress-step small{display:block;font-weight:500;margin-top:3px;line-height:1.35}
+  .floorplan-status-cards{display:grid;grid-template-columns:repeat(4,minmax(100px,1fr));gap:8px;margin:0 0 10px}.floorplan-status-card{padding:8px 10px;border:1px solid #dbe3ef;border-radius:var(--radius-sm);background:#fff;font-size:12px;color:#64748b}.floorplan-status-card b{display:block;margin-top:2px;font-size:18px;color:#0f172a;font-variant-numeric:tabular-nums}.floorplan-status-card.free{border-color:#86efac;background:#f0fdf4}.floorplan-status-card.used{border-color:#93c5fd;background:#eff6ff}.floorplan-status-card.wait{border-color:#fdba74;background:#fff7ed}.floorplan-status-card.void{border-color:#cbd5e1;background:#f8fafc}
+  .page-loading-note.show{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#f8fafc 25%,#eff6ff 50%,#f8fafc 75%);background-size:200% 100%;animation:loadingShimmer .8s ease-in-out infinite}.page-loading-note.show::before{content:"";width:22px;height:12px;border-radius:999px;background:#cbd5e1;box-shadow:30px 0 0 #dbeafe,60px 0 0 #cbd5e1;animation:loadingPulse .7s ease-in-out infinite alternate}@keyframes loadingShimmer{to{background-position:-200% 0}}@keyframes loadingPulse{to{opacity:.45}}
+  @media(max-width:700px){.card,.card.card-attention,.card.card-success,.risk-section{padding:16px}.dashboard-command-card{padding:18px}.result-progress{grid-template-columns:1fr 1fr}.floorplan-status-cards{grid-template-columns:1fr 1fr}.seat-watermark::after{font-size:58px}}
 </style>
 </head>
 <body>
@@ -689,7 +697,7 @@
 
   <div class="card" id="my-parking-result-card" style="display:none;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#93c5fd">
     <div class="card-title">🎉 我的車位結果</div>
-    <div class="form-row"><input id="my-result-room" type="text" placeholder="輸入門牌，例如 A1-03 或 03" oninput="renderMyParkingResult()"><button class="btn btn-primary" onclick="renderMyParkingResult()">查詢我的車位</button></div>
+    <div class="form-row"><div><label for="my-result-room">門牌<span class="field-required">必填</span></label><input id="my-result-room" type="text" placeholder="輸入門牌，例如 A1-03 或 03" oninput="renderMyParkingResult()" aria-describedby="my-result-room-help"><small id="my-result-room-help" class="field-helper">僅用於查詢本人結果，不會顯示其他住戶完整資料。</small><small id="my-result-room-error" class="field-error"></small></div><button class="btn btn-primary" onclick="renderMyParkingResult()">查詢我的車位</button></div>
     <div id="my-parking-result-content" style="font-size:14px;font-weight:700;color:#475569">輸入門牌後，可直接查看各輪分配結果與車位位置。</div>
   </div>
 
@@ -732,6 +740,7 @@
         <div class="dashboard-eyebrow">目前系統狀態</div>
         <div class="dashboard-command-title" id="dash-command-title">第一輪尚未執行</div>
         <div class="dashboard-command-sub" id="dash-command-sub">請依序完成第一輪 → 第二輪 → 第三輪 → 候補。</div>
+        <div class="dashboard-command-sync" id="dash-command-sync">同步狀態確認中</div>
       </div>
       <div class="dashboard-next-action" id="dash-next-action">下一步：第一輪抽籤</div>
     </div>
@@ -1021,6 +1030,7 @@
     <button class="btn btn-sm" data-result-quick="no" onclick="setResultQuickFilter('no')">僅看未中籤者</button>
     <button class="btn btn-sm" data-result-quick="waitlist" onclick="setResultQuickFilter('waitlist')">候補者</button>
   </div>
+  <div id="result-progress" class="result-progress results-query-content" aria-label="抽籤輪次進度"></div>
   <div id="results-summary-strip" class="results-summary-strip results-query-content" aria-live="polite"></div>
 
   <div class="card card-pad-lg results-query-content" id="results-query-panel">
@@ -1220,6 +1230,7 @@
       <button class="btn btn-sm" id="floorplan-return-highlight" style="display:none" onclick="returnToHighlightedSeat()">回到高亮車位</button>
     </div>
     <div class="floorplan-quick-filters" aria-label="平面圖快速篩選"><button class="btn active" data-floorplan-quick="all" onclick="setFloorplanQuickFilter('all')">全部車位</button><button class="btn" data-floorplan-quick="free" onclick="setFloorplanQuickFilter('free')">僅顯示空位</button><button class="btn" data-floorplan-quick="used" onclick="setFloorplanQuickFilter('used')">僅顯示已分配</button><button class="btn" data-floorplan-quick="void" onclick="setFloorplanQuickFilter('void')">僅顯示作廢</button><button class="btn" data-floorplan-quick="waitlist" onclick="setFloorplanQuickFilter('waitlist')">僅顯示候補</button></div>
+    <div id="floorplan-status-cards" class="floorplan-status-cards" aria-label="車位狀態統計"></div>
     <div class="floorplan-context">
       <div class="legend-box" aria-label="車位狀態圖例"><div class="legend-item"><div class="legend-color" style="background:#f0fdf4;border:1px solid #86efac"></div>空車位</div><div class="legend-item"><div class="legend-color" style="background:#eff6ff;border:1px solid #93c5fd"></div>已分配</div><div class="legend-item"><div class="legend-color" style="background:#fff7ed;border:1px solid #fdba74"></div>候補</div><div class="legend-item"><div class="legend-color" style="background:#f8fafc;border:2px dashed #cbd5e1"></div>作廢</div></div>
       <span id="floorplan-search-status" class="floorplan-context-status">顯示全部車位</span>
@@ -1506,14 +1517,16 @@
         </select>
       </div>
       <div>
-        <label for="res-room">門牌號碼</label>
+        <label for="res-room">門牌號碼<span class="field-required">必填</span></label>
         <input type="text" id="res-room" placeholder="例: 3F-1">
+        <small id="res-room-error" class="field-error"></small>
       </div>
     </div>
     <div class="form-row">
       <div>
-        <label for="res-name">住戶姓名</label>
+        <label for="res-name">住戶姓名<span class="field-required">必填</span></label>
         <input type="text" id="res-name" placeholder="請輸入姓名">
+        <small id="res-name-error" class="field-error"></small>
       </div>
       <div>
         <label for="res-reserve">身分</label>
@@ -3548,6 +3561,8 @@
     if(titleEl) titleEl.innerText = commandTitle;
     if(subEl) subEl.innerText = commandSub;
     if(nextEl) nextEl.innerText = nextAction;
+    const syncEl=document.getElementById('dash-command-sync');
+    if(syncEl){const syncText=cloudSyncReady?'同步正常，可安全執行管理作業':'同步待確認，暫勿執行抽籤';syncEl.textContent=syncText;syncEl.className=`dashboard-command-sync ${cloudSyncReady?'':'is-danger'}`;}
     if(actionsEl) {
       if(currentUser && ['admin','director'].includes(currentUser.role)) {
         const nextRound = gotR3 === 0 ? (gotR2 === 0 ? (gotR1 === 0 ? '第一輪' : '第二輪') : '第三輪') : (getValidWinnerCount('候補') === 0 ? '候補' : null);
@@ -3558,11 +3573,11 @@
     }
 
     document.getElementById("dash-stats").innerHTML = `
-      <div class="stat"><div class="stat-label">總住戶登記數</div><div class="stat-value blue">${total}</div></div>
-      <div class="stat"><div class="stat-label">社區可用車位</div><div class="stat-value green">${availableSeats}</div></div>
-      <div class="stat clickable" role="button" tabindex="0" onclick="openWinnerResults('第一輪')" onkeydown="if(event.key==='Enter'||event.key===' '){openWinnerResults('第一輪')}"><div class="stat-label">第一輪已中籤</div><div class="stat-value orange">${gotR1}</div></div>
-      <div class="stat clickable" role="button" tabindex="0" onclick="openWinnerResults('第二輪')" onkeydown="if(event.key==='Enter'||event.key===' '){openWinnerResults('第二輪')}"><div class="stat-label">第二輪已中籤</div><div class="stat-value orange">${gotR2}</div></div>
-      <div class="stat clickable" role="button" tabindex="0" onclick="openWinnerResults('第三輪')" onkeydown="if(event.key==='Enter'||event.key===' '){openWinnerResults('第三輪')}"><div class="stat-label">第三輪已中籤</div><div class="stat-value orange">${gotR3}</div></div>
+      <div class="stat"><div class="stat-label">總住戶登記數</div><div class="stat-value blue"><span class="number-value">${total}</span><span class="number-unit">戶</span></div></div>
+      <div class="stat"><div class="stat-label">社區可用車位</div><div class="stat-value green"><span class="number-value">${availableSeats}</span><span class="number-unit">位</span></div></div>
+      <div class="stat clickable" role="button" tabindex="0" onclick="openWinnerResults('第一輪')" onkeydown="if(event.key==='Enter'||event.key===' '){openWinnerResults('第一輪')}"><div class="stat-label">第一輪已中籤</div><div class="stat-value orange"><span class="number-value">${gotR1}</span><span class="number-unit">位</span></div></div>
+      <div class="stat clickable" role="button" tabindex="0" onclick="openWinnerResults('第二輪')" onkeydown="if(event.key==='Enter'||event.key===' '){openWinnerResults('第二輪')}"><div class="stat-label">第二輪已中籤</div><div class="stat-value orange"><span class="number-value">${gotR2}</span><span class="number-unit">位</span></div></div>
+      <div class="stat clickable" role="button" tabindex="0" onclick="openWinnerResults('第三輪')" onkeydown="if(event.key==='Enter'||event.key===' '){openWinnerResults('第三輪')}"><div class="stat-label">第三輪已中籤</div><div class="stat-value orange"><span class="number-value">${gotR3}</span><span class="number-unit">位</span></div></div>
     `;
 
     let lastModText = "尚無紀錄";
@@ -3627,16 +3642,17 @@
   }
 
   function renderMyParkingResult(){
-    const input=document.getElementById('my-result-room'), box=document.getElementById('my-parking-result-content');
+    const input=document.getElementById('my-result-room'), box=document.getElementById('my-parking-result-content'), error=document.getElementById('my-result-room-error');
     if(!input || !box) return;
     const q=String(input.value||'').trim().toLowerCase().replace(/\s+/g,'');
-    if(!q){box.innerText='輸入門牌後，可直接查看各輪分配結果與車位位置。';return;}
+    if(error)error.textContent='';
+    if(!q){box.innerText='輸入門牌後，可直接查看各輪分配結果與車位位置。';if(error)error.textContent='請輸入門牌後再查詢。';return;}
     const r=residents.find(x=>`${x.build}-${x.room}`.toLowerCase().replace(/\s+/g,'')===q || String(x.room||'').toLowerCase()===q);
-    if(!r){box.innerText='找不到此門牌，請輸入完整格式（例如 A1-03）。';return;}
+    if(!r){box.innerText='找不到此門牌，請輸入完整格式（例如 A1-03）。';if(error)error.textContent='查無相符門牌，請確認棟別與門牌格式。';return;}
     try{localStorage.setItem('parking_lottery_last_room',`${r.build}-${r.room}`);}catch(_){}
     const rounds=['第一輪','第二輪','第三輪','候補']; const seats=rounds.map(round=>getUserSeat(round,r.id));
-    const slots=rounds.map((round,i)=>`<div class="my-result-slot" style="${seats[i]?'background:#dbeafe;border-color:#60a5fa':'opacity:.58'}">${round}<b style="${seats[i]?'font-size:24px;color:#1d4ed8':'font-size:16px;color:#64748b'}">${seats[i]?seats[i]+' 號車位':'—'}</b></div>`).join('');
-    box.innerHTML=`<b>${escapeHtml(r.build)}-${escapeHtml(r.room)} 的結果</b><div class="my-result-grid">${slots}</div><div style="margin-top:12px">目前共取得 <b style="color:#15803d">${seats.filter(Boolean).length}</b> 個車位　${seats.find(Boolean)?`<button class="btn btn-sm" onclick="openResidentParkingOnMap(${r.id})">🗺 查看車位位置</button>`:''}</div>`;
+    const slots=rounds.map((round,i)=>`<div class="my-result-slot ${seats[i]?'seat-watermark':''}" ${seats[i]?`data-seat-watermark="${seats[i]}"`:''} style="${seats[i]?'background:#dbeafe;border-color:#60a5fa':'opacity:.58'}"><span>${round}</span><b style="${seats[i]?'font-size:24px;color:#1d4ed8':'font-size:16px;color:#64748b'}">${seats[i]?`<span class="number-value">${seats[i]}</span><span class="number-unit">號車位</span>`:'—'}</b></div>`).join('');
+    box.innerHTML=`<b>${escapeHtml(r.build)}-${escapeHtml(r.room)} 的結果</b><div class="my-result-grid">${slots}</div><div style="margin-top:12px">目前共取得 <b class="number-value" style="color:#15803d">${seats.filter(Boolean).length}</b><span class="number-unit">個車位</span>　${seats.find(Boolean)?`<button class="btn btn-sm" onclick="openResidentParkingOnMap(${r.id})">查看車位位置</button>`:''}</div>`;
   }
 
   function openResidentParkingOnMap(residentId){
@@ -3982,6 +3998,7 @@
   }
 
   function openAddModal() {
+    ['res-room-error','res-name-error'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
     document.getElementById("modal-title").innerText = "新增住戶";
     document.getElementById("edit-id").value = "";
     document.getElementById("res-room").value = "";
@@ -4016,6 +4033,7 @@
   function openEditModal(id) {
     const r = residents.find(x => Number(x.id) === Number(id));
     if(!r) return;
+    ['res-room-error','res-name-error'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
     document.getElementById("modal-title").innerText = "編輯住戶資料";
     const reserveSelect = document.getElementById("res-reserve");
     if (reserveSelect) reserveSelect.dataset.mode = "edit";
@@ -4087,6 +4105,7 @@
 
   async function saveResident() {
     if (blockFrozenMutation('住戶資料異動')) return;
+    ['res-room-error','res-name-error'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
     const id = document.getElementById("edit-id").value;
     const preSaveSnapshot = {
       residents: JSON.parse(JSON.stringify(residents)),
@@ -4121,7 +4140,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const plateW = formatTaiwanPlate(rawPlateW);
 
     if(!room || !name) {
-      alert("請填寫門牌與姓名！");
+      const roomError=document.getElementById('res-room-error'),nameError=document.getElementById('res-name-error');
+      if(!room&&roomError)roomError.textContent='請填寫門牌號碼。';
+      if(!name&&nameError)nameError.textContent='請填寫住戶姓名。';
+      (!room?document.getElementById('res-room'):document.getElementById('res-name'))?.focus();
       return;
     }
 
@@ -6204,7 +6226,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const eligible=n?residents.filter(x=>x[`r${n}`]==='Y'&&String(x[`plate${n}`]||'').trim()).length:r==='候補'?residents.filter(x=>x.waitlist==='Y').length:residents.length;
     const winners=r==='全部輪次'?['第一輪','第二輪','第三輪','候補'].reduce((a,x)=>a+getValidWinnerCount(x),0):getValidWinnerCount(r);
     box.innerHTML=`<span class="summary-primary">${r}</span><span class="status-action">合格 ${eligible} 位</span><span class="status-complete">中籤 ${winners} 位</span><span class="status-pending">未中籤 ${Math.max(0,eligible-winners)} 位</span><span class="status-danger">作廢 ${(systemSettings.voidSeats||[]).length} 位</span>`;
+    renderResultsProgress();
   }
+  function renderResultsProgress(){const host=document.getElementById('result-progress');if(!host)return;const rounds=[['第一輪',1],['第二輪',2],['第三輪',3]],hasWinner=r=>getValidWinnerCount(r)>0,participants=n=>residents.filter(x=>x[`r${n}`]==='Y'&&String(x[`plate${n}`]||'').trim()).length;const completed=rounds.map(([name,n])=>hasWinner(name)||participants(n)===0);const steps=rounds.map(([name,n],i)=>{const count=participants(n),done=hasWinner(name),previousReady=i===0||completed.slice(0,i).every(Boolean);const state=done?'done':count===0?'conditional':previousReady?'ready':'pending';const note=done?`已完成｜${getValidWinnerCount(name)} 位中籤`:count===0?'無合格報名，免執行':previousReady?'符合條件，可視報名執行':'待前輪完成';return `<div class="result-progress-step ${state}">${name}<small>${note}</small></div>`;});const waitCount=residents.filter(x=>x.waitlist==='Y').length,free=getLeftoverFreeSeats().length,officialReady=completed.every(Boolean),waitDone=hasWinner('候補'),waitState=waitDone?'done':waitCount===0?'conditional':officialReady&&free>0?'ready':officialReady?'conditional':'pending',waitNote=waitDone?`已遞補｜${getValidWinnerCount('候補')} 位`:waitCount===0?'無候補登記，免執行':officialReady&&free>0?`可遞補｜尚有 ${free} 位`:officialReady?'無可分配車位，免執行':'待正式輪次結束';steps.push(`<div class="result-progress-step ${waitState}">候補<small>${waitNote}</small></div>`);host.innerHTML=steps.join('');}
 
   function preparePrintHeader() {
     const title = systemSettings.appTitle || "稙村秀社區機車位電腦抽籤系統";
@@ -6252,7 +6276,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const printedAt=new Date().toLocaleString('zh-TW',{hour12:false});
     const eligible=rounds.reduce((n,r)=>n+(r==='候補'?residents.filter(x=>x.waitlist==='Y').length:residents.filter(x=>x['r'+({'第一輪':1,'第二輪':2,'第三輪':3}[r])]==='Y').length),0);
     const auditVersion=lastKnownServerModified?new Date(lastKnownServerModified).toLocaleString('zh-TW',{hour12:false}):'本機資料版本';
-    sheet.innerHTML=`<section style="padding:8mm"><div class="announcement-sheet-brand"><span class="brand-mark" aria-hidden="true">稙</span><strong>${escapeHtml(title)}</strong></div><h1 style="text-align:center;font-size:22pt;margin:0 0 4mm">機車位抽籤結果公告</h1><p style="text-align:center;margin:0 0 4mm">公告範圍：第一輪、第二輪、第三輪及候補</p><p style="text-align:center;margin:0 0 7mm">合格 ${eligible} 位｜中籤 ${rows.length} 位｜作廢 ${(systemSettings.voidSeats||[]).length} 位</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>輪次</th><th>棟別</th><th>門牌</th><th>中籤住戶</th><th>車位</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${escapeHtml(x.round)}</td><td>${escapeHtml(x.r.build)}</td><td>${escapeHtml(x.r.room)}</td><td>${escapeHtml(maskName(x.r.name))}</td><td style="font-size:14pt;font-weight:900">${x.seat} 號</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:12mm">目前尚無中籤結果。</td></tr>'}</tbody></table><p style="margin-top:8mm;font-size:10pt">本公告為查閱用途；如有疑義，請洽社區管理委員會。公告版已隱藏車牌與管理操作資訊。</p><div class="announcement-sheet-signatures"><div>社區主任簽核</div><div>管理委員簽核</div><div>承辦人簽核</div></div><div class="announcement-page-footer"><span>列印時間：${escapeHtml(printedAt)}｜資料版本：${escapeHtml(auditVersion)}</span><span class="page-no"></span></div></section>`;
+    const queryUrl=/^https?:$/i.test(location.protocol)?`${location.origin}${location.pathname}${location.search}#resident-query`:'';
+    const qrHtml=queryUrl?`<div class="announcement-verify"><img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(queryUrl)}" alt="住戶查詢入口 QR Code"><div><b>線上查詢與公告驗證</b><small>掃描後進入住戶查詢入口；QR Code 僅包含公開查詢網址，不含住戶或抽籤個資。</small><small>${escapeHtml(queryUrl)}</small></div></div>`:'<div class="announcement-verify"><div><b>線上查詢與公告驗證</b><small>目前為本機檔案預覽；部署至網站後，公告版會自動加入住戶查詢入口 QR Code。</small></div></div>';
+    sheet.innerHTML=`<section style="padding:8mm"><div class="announcement-sheet-brand"><span class="brand-mark" aria-hidden="true">稙</span><strong>${escapeHtml(title)}</strong></div><h1 style="text-align:center;font-size:22pt;margin:0 0 4mm">機車位抽籤結果公告</h1><p style="text-align:center;margin:0 0 4mm">公告範圍：第一輪、第二輪、第三輪及候補</p><p style="text-align:center;margin:0 0 7mm">合格 ${eligible} 位｜中籤 ${rows.length} 位｜作廢 ${(systemSettings.voidSeats||[]).length} 位</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>輪次</th><th>棟別</th><th>門牌</th><th>中籤住戶</th><th>車位</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${escapeHtml(x.round)}</td><td>${escapeHtml(x.r.build)}</td><td>${escapeHtml(x.r.room)}</td><td>${escapeHtml(maskName(x.r.name))}</td><td style="font-size:14pt;font-weight:900">${x.seat} 號</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:12mm">目前尚無中籤結果。</td></tr>'}</tbody></table><p style="margin-top:8mm;font-size:10pt">本公告為查閱用途；如有疑義，請洽社區管理委員會。公告版已隱藏車牌與管理操作資訊。</p>${qrHtml}<div class="announcement-sheet-signatures"><div>社區主任簽核</div><div>管理委員簽核</div><div>承辦人簽核</div></div><div class="announcement-page-footer"><span>列印時間：${escapeHtml(printedAt)}｜資料版本：${escapeHtml(auditVersion)}</span><span class="page-no"></span></div></section>`;
     document.body.classList.add('printing-announcement');window.print();const reset=()=>{document.body.classList.remove('printing-announcement');window.removeEventListener('afterprint',reset);};window.addEventListener('afterprint',reset);addLog('設定',`列印抽籤結果公告版：${currentResultRound}`);
   }
   function renderSummary() { renderResults(); }
@@ -7027,6 +7053,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const b2Grid = document.getElementById("fp-b2-grid");
     if(b1Grid) b1Grid.innerHTML = b1Html;
     if(b2Grid) b2Grid.innerHTML = b2Html;
+    const statCards=document.getElementById('floorplan-status-cards');
+    if(statCards){let free=0,used=0,wait=0,voided=0;for(let seat=1;seat<=total;seat++){const isVoid=vSeats.includes(seat),occupant=getSeatOccupant(seat);if(isVoid)voided++;else if(!occupant)free++;else if(isSeatFromWaitlist(seat))wait++;else used++;}statCards.innerHTML=`<div class="floorplan-status-card free">空位<b>${free} 位</b></div><div class="floorplan-status-card used">已分配<b>${used} 位</b></div><div class="floorplan-status-card wait">候補<b>${wait} 位</b></div><div class="floorplan-status-card void">作廢<b>${voided} 位</b></div>`;}
     const statusBox=document.getElementById('floorplan-search-status');
     if(statusBox){
       const hasFilter=!!floorplanSearchText || floorplanStatusFilter!=='all';
