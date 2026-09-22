@@ -523,6 +523,26 @@
   .seat-history{margin-top:14px;border-top:1px dashed #cbd5e1;padding-top:12px}.seat-history summary{cursor:pointer;font-size:13px;font-weight:900;color:#1e3a5f}.seat-history-list{display:grid;gap:7px;margin-top:10px}.seat-history-item{padding:8px 10px;border-left:3px solid #93c5fd;background:#f8fafc;border-radius:var(--radius-sm);font-size:12px;line-height:1.55;color:#475569}.seat-history-item.forfeit{border-left-color:#f87171;background:#fff7f7}.seat-history-item.swap{border-left-color:#a78bfa;background:#faf5ff}
   .archive-diff{margin-top:12px;padding:12px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:var(--radius-sm);font-size:13px;line-height:1.7}.archive-diff b{color:#1e3a8a}
   @media(max-width:700px){#sync-status-indicator{position:fixed;right:10px;top:6px;z-index:1150;font-size:11px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user-bar{padding-right:150px}.resident-filter-return.show{bottom:86px}}
+  /* ===== 視覺語意最終收斂：顏色只傳達狀態，不作為裝飾 ===== */
+  .nav{background:#fff;border-top:4px solid var(--primary);border-bottom-color:#dbe3ef;box-shadow:0 4px 14px rgba(15,23,42,.06)}
+  .brand-mark{background:var(--primary);box-shadow:none}.nav-tab.active{background:#eff6ff}.nav-tab:hover:not(.active){background:#f1f5f9}
+  .page{padding-top:28px;padding-bottom:40px}.page-hero{background:#f8fbff;border-color:#d7e5f8;box-shadow:none}.page-hero::before{background:var(--primary)}
+  .page-hero[data-hero-tone="success"]{background:#f5fcf7;border-color:#ccebd5}.page-hero[data-hero-tone="success"]::before{background:var(--status-normal)}
+  .page-hero[data-hero-tone="attention"]{background:#fffaf4;border-color:#fde1bd}.page-hero[data-hero-tone="attention"]::before{background:var(--status-caution)}
+  .page-hero[data-hero-tone="danger"]{background:#fff8f8;border-color:#f8d1d1}.page-hero[data-hero-tone="danger"]::before{background:var(--status-danger)}
+  .page-hero-status span,.data-mark,.badge{min-height:30px;align-items:center;font-weight:800;letter-spacing:0}
+  .card{background:#fff;border-color:#e2e8f0;box-shadow:0 8px 20px -16px rgba(15,23,42,.26);margin-bottom:24px}
+  .card:not(.card-attention):not(.card-success):not([data-tone="danger"]){background:#fff}.card-display{background:#fbfdff;border-color:transparent}
+  .card.card-attention{background:#fffaf4;border-color:#fed7aa;box-shadow:none}.card.card-success{background:#f6fcf7;border-color:#bbebca;box-shadow:none}.risk-section,.card[data-tone="danger"]{background:#fff8f8;border-color:#fca5a5;box-shadow:none}
+  .card-title{margin-bottom:18px;border-left-width:4px;padding-left:12px}.card p,.card small,.muted-note,.page-purpose{color:#64748b;font-weight:500}
+  .stat{background:#fff;border-color:#e2e8f0;box-shadow:none}.stat:hover{border-color:#bfdbfe;box-shadow:0 8px 18px -16px rgba(37,99,235,.32);transform:translateY(-1px)}
+  .data-mark.result{color:#15803d;background:#f0fdf4;border-color:#86efac}.data-mark.wait{color:#c2410c;background:#fff7ed;border-color:#fdba74}.data-mark.void{color:#475569;background:#f8fafc;border-color:#cbd5e1}.data-mark.swap{color:#1d4ed8;background:#eff6ff;border-color:#93c5fd}
+  .table-wrap{border-color:#e2e8f0;box-shadow:none}.table-wrap th{background:#edf2f7!important;color:#334155!important;border-color:#dbe3ef}.table-wrap td{border-color:#edf2f7}.table-wrap tbody tr:nth-child(even){background:#fafcff}.table-wrap tbody tr:hover td{background:#f0f7ff!important}
+  .table-group-row .group-basic{background:#edf2f7!important}.table-group-row .group-eligibility{background:#eaf3ff!important}.table-group-row .group-pref{background:#f4f1ff!important}.table-group-row .group-plate{background:#effaf2!important}.table-group-row .group-action{background:#f8fafc!important}
+  .empty{background:#fbfdff;border-color:#cbd5e1;padding:28px 20px}.empty::before{margin-bottom:2px}.empty strong{font-weight:800}.empty small{max-width:440px}.empty-action{margin-top:6px;min-height:38px}
+  .number-value,.stat-value,.seat-number,.seat-detail-number,.lrs-stat-val{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;letter-spacing:-.035em}.number-unit{font-size:.52em;font-weight:700;color:#64748b;letter-spacing:0}
+  .btn-primary{box-shadow:0 5px 12px -8px rgba(37,99,235,.7)}.btn-danger{box-shadow:none}.advanced-ops,.risk-section{margin-top:32px}
+  @media print{body.printing-announcement #announcement-sheet{font-family:"Microsoft JhengHei",system-ui,sans-serif}.announcement-sheet-brand{border-bottom:1.5pt solid #111;padding-bottom:3mm;margin-bottom:5mm}.announcement-sheet-brand .brand-mark{background:#fff!important;color:#000!important;border:1pt solid #000!important;box-shadow:none!important}.announcement-verify{border-top:1pt solid #777;padding-top:4mm;margin-top:6mm}.announcement-sheet-signatures{margin-top:12mm;display:grid!important;grid-template-columns:repeat(3,1fr);gap:8mm}.announcement-sheet-signatures>div{min-height:20mm;border-top:1pt solid #333;padding-top:3mm}.announcement-page-footer{display:flex!important;justify-content:space-between;border-top:1pt solid #777;padding-top:3mm;margin-top:7mm;font-size:9pt}.announcement-page-footer .page-no::after{content:"第 " counter(page) " 頁"}.announcement-sheet-brand,.announcement-verify,.announcement-sheet-signatures,.announcement-page-footer{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -3357,6 +3377,14 @@
   function enhanceNavigationIcons(){document.querySelectorAll('.nav-tab,.mobile-bottom-btn').forEach(el=>{if(el.querySelector('.nav-icon'))return;const target=String(el.getAttribute('onclick')||'').match(/showPage\('([^']+)'\)/)?.[1]||(el.textContent.includes('更多')?'guide':'dashboard');const icon=document.createElement('span');icon.className='nav-icon';icon.innerHTML=navigationIconSvg(target);el.prepend(icon);el.classList.add('has-nav-icon');});}
   function decoratePagePurposes(){const copy={dashboard:'目前年度作業摘要與待處理事項。',residents:'管理住戶資格、車牌資料與年度核對狀態。',lottery:'依目前輪次執行覆核、抽籤與結果確認。',results:'查看各輪結果；管理員可另行建立公告與列印。',swap:'檢視及處理符合規則的車位互換。',floorplan:'依車位狀態與輪次快速定位配置。',settings:'維護系統設定、資料安全與年度作業。',guide:'提供各角色對應的操作指引。'},tones={dashboard:'success',residents:'info',lottery:'attention',results:'info',swap:'attention',floorplan:'info',settings:'danger',guide:'info'};Object.entries(copy).forEach(([page,text])=>{const root=document.getElementById(`page-${page}`),title=root?.querySelector('.section-title');if(!title||!root)return;let host=title.parentElement;if(host===root){host=document.createElement('div');host.className='page-hero';title.before(host);host.appendChild(title);}host.classList.add('page-hero');host.dataset.heroTone=tones[page]||'info';if(!host.querySelector('.page-purpose')){const note=document.createElement('div');note.className='page-purpose';note.textContent=text;title.after(note);}if(!host.querySelector('.page-hero-status')){const status=document.createElement('div');status.className='page-hero-status';status.dataset.pageHero=page;host.appendChild(status);}});renderPageHeroStatuses();}
   function renderPageHeroStatuses(){const used=new Set(Object.values(lotteryResults||{}).flatMap(x=>Object.values(x||{})).map(Number).filter(n=>n>0)).size,available=Math.max(0,Number(systemSettings.totalSeats||0)-Number((systemSettings.voidSeats||[]).length)-used),frozen=isLotteryDataFrozen();document.querySelectorAll('.page-hero-status').forEach(box=>{const page=box.dataset.pageHero;let items=page==='lottery'?[currentRound||'第一輪',frozen?'資料已凍結':'資料可編輯',`可用 ${available} 位`,cloudSyncReady?'同步正常':'同步待確認']:page==='results'?[currentResultRound||'第一輪',`中籤 ${getValidWinnerCount(currentResultRound||'第一輪')} 位`,cloudSyncReady?'同步正常':'同步待確認']:page==='residents'?[`住戶 ${residents.length} 戶`,`待核對 ${residents.filter(r=>['prior','pending'].includes(r.plateVerification)).length} 筆`,cloudSyncReady?'同步正常':'同步待確認']:[cloudSyncReady?'同步正常':'同步待確認'];const pill=x=>{const text=String(x),tone=/同步正常|資料已凍結/.test(text)?' hero-status-good':/待確認|待核對/.test(text)?' hero-status-warn':'';return `<span class="${tone.trim()}">${escapeHtml(text)}</span>`;};const visible=items.slice(0,3),extra=items.slice(3);box.innerHTML=visible.map(pill).join('')+(extra.length?`<details class="hero-status-details"><summary>更多狀態</summary><div>${extra.map(pill).join('')}</div></details>`:'');});}
+  function decorateEmptyStates(scope=document){
+    (scope?.querySelectorAll?.('.empty')||[]).forEach(box=>{if(box.dataset.emptyEnhanced==='1')return;box.dataset.emptyEnhanced='1';const page=box.closest('.page')?.id||'';let label='',action='';
+      if(page==='page-residents'){label='清除篩選';action='clearResidentFilters()';}
+      else if(page==='page-results'&&currentUser?.role!=='guest'){label='前往抽籤';action="showPage('lottery')";}
+      else if(page==='page-settings'){label='建立備份';action="openSettingsShortcut('backup')";}
+      if(label){const btn=document.createElement('button');btn.type='button';btn.className='btn btn-sm empty-action';btn.textContent=label;btn.setAttribute('onclick',action);box.appendChild(btn);}
+    });
+  }
 
   function initDashboardDetailMode(){try{dashboardDetailMode=localStorage.getItem('parking_dashboard_detail')==='1';}catch(_){}const page=document.getElementById('page-dashboard'),btn=document.getElementById('dashboard-view-toggle');if(page)page.classList.toggle('dashboard-detail',dashboardDetailMode);if(btn){btn.textContent=dashboardDetailMode?'收合完整總覽':'查看完整總覽';btn.setAttribute('aria-expanded',String(dashboardDetailMode));}}
   function toggleDashboardDetail(){dashboardDetailMode=!dashboardDetailMode;try{localStorage.setItem('parking_dashboard_detail',dashboardDetailMode?'1':'0');}catch(_){}initDashboardDetailMode();}
@@ -3833,6 +3861,8 @@
     if(table){table.classList.toggle('resident-plate-view',['plate','pending'].includes(residentListMode));table.classList.toggle('resident-verify-view',residentListMode==='verify');}
     if(hint)hint.textContent=residentListMode==='full'?'表格可左右滑動查看更多欄位':residentListMode==='verify'?'核對模式只保留棟別、門牌、姓名、車牌、年度核對狀態與重機推定，適合逐筆對照紙本登記表。':'車牌核對表保留住戶識別、車牌與操作欄位；可輸入完整或部分車牌搜尋。';
     if(waitHint)waitHint.style.display=residentListMode==='full'?'block':'none';
+    renderResidentCards(filtered);
+    decorateEmptyStates(document.getElementById('page-residents'));
   }
   function toggleResidentAdvancedFilters(){const box=document.getElementById('resident-advanced-filters');if(box)box.style.display=box.style.display==='none'?'grid':'none';}
   function setResidentListMode(mode){residentListMode=['full','plate','pending','verify'].includes(mode)?mode:'full';document.querySelectorAll('button[id^="resident-mode-"]').forEach(el=>el.classList.toggle('active',el.id===`resident-mode-${residentListMode}`));renderResidents();}
@@ -3865,6 +3895,7 @@
       html+=`<article class="data-card">\n        <div class="data-card-head"><div><div class="data-card-title">${escapeHtml(r.build)} 棟 ${escapeHtml(r.room)} · ${escapeHtml(getDisplayName(r.name))}</div><div class="data-card-sub">ID ${escapeHtml(r.id)} · ${r.reserve==='Y'?'保留戶':'一般戶'}</div></div><span class="badge ${r.reserve==='Y'?'badge-purple':'badge-gray'}">${r.reserve==='Y'?'保留戶':'一般戶'}</span></div>\n        <div class="data-card-grid">\n          ${roundHtml}\n          <div class="data-card-item"><span class="data-card-label">候補</span><span class="data-card-value">${waitSeat ? `<b style="color:#c2410c">${waitSeat}號</b>` : (r.waitlist==='Y'?'已登記':'未登記')}</span></div>\n          <div class="data-card-item full"><span class="data-card-label">指定車位</span><span class="data-card-value">${[r.pref1,r.pref2,r.pref3].filter(v=>v!==''&&v!==null&&v!==undefined).map(v=>escapeHtml(v)+'號').join('、') || '未指定'}</span></div>\n        </div>\n        <div class="data-card-actions"><button class="btn btn-sm" onclick="openEditModal(${Number(r.id)})">編輯住戶</button><button class="btn btn-sm" onclick="printNotificationSlip(${Number(r.id)})">🖨️ 通知單</button><button class="btn btn-sm btn-danger" onclick="deleteResident(${Number(r.id)})">刪除</button></div>\n      </article>`;
     });
     host.innerHTML=html || '<div class="empty"><strong>沒有符合條件的住戶</strong><small>請調整搜尋或篩選條件；若尚未建檔，可使用頁面上方的「新增住戶」。</small></div>';
+    decorateEmptyStates(host);
   }
 
   function renderPlateText(value){ return value ? String(value) : '未填寫'; }
@@ -6100,6 +6131,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       html+=`<article class="data-card"><div class="data-card-head"><div><div class="data-card-title">${escapeHtml(r.build)} 棟 ${escapeHtml(r.room)} · ${escapeHtml(getDisplayName(r.name))}</div><div class="data-card-sub">${currentResultRound} · ${r.reserve==='Y'?'保留戶':'一般戶'}</div></div>${status}</div><div class="data-card-grid"><div class="data-card-item"><span class="data-card-label">目前使用車位</span><span class="data-card-value">${seat ? `<b class="seat-number">${seat}號</b>` : '-'}</span></div>${changed?`<div class="data-card-item"><span class="data-card-label">原抽中車位</span><span class="data-card-value"><b class="seat-number">${original}號</b></span></div>`:''}${guestResultsView?'':`<div class="data-card-item"><span class="data-card-label">車牌</span><span class="data-card-value">${escapeHtml(renderPlateText(plateValue))}</span></div>`}</div>${resultCardActions(r)}</article>`;
     });
     host.innerHTML=html || '<div class="empty"><strong>尚無符合條件的抽籤結果</strong><small>可切換輪次或篩選條件；若該輪尚未執行，管理員完成抽籤後會顯示結果。</small></div>';
+    decorateEmptyStates(host);
   }
 
   function renderResultCardsAll(rows){
@@ -6109,6 +6141,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       html+=`<article class="data-card"><div class="data-card-head"><div><div class="data-card-title">${escapeHtml(r.build)} 棟 ${escapeHtml(r.room)} · ${escapeHtml(getDisplayName(r.name))}</div><div class="data-card-sub">${r.reserve==='Y'?'保留戶':'一般戶'}</div></div></div><div class="data-card-grid"><div class="data-card-item"><span class="data-card-label">第一輪</span><span class="data-card-value">${seat1?`<b class="seat-number">${seat1}號</b>`:(r.r1==='Y'?'未中籤':'未參加')}</span></div><div class="data-card-item"><span class="data-card-label">第二輪</span><span class="data-card-value">${seat2?`<b class="seat-number">${seat2}號</b>`:(r.r2==='Y'?'未中籤':'未參加')}</span></div><div class="data-card-item"><span class="data-card-label">第三輪</span><span class="data-card-value">${seat3?`<b class="seat-number">${seat3}號</b>`:(r.r3==='Y'?'未中籤':'未參加')}</span></div><div class="data-card-item"><span class="data-card-label">候補</span><span class="data-card-value">${seatW?`<b class="seat-number">${seatW}號</b>`:(r.waitlist==='Y'?'候補中':'未登記')}</span></div>${(currentUser && currentUser.role === 'guest') ? '' : `<div class="data-card-item full"><span class="data-card-label">車牌</span><span class="data-card-value">${escapeHtml([r.plate1,r.plate2,r.plate3,r.plateWaitlist].map(renderPlateText).join(' / '))}</span></div>`}</div>${resultCardActions(r)}</article>`;
     });
     host.innerHTML=html || '<div class="empty"><strong>尚無符合條件的抽籤結果</strong><small>可調整篩選條件，或等待管理員完成抽籤。</small></div>';
+    decorateEmptyStates(host);
   }
 
   function selectResultRound(round) {
@@ -6145,8 +6178,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       const isGuest = !!(currentUser && currentUser.role === 'guest');
       banner.style.display = 'block';
       banner.innerHTML = isGuest
-        ? '👤 住戶查詢模式：僅顯示棟別、門牌、姓名與各輪車位結果；車牌與管理操作不會顯示。'
-        : '🛠️ 管理模式：可查看完整車牌、身分與管理操作；請使用下方篩選功能快速定位資料。';
+        ? '住戶查詢模式：僅顯示棟別、門牌、姓名與各輪車位結果；車牌與管理操作不會顯示。'
+        : '管理模式：可查看完整車牌、身分與管理操作；請使用下方篩選功能快速定位資料。';
     }
     const search = document.getElementById("search-result").value.toLowerCase();
     const type = document.getElementById("filter-result-type").value;
