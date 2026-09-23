@@ -3553,10 +3553,13 @@
       alert("權限不足！重機車牌統計僅限管理人員檢視。");
       return;
     }
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const targetPage=document.getElementById('page-' + pageId);
+    if(!targetPage){console.error('找不到頁面：',pageId);showAppToast('無法開啟指定頁面，請重新整理後再試。','warn');return;}
+    // 切頁時明確重設每個頁面的顯示狀態；避免列印預覽或舊瀏覽器快取樣式後，總覽內容殘留在其他頁面。
+    document.body.classList.remove('printing-announcement','printing-slip','printing-swap-record','printing-swap-form','printing-results');
+    document.querySelectorAll('.page').forEach(p => {const active=p.id===`page-${pageId}`;p.classList.toggle('active',active);p.style.display=active?'block':'none';});
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    
-    document.getElementById('page-' + pageId).classList.add('active');
+    targetPage.classList.add('active');
     
     document.querySelectorAll(`.nav-tab`).forEach(t => {
       if(t.getAttribute('onclick') && t.getAttribute('onclick').includes(pageId)) {
