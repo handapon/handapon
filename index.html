@@ -503,13 +503,16 @@
   .dashboard-title-row.page-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start}.dashboard-title-row.page-hero .page-purpose,.dashboard-title-row.page-hero .page-hero-status{grid-column:1/-1}
   .dashboard-title-row .section-title{margin:0}
   #page-dashboard:not(.dashboard-detail) .dashboard-secondary{display:none}
+  /* 住戶首頁只保留個人結果、進度、車位查詢與公告；完整統計與即時配置改由平面圖頁提供。 */
+  .guest-mode #page-dashboard .dashboard-command-card,.guest-mode #page-dashboard #dashboard-alert-center,.guest-mode #page-dashboard .dashboard-secondary,.guest-mode #page-dashboard #dashboard-view-toggle{display:none!important}
+  .guest-dashboard-card{margin-bottom:16px}.guest-round-progress{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.guest-round-progress-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:var(--radius-sm);background:#fbfdff;font-size:14px;font-weight:800}.guest-round-progress-item .badge{font-size:11px;padding:3px 8px;min-height:26px}.guest-dashboard-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.guest-dashboard-actions .btn{min-height:48px;padding:8px 10px;white-space:normal;line-height:1.35}.guest-dashboard-announcement-content{color:#475569;font-size:14px;line-height:1.7;font-weight:500;white-space:pre-wrap}.guest-dashboard-announcement-content strong{display:block;margin-bottom:4px;color:#1e3a5f;font-weight:900}
   .resident-verify-view .table-group-row{display:none}
   .resident-verify-view th:nth-child(1),.resident-verify-view td:nth-child(1),.resident-verify-view th:nth-child(2),.resident-verify-view td:nth-child(2),.resident-verify-view th:nth-child(n+6):nth-child(-n+13),.resident-verify-view td:nth-child(n+6):nth-child(-n+13),.resident-verify-view th:nth-child(18),.resident-verify-view td:nth-child(18){display:none}
   .resident-verify-view{min-width:720px!important}.resident-verify-view th:nth-child(3),.resident-verify-view th:nth-child(4),.resident-verify-view th:nth-child(5){background:#eef6ff!important}.resident-verify-view th:nth-child(n+14):nth-child(-n+17){background:#effcf5!important}
   .floorplan-mobile-shortcuts{display:none}
   .settings-favorites{display:grid;gap:6px;padding:8px 0 12px;margin:0 0 8px;border-bottom:1px solid #dbe3ef}.settings-favorites-label{font-size:12px;font-weight:900;color:#64748b;padding:0 10px;letter-spacing:.04em}.settings-side-nav .settings-favorite{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:8px 10px;font-size:13px}.settings-side-nav .settings-favorite:hover{background:#dbeafe}
   .table-wrap tbody tr:hover td{background:#eff6ff!important}.table-wrap tbody tr:focus-within td{background:#dbeafe!important;outline:1px solid #60a5fa;outline-offset:-1px}
-  @media(max-width:700px){body{padding-bottom:82px}#mobile-bottom-nav{grid-template-columns:repeat(5,1fr);padding:5px}.mobile-bottom-btn{min-height:62px;font-size:10.5px;padding:5px 2px}.mobile-bottom-btn.active{background:#eff6ff;color:#1d4ed8;border-radius:var(--radius-sm)}.floorplan-mobile-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.dashboard-title-row{align-items:flex-start}.dashboard-title-row .btn{flex:0 0 auto}.resident-verify-view{min-width:640px!important}}
+  @media(max-width:700px){body{padding-bottom:82px}#mobile-bottom-nav{grid-template-columns:repeat(5,1fr);padding:5px}.mobile-bottom-btn{min-height:62px;font-size:10.5px;padding:5px 2px}.mobile-bottom-btn.active{background:#eff6ff;color:#1d4ed8;border-radius:var(--radius-sm)}.floorplan-mobile-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.dashboard-title-row{align-items:flex-start}.dashboard-title-row .btn{flex:0 0 auto}.resident-verify-view{min-width:640px!important}.guest-round-progress{grid-template-columns:1fr}.guest-dashboard-actions{grid-template-columns:1fr}.guest-dashboard-card{padding:16px}}
   /* ===== 指揮卡、結果與表單質感元件 ===== */
   .card{padding:20px}.card.card-attention,.card.card-success,.risk-section{padding:24px}.dashboard-command-card{position:relative;overflow:hidden;padding:24px;border-color:#bfdbfe;box-shadow:var(--shadow-float)}.dashboard-command-card::after{content:"";position:absolute;width:180px;height:180px;right:-70px;top:-100px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.14),transparent 68%);pointer-events:none}.dashboard-command-main,.dashboard-command-actions{position:relative;z-index:1}.dashboard-command-sync{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:900;color:#166534}.dashboard-command-sync::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.dashboard-command-sync.is-pending{color:#b45309}.dashboard-command-sync.is-danger{color:#b91c1c}
   .number-value{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-size:1.55em;line-height:1;font-weight:950;letter-spacing:-.03em}.number-unit{font-size:.58em;font-weight:800;color:var(--text-muted);margin-left:3px;letter-spacing:0}.seat-watermark{position:relative;overflow:hidden;background:linear-gradient(135deg,#eff6ff,#f8fbff)!important;border-color:#bfdbfe!important}.seat-watermark::after{content:attr(data-seat-watermark);position:absolute;right:10px;bottom:-12px;font-size:74px;font-weight:950;line-height:1;color:rgba(37,99,235,.08);pointer-events:none;font-variant-numeric:tabular-nums}.seat-watermark>*{position:relative;z-index:1}
@@ -734,13 +737,26 @@
 
 <!-- ===== 1. 總覽 ===== -->
 <div id="page-dashboard" class="page active">
-  <div class="dashboard-title-row"><div class="section-title">機車位抽籤總覽</div><button id="dashboard-view-toggle" class="btn btn-sm" onclick="toggleDashboardDetail()" aria-expanded="false">查看完整總覽</button></div>
+  <div class="dashboard-title-row"><div class="section-title" id="dashboard-page-title">機車位抽籤總覽</div><button id="dashboard-view-toggle" class="btn btn-sm" onclick="toggleDashboardDetail()" aria-expanded="false">查看完整總覽</button></div>
 
   <div class="card" id="my-parking-result-card" style="display:none;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#93c5fd">
     <div class="card-title">🎉 我的車位結果</div>
     <div class="form-row"><div><label for="my-result-room">門牌<span class="field-required">必填</span></label><input id="my-result-room" type="text" placeholder="輸入門牌，例如 A1-03 或 03" oninput="renderMyParkingResult()" aria-describedby="my-result-room-help"><small id="my-result-room-help" class="field-helper">僅用於查詢本人結果，不會顯示其他住戶完整資料。</small><small id="my-result-room-error" class="field-error"></small></div><button class="btn btn-primary" onclick="renderMyParkingResult()">查詢我的車位</button></div>
     <div id="my-parking-result-content" style="font-size:14px;font-weight:700;color:#475569">輸入門牌後，可直接查看各輪分配結果與車位位置。</div>
   </div>
+
+  <section class="card guest-dashboard-card" id="guest-dashboard-progress" style="display:none" aria-labelledby="guest-progress-title">
+    <div class="card-title" id="guest-progress-title">抽籤進度</div>
+    <div id="guest-dashboard-progress-content" class="guest-round-progress" aria-live="polite"></div>
+  </section>
+  <section class="card guest-dashboard-card" id="guest-dashboard-actions" style="display:none" aria-label="車位查詢快捷操作">
+    <div class="card-title">車位查詢</div>
+    <div class="guest-dashboard-actions"><button class="btn btn-primary" onclick="openGuestMyFloorplan()">查看我的車位</button><button class="btn" onclick="openGuestFloorplanSearch()">搜尋車位</button><button class="btn" onclick="showPage('results')">查看結果列表</button></div>
+  </section>
+  <section class="card guest-dashboard-card" id="guest-dashboard-announcement" style="display:none" aria-labelledby="guest-announcement-title">
+    <div class="card-title" id="guest-announcement-title">社區公告</div>
+    <div id="guest-dashboard-announcement-content" class="guest-dashboard-announcement-content"></div>
+  </section>
 
   <div class="card" id="system-health-card" style="display:none">
     <div class="card-title">系統健康狀態</div><div id="system-health-grid" class="health-grid"></div>
@@ -3646,8 +3662,19 @@
     const latestLogin=(systemLogs||[]).find(x=>x.type==='登入'),latestLottery=(systemLogs||[]).find(x=>x.type==='抽籤'&&/執行.*完成/.test(x.msg||x.message||''));const syncFails=(systemLogs||[]).filter(x=>/同步失敗|同步異常|寫入失敗/.test(x.msg||x.message||'')).length;const pendingPlates=residents.reduce((n,r)=>n+['plate1','plate2','plate3','plateWaitlist'].filter(k=>String(r[k]||'').trim()===PENDING_PLATE_LABEL).length,0);const waitPending=residents.filter(r=>r.waitlist==='Y'&&!r.assignWaitlist).length;const deadline=getEffectiveSwapDeadline();const remaining=deadline?Math.ceil((new Date(`${deadline}T23:59:59`).getTime()-Date.now())/86400000):null;
     const item=(title,value,klass='')=>`<div class="management-item ${klass}"><span>${title}</span><b>${escapeHtml(String(value||'—'))}</b></div>`;host.innerHTML=item('最近登入',latestLogin?.time||'尚無紀錄')+item('最近抽籤',latestLottery?.time||'尚未執行')+item('同步失敗次數',`${syncFails} 次`,syncFails?'danger':'')+item('待補車牌',`${pendingPlates} 筆`,pendingPlates?'warn':'')+item('候補待處理',`${waitPending} 位`,waitPending?'warn':'')+item('互換截止',deadline?(remaining<0?'已逾期':`${deadline}（剩 ${remaining} 天）`):'未設定',remaining!==null&&remaining<=7?'warn':'');
   }
+  function openGuestMyFloorplan(){showPage('floorplan');setTimeout(()=>showMyFloorplanSeat(),80);}
+  function openGuestFloorplanSearch(){showPage('floorplan');setTimeout(()=>focusFloorplanSearch(),80);}
+  function renderGuestDashboardOverview(){
+    const isGuest=currentUser?.role==='guest',progressCard=document.getElementById('guest-dashboard-progress'),actionsCard=document.getElementById('guest-dashboard-actions'),announcementCard=document.getElementById('guest-dashboard-announcement'),progress=document.getElementById('guest-dashboard-progress-content'),announcement=document.getElementById('guest-dashboard-announcement-content');
+    [progressCard,actionsCard].forEach(el=>{if(el)el.style.display=isGuest?'block':'none';});if(!isGuest){if(announcementCard)announcementCard.style.display='none';return;}
+    const state=(round,count,optional=false)=>count>0?'<span class="badge badge-green">已完成</span>':optional?'<span class="badge badge-gray">依需要執行</span>':'<span class="badge badge-gray">尚未執行</span>';
+    if(progress)progress.innerHTML=`<div class="guest-round-progress-item"><span>第一輪</span>${state('第一輪',getValidWinnerCount('第一輪'))}</div><div class="guest-round-progress-item"><span>第二輪</span>${state('第二輪',getValidWinnerCount('第二輪'))}</div><div class="guest-round-progress-item"><span>第三輪</span>${state('第三輪',getValidWinnerCount('第三輪'),true)}</div><div class="guest-round-progress-item"><span>候補</span>${state('候補',getValidWinnerCount('候補'),true)}</div>`;
+    const s=systemSettings||{},today=getLocalDateStamp(new Date()),audience=s.loginAnnouncementAudience||'all',visible=!!s.loginAnnouncementEnabled&&!!String(s.loginAnnouncementContent||'').trim()&&(audience==='all'||audience==='guest')&&(!s.loginAnnouncementStart||today>=s.loginAnnouncementStart)&&(!s.loginAnnouncementEnd||today<=s.loginAnnouncementEnd);
+    if(announcementCard)announcementCard.style.display=visible?'block':'none';if(visible&&announcement)announcement.innerHTML=`<strong>${escapeHtml(s.loginAnnouncementTitle||'系統公告')}</strong>${escapeHtml(s.loginAnnouncementContent).replace(/\n/g,'<br>')}`;
+  }
   function renderDashboard() {
     updateAdminAlertCenter();
+    const dashboardTitle=document.getElementById('dashboard-page-title');if(dashboardTitle)dashboardTitle.textContent=currentUser?.role==='guest'?'住戶查詢總覽':'機車位抽籤總覽';
     const total = residents.length;
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
     const availableSeats = systemSettings.totalSeats - voidCount;
@@ -3655,6 +3682,7 @@
     const myResultCard=document.getElementById('my-parking-result-card');
     if(myResultCard) myResultCard.style.display=currentUser?.role==='guest' ? 'block' : 'none';
     if(currentUser?.role==='guest') { const input=document.getElementById('my-result-room'); try{if(input&&!input.value) input.value=localStorage.getItem('parking_lottery_last_room')||'';}catch(_){} if(input?.value) renderMyParkingResult(); }
+    renderGuestDashboardOverview();
     
     let gotR1 = getValidWinnerCount("第一輪");
     let gotR2 = getValidWinnerCount("第二輪");
