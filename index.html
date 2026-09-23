@@ -751,7 +751,7 @@
 
 <!-- ===== 1. 總覽 ===== -->
 <div id="page-dashboard" class="page active">
-  <div class="dashboard-title-row"><div class="section-title" id="dashboard-page-title">機車位抽籤總覽</div><button id="dashboard-view-toggle" class="btn btn-sm" onclick="toggleDashboardDetail()" aria-expanded="false">查看完整總覽</button></div>
+  <div class="dashboard-title-row"><div class="section-title" id="dashboard-page-title">機車位抽籤總覽</div></div>
 
   <div class="card" id="my-parking-result-card" style="display:none;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#93c5fd">
     <div class="card-title">🎉 我的車位結果</div>
@@ -774,7 +774,7 @@
   <section id="management-dashboard-card" style="display:none" aria-label="待辦提醒">
     <div class="card-title">待辦提醒</div>
     <div id="management-dashboard" class="management-dashboard" aria-live="polite"></div>
-  </div>
+  </section>
 
   <div class="card dashboard-secondary" id="guest-quick-nav" style="display:none;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border-color:#93c5fd;margin-bottom:1.75rem">
     <div class="card-title" style="border-left-color:#2563eb">📱 快速前往</div>
@@ -3470,8 +3470,8 @@
     (scope?.querySelectorAll?.('.card-title')||[]).forEach(title=>{if(title.querySelector('.card-meta'))return;const raw=title.childNodes[0]?.textContent||title.textContent||'';const key=Object.keys(values).find(k=>raw.includes(k));if(!key)return;const meta=document.createElement('span');meta.className='card-meta';meta.textContent=values[key];title.appendChild(meta);});
   }
 
-  function initDashboardDetailMode(){try{dashboardDetailMode=currentUser?.role==='guest'||localStorage.getItem('parking_dashboard_detail')==='1';}catch(_){dashboardDetailMode=currentUser?.role==='guest';}const page=document.getElementById('page-dashboard'),btn=document.getElementById('dashboard-view-toggle');if(page)page.classList.toggle('dashboard-detail',dashboardDetailMode);if(btn){btn.textContent=dashboardDetailMode?'收合完整總覽':'查看完整總覽';btn.setAttribute('aria-expanded',String(dashboardDetailMode));}}
-  function toggleDashboardDetail(){dashboardDetailMode=!dashboardDetailMode;try{localStorage.setItem('parking_dashboard_detail',dashboardDetailMode?'1':'0');}catch(_){}const page=document.getElementById('page-dashboard'),btn=document.getElementById('dashboard-view-toggle');if(page)page.classList.toggle('dashboard-detail',dashboardDetailMode);if(btn){btn.textContent=dashboardDetailMode?'收合完整總覽':'查看完整總覽';btn.setAttribute('aria-expanded',String(dashboardDetailMode));}}
+  function initDashboardDetailMode(){dashboardDetailMode=false;try{localStorage.removeItem('parking_dashboard_detail');}catch(_){}const page=document.getElementById('page-dashboard');if(page)page.classList.remove('dashboard-detail');}
+  function toggleDashboardDetail(){/* 保留相容性：首頁已固定為精簡摘要，不再提供展開模式。 */}
   function setupManagementDashboardLayout(){
     if(currentUser?.role==='guest')return;const page=document.getElementById('page-dashboard'),command=document.getElementById('dashboard-command-card'),health=document.getElementById('system-health-card'),management=document.getElementById('management-dashboard-card');if(!page||!command||!health||!management||page.dataset.workbenchReady==='1')return;
     const workbench=document.createElement('section');workbench.className='dashboard-workbench';workbench.setAttribute('aria-label','管理工作台');const primary=document.createElement('div'),side=document.createElement('aside');primary.className='dashboard-workbench-primary';side.className='dashboard-workbench-side';primary.appendChild(command);health.appendChild(management);side.appendChild(health);workbench.append(primary,side);const alerts=document.getElementById('dashboard-alert-center');page.insertBefore(workbench,alerts||null);page.dataset.workbenchReady='1';
