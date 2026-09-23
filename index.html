@@ -758,7 +758,7 @@
 
   <div class="card" id="my-parking-result-card" style="display:none;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#93c5fd">
     <div class="card-title">🎉 我的車位結果</div>
-    <div class="form-row"><div><label for="my-result-room">門牌或樓層<span class="field-required">必填</span></label><input id="my-result-room" type="text" placeholder="例：C棟30號1樓、30號1樓" onkeydown="if(event.key==='Enter'){event.preventDefault();renderMyParkingResult()}" aria-describedby="my-result-room-help"><small id="my-result-room-help" class="field-helper">可輸入棟別、門牌與樓層的任意組合；若符合多戶，請再補上棟別或門牌。</small><small id="my-result-room-error" class="field-error"></small></div><button class="btn btn-primary" onclick="renderMyParkingResult()">查詢我的車位</button></div>
+    <div class="form-row"><div><label for="my-result-room">門牌或樓層<span class="field-required">必填</span></label><input id="my-result-room" type="text" placeholder="例：A棟40號1樓、40號1樓、A1-40-1" onkeydown="if(event.key==='Enter'){event.preventDefault();renderMyParkingResult()}" aria-describedby="my-result-room-help"><small id="my-result-room-help" class="field-helper">輸入範例：A棟40號1樓、40號1樓、A1-40-1。若符合多戶，請再補上棟別或門牌。</small><small id="my-result-room-error" class="field-error"></small></div><button class="btn btn-primary" onclick="renderMyParkingResult()">查詢我的車位</button></div>
     <div id="my-parking-result-content" style="font-size:14px;font-weight:700;color:#475569">輸入門牌後，可直接查看各輪分配結果與車位位置。</div>
   </div>
 
@@ -1450,6 +1450,9 @@
     <div><label for="set-login-announcement-content">公告內容</label><textarea id="set-login-announcement-content" rows="4" maxlength="500" placeholder="輸入登入頁顯示的系統訊息，可換行。"></textarea></div>
     <div class="form-row" style="margin-top:12px"><div><label for="set-login-announcement-start">公告開始日期</label><input id="set-login-announcement-start" type="date"></div><div><label for="set-login-announcement-end">公告結束日期</label><input id="set-login-announcement-end" type="date"></div></div>
     <label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input id="set-login-announcement-enabled" type="checkbox">啟用登入頁公告</label>
+    <div class="form-section-title">登入入口控制</div>
+    <p class="muted-note">關閉後，對應入口無法建立新的登入工作階段；系統管理員仍可登入與重新開啟。</p>
+    <div class="form-row"><label style="display:flex;gap:8px;align-items:center"><input id="set-director-login-enabled" type="checkbox" checked>開放社區主任登入</label><label style="display:flex;gap:8px;align-items:center"><input id="set-guest-login-enabled" type="checkbox" checked>開放一般住戶查詢入口</label></div>
     <div class="form-section-title">公告通知模板</div>
     <div class="form-row"><div><label for="announcement-template-type">模板類型</label><select id="announcement-template-type" onchange="loadAnnouncementTemplate()"><option value="lottery">抽籤公告</option><option value="waitlist">候補通知</option><option value="forfeit">棄權確認</option><option value="swap">互換完成通知</option></select></div><div class="info-row"><span class="info-row-icon">i</span><span>可使用 <b>{門牌}</b>、<b>{車位}</b>、<b>{輪次}</b> 作為通知時的替換欄位。</span></div></div>
     <div><label for="announcement-template-content">模板內容</label><textarea id="announcement-template-content" rows="4" maxlength="600" placeholder="輸入此類型的通知文字"></textarea></div>
@@ -2026,6 +2029,8 @@
     loginAnnouncementStart: "",
     loginAnnouncementEnd: "",
     loginAnnouncementAudience: "all",
+    directorLoginEnabled: true,
+    guestLoginEnabled: true,
     directorManualPdf: "", 
     residentManualPdf: ""  
   };
@@ -2117,6 +2122,8 @@
     )).sort((a,b) => a-b);
     if (!systemSettings.swapStartDate) systemSettings.swapStartDate = '';
     if (!systemSettings.swapAnnualStart) systemSettings.swapAnnualStart = '';
+    if (typeof systemSettings.directorLoginEnabled !== 'boolean') systemSettings.directorLoginEnabled = true;
+    if (typeof systemSettings.guestLoginEnabled !== 'boolean') systemSettings.guestLoginEnabled = true;
     if (!systemSettings.swapAnnualEnd) systemSettings.swapAnnualEnd = '';
     if (!Array.isArray(systemSettings.swapEligibleRounds)) systemSettings.swapEligibleRounds = [];
   }
@@ -3278,6 +3285,13 @@
     const acc = accountsList.find(a => String(a.username || '').trim().toLowerCase() === u.toLowerCase());
     let loginOk = acc ? await verifyPassword(p, acc.password) : false;
 
+    if(loginOk && acc?.role==='director' && systemSettings.directorLoginEnabled===false){
+      document.getElementById("login-error").textContent='目前暫停開放社區主任登入，請洽系統管理員。';
+      document.getElementById("login-error").style.display='block';
+      if(loginBtn){loginBtn.disabled=false;loginBtn.innerText='登入系統';}if(progressEl)progressEl.style.display='none';
+      return;
+    }
+
     if (loginOk) {
       // 💡 密碼雜湊升級：若這組帳號目前仍是舊版明文密碼、這次驗證又通過，就順便換成雜湊格式存回去，
       // 管理員/主任完全不需要額外操作，下次登入起密碼就已經是雜湊過的，資料庫不會再留有明文密碼。
@@ -3318,6 +3332,13 @@
     const guestPullOk=await cloudSyncPull();
     updateLoginHealth(guestPullOk);
 
+    if(!guestPullOk){if(guestBtn){guestBtn.disabled=false;guestBtn.innerText='進入住戶查詢';}return;}
+    if(systemSettings.guestLoginEnabled===false){showAppToast('目前暫停開放一般住戶查詢入口，請洽社區管理人員。','warn');if(guestBtn){guestBtn.disabled=false;guestBtn.innerText='進入住戶查詢';}return;}
+    // 門牌查詢僅保留於當次畫面，避免同一瀏覽器下一位住戶看見前次輸入內容。
+    try{localStorage.removeItem('parking_lottery_last_room');}catch(_){}
+    const resultInput=document.getElementById('my-result-room'),resultBox=document.getElementById('my-parking-result-content'),resultError=document.getElementById('my-result-room-error');
+    if(resultInput)resultInput.value='';if(resultBox)resultBox.textContent='請輸入門牌、棟別或樓層後查詢我的車位。';if(resultError)resultError.textContent='';
+
     currentUser = { name: "社區住戶", role: "guest", username: "guest", password: "" };
     // 住戶模式不需要管理端帳號、稽核紀錄與操作紀錄；即使這些資料曾在同步回應中存在，也不再長期留在前端記憶體。
     accountsList = []; pendingAudits = []; systemLogs = [];
@@ -3353,6 +3374,7 @@
     await waitForPendingPushes(12000); // 最多等待12秒（涵蓋衝突檢查+實際寫入兩次網路來回），避免網路異常時卡住無法登出
 
     localStorage.removeItem("lottery_user");
+    localStorage.removeItem("parking_lottery_last_room");
     location.reload();
   }
 
@@ -3601,6 +3623,8 @@
       document.getElementById('set-login-announcement-start').value=systemSettings.loginAnnouncementStart||'';
       document.getElementById('set-login-announcement-end').value=systemSettings.loginAnnouncementEnd||'';
       document.getElementById('set-login-announcement-audience').value=systemSettings.loginAnnouncementAudience||'all';
+      document.getElementById('set-director-login-enabled').checked=systemSettings.directorLoginEnabled!==false;
+      document.getElementById('set-guest-login-enabled').checked=systemSettings.guestLoginEnabled!==false;
       loadAnnouncementTemplate();
       renderDirectorsList();
       renderPendingAudits();
@@ -3726,7 +3750,7 @@
     renderSystemHealth(); renderManagementDashboard();
     const myResultCard=document.getElementById('my-parking-result-card');
     if(myResultCard) myResultCard.style.display=currentUser?.role==='guest' ? 'block' : 'none';
-    if(currentUser?.role==='guest') { const input=document.getElementById('my-result-room'); try{if(input&&!input.value) input.value=localStorage.getItem('parking_lottery_last_room')||'';}catch(_){} if(input?.value) renderMyParkingResult(); }
+    if(currentUser?.role==='guest') { const input=document.getElementById('my-result-room'); if(input)input.value=''; }
     renderGuestDashboardOverview();
     renderDashboardAnnouncement();
     
@@ -3832,7 +3856,6 @@
     if(!q){box.innerText='輸入門牌後，可直接查看各輪分配結果與車位位置。';if(error)error.textContent='請輸入門牌後再查詢。';return;}
     const found=findResidentByAddressQuery(q),r=found.resident;
     if(!r){if(found.matches.length>1){box.innerText='符合多戶資料，請補上棟別或完整門牌後再查詢。';if(error)error.textContent='搜尋結果不唯一，為保護住戶資料不會列出相符名單。';}else{box.innerText='找不到相符門牌，請確認棟別、門牌或樓層。';if(error)error.textContent='可嘗試輸入「C棟30號1樓」或「30號1樓」。';}return;}
-    try{localStorage.setItem('parking_lottery_last_room',`${r.build}-${r.room}`);}catch(_){}
     const rounds=['第一輪','第二輪','第三輪','候補']; const seats=rounds.map(round=>getUserSeat(round,r.id));
     const slots=rounds.map((round,i)=>`<div class="my-result-slot ${seats[i]?'seat-watermark':''}" ${seats[i]?`data-seat-watermark="${seats[i]}"`:''} style="${seats[i]?'background:#dbeafe;border-color:#60a5fa':'opacity:.58'}"><span>${round}</span><b style="${seats[i]?'font-size:24px;color:#1d4ed8':'font-size:16px;color:#64748b'}">${seats[i]?`<span class="number-value">${seats[i]}</span><span class="number-unit">號車位</span>`:'—'}</b></div>`).join('');
     box.innerHTML=`<b>${escapeHtml(r.build)}-${escapeHtml(r.room)} 的結果</b><div class="my-result-grid">${slots}</div><div style="margin-top:12px">目前共取得 <b class="number-value" style="color:#15803d">${seats.filter(Boolean).length}</b><span class="number-unit">個車位</span>　${seats.find(Boolean)?`<button class="btn btn-sm" onclick="openResidentParkingOnMap(${r.id})">查看車位位置</button>`:''}</div>`;
@@ -7319,6 +7342,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     systemSettings.loginAnnouncementStart=document.getElementById('set-login-announcement-start').value;
     systemSettings.loginAnnouncementEnd=document.getElementById('set-login-announcement-end').value;
     systemSettings.loginAnnouncementAudience=document.getElementById('set-login-announcement-audience').value;
+    systemSettings.directorLoginEnabled=document.getElementById('set-director-login-enabled').checked;
+    systemSettings.guestLoginEnabled=document.getElementById('set-guest-login-enabled').checked;
     const templateType=document.getElementById('announcement-template-type')?.value;
     if(templateType){systemSettings.announcementTemplates=systemSettings.announcementTemplates||{};systemSettings.announcementTemplates[templateType]=document.getElementById('announcement-template-content')?.value.trim()||'';}
     if(systemSettings.loginAnnouncementStart&&systemSettings.loginAnnouncementEnd&&systemSettings.loginAnnouncementStart>systemSettings.loginAnnouncementEnd){alert('登入頁公告的開始日期不可晚於結束日期。');Object.assign(systemSettings,snapshot);return;}
