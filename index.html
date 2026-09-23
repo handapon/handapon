@@ -553,6 +553,7 @@
   .log-detail{background:#fbfdff}.log-detail summary{cursor:pointer;font-weight:800;color:#334155}.log-detail summary::marker{color:#2563eb}.log-detail>div{padding-top:8px;color:#64748b}.log-tl-content>div:nth-child(2){font-weight:800!important}
   #page-results .data-card:has(.seat-number){background:#f8fbff;border-color:#bfdbfe}.guest-mode #page-results .data-card:not(:has(.seat-number)){opacity:.72;background:#fff;border-color:#e2e8f0}.guest-mode #page-results .data-card:has(.seat-number) .seat-number{font-size:2.15em;padding:7px 10px;background:#e8f1ff}
   #page-results .result-seat-card{background:#f8fbff;border-color:#bfdbfe}#page-results .result-muted-card{opacity:.72;background:#fff;border-color:#e2e8f0}#page-results .result-seat-card .seat-number{font-size:2.15em;padding:7px 10px;background:#e8f1ff}
+  .registration-archive-card{background:#fbfdff}.registration-archive-toolbar{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin:14px 0}.registration-archive-toolbar>div{display:flex;flex-direction:column;gap:5px}.registration-archive-toolbar input{width:150px;min-height:42px}.registration-upload-label{margin:0;cursor:pointer}.registration-upload-label input{display:none}.registration-form-list{display:grid;gap:8px;margin-top:14px}.registration-form-item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #e2e8f0;border-radius:var(--radius-sm);background:#fff}.registration-form-item-main{min-width:0;flex:1}.registration-form-item strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.registration-form-item small{display:block;color:#64748b;font-size:12px;margin-top:2px}.registration-form-empty{padding:16px;border:1px dashed #cbd5e1;border-radius:var(--radius-sm);color:#64748b;font-size:13px}.registration-form-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}@media(max-width:700px){.registration-archive-toolbar{align-items:stretch}.registration-archive-toolbar>div,.registration-archive-toolbar input{width:100%}.registration-upload-label{text-align:center}.registration-form-item{align-items:flex-start;flex-direction:column}.registration-form-actions{width:100%;justify-content:stretch}.registration-form-actions .btn{flex:1}}
   @media(max-width:700px){#page-dashboard,#page-lottery,#page-swap,#page-settings,#page-inquiry{max-width:100%}.card-title .card-meta{font-size:11px;padding:2px 7px}.modal-footer{gap:8px}.modal-footer .btn{min-width:0}.app-toast-host{left:14px;right:14px;max-width:none}.app-toast{font-size:13px}}
 </style>
 </head>
@@ -832,6 +833,17 @@
   </div>
   
   <div id="plate-warning-banner" style="display:none;margin-bottom:1.5rem;background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:1.25rem;color:#9f1239"></div>
+  <section class="card registration-archive-card" id="registration-archive-card" aria-labelledby="registration-archive-title">
+    <div class="card-title" id="registration-archive-title">年度紙本機車位登記表保存</div>
+    <p class="muted-note">保存已完成填寫、掃描或簽核的年度登記表。檔案依年度分開存放，僅管理員與社區主任可檢視及下載。</p>
+    <div class="registration-archive-toolbar">
+      <div><label for="registration-form-year">年度</label><input id="registration-form-year" inputmode="numeric" maxlength="6" placeholder="例：115 或 2026" onchange="loadRegistrationFormsIndex()"></div>
+      <label class="btn btn-primary registration-upload-label">上傳紙本登記表<input id="registration-form-upload" type="file" accept="application/pdf,image/png,image/jpeg" onchange="uploadRegistrationForm(this)"></label>
+      <span id="registration-form-status" class="muted-note" aria-live="polite">載入年度檔案中…</span>
+    </div>
+    <small class="field-helper">接受 PDF、JPG、PNG，單檔上限 2MB。請勿上傳與登記表無關的個資文件。</small>
+    <div id="registration-form-list" class="registration-form-list"></div>
+  </section>
   
   <div class="card card-pad-lg">
     <div class="resident-mode-switch" role="group" aria-label="住戶名單檢視模式">
@@ -1992,6 +2004,8 @@
   // 本年度曾主動棄權的紀錄：用來防止棄權住戶立即進入候補最高優先層級。
   // 結構：[{residentId, round, seat, time, user}]
   let forfeitRecords = [];
+  // 年度紙本登記表僅載入索引；檔案本體於下載時才讀取，避免大型掃描檔拖慢日常同步。
+  let registrationFormsIndex = {};
 
   function renderPlateCell(plateVal) {
     if (!plateVal) return '-';
@@ -3498,7 +3512,7 @@
     });
 
     if(pageId === 'dashboard') { renderDashboard(); }
-    if(pageId === 'residents') { renderResidents(); checkPlateWarnings(); }
+    if(pageId === 'residents') { renderResidents(); checkPlateWarnings(); loadRegistrationFormsIndex(); }
     if(pageId === 'motorcycle-stats') renderMotorcycleStats();
     if(pageId === 'results') renderResults();
     if(pageId === 'summary') renderSummary();
@@ -8505,6 +8519,43 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     XLSX.writeFile(wb, `${titleName}_${getLocalDateStamp()}.xlsx`);
     addLog("設定", `匯出 Excel 報表：${titleName}`);
   }
+
+  // ================= 11B. 年度紙本機車位登記表保存 =================
+  function canManageRegistrationForms(){return !!currentUser&&['admin','director'].includes(currentUser.role);}
+  function registrationArchiveYear(){const input=document.getElementById('registration-form-year');if(!input)return String(new Date().getFullYear());if(!input.value.trim())input.value=String(new Date().getFullYear());return input.value.trim();}
+  function validRegistrationArchiveYear(year){return /^\d{2,6}$/.test(String(year||''));}
+  function registrationFormStatus(text){const el=document.getElementById('registration-form-status');if(el)el.textContent=text;}
+  function registrationFileSize(bytes){const n=Number(bytes)||0;return n>=1024*1024?`${(n/(1024*1024)).toFixed(1)} MB`:`${Math.max(1,Math.round(n/1024))} KB`;}
+  async function loadRegistrationFormsIndex(){
+    if(!canManageRegistrationForms())return; const year=registrationArchiveYear(); if(!validRegistrationArchiveYear(year)){registrationFormStatus('請輸入有效年度，例如 115 或 2026。');return;}
+    if(!FIREBASE_DB_URL||FIREBASE_DB_URL.includes('YOUR-FIREBASE')){registrationFormsIndex={};registrationFormStatus('尚未設定雲端保存位置。');renderRegistrationForms();return;}
+    registrationFormStatus('正在讀取年度檔案…');
+    try{const res=await fetch(`${FIREBASE_DB_URL}parkingData/registrationFormsIndex/${encodeURIComponent(year)}.json?_t=${Date.now()}`,{cache:'no-store'});if(!res.ok)throw new Error(`HTTP ${res.status}`);registrationFormsIndex[year]=await res.json()||{};registrationFormStatus('年度檔案已同步。');}
+    catch(e){console.warn('讀取年度紙本登記表索引失敗：',e);registrationFormsIndex[year]={};registrationFormStatus('讀取雲端檔案失敗，請確認同步狀態。');}
+    renderRegistrationForms();
+  }
+  function renderRegistrationForms(){
+    const card=document.getElementById('registration-archive-card'),list=document.getElementById('registration-form-list');if(!card||!list)return;const allowed=canManageRegistrationForms();card.style.display=allowed?'':'none';if(!allowed)return;
+    const year=registrationArchiveYear();if(!validRegistrationArchiveYear(year)){list.innerHTML='<div class="registration-form-empty">請輸入年度後查看已保存的紙本登記表。</div>';return;}
+    const rows=Object.entries(registrationFormsIndex[year]||{}).map(([id,v])=>({id,...(v||{})})).sort((a,b)=>String(b.uploadedAt||'').localeCompare(String(a.uploadedAt||'')));
+    list.innerHTML=rows.length?rows.map(item=>`<div class="registration-form-item"><div class="registration-form-item-main"><strong title="${escapeHtml(item.name||'未命名檔案')}">${escapeHtml(item.name||'未命名檔案')}</strong><small>${escapeHtml(item.mimeType||'檔案')}｜${registrationFileSize(item.size)}｜上傳者：${escapeHtml(item.uploadedBy||'—')}｜${escapeHtml(item.uploadedAt||'時間未記錄')}</small></div><div class="registration-form-actions"><button class="btn btn-sm" onclick="downloadRegistrationForm('${year}','${item.id}')">下載</button><button class="btn btn-sm btn-danger" onclick="deleteRegistrationForm('${year}','${item.id}')">刪除</button></div></div>`).join(''):'<div class="registration-form-empty">本年度尚未保存紙本登記表。完成登記表填寫或掃描後，可於此上傳留存。</div>';
+  }
+  async function updateRegistrationFormPaths(paths){
+    if(!canManageRegistrationForms())throw new Error('僅管理員與社區主任可管理年度登記表');if(!cloudSyncReady)throw new Error('尚未完成雲端同步，暫時不可寫入');
+    const token=await acquireCloudWriteLock();if(!token)throw new Error('無法取得雲端寫入鎖');
+    try{const payload={...paths,'_meta/lastModified':{'.sv':'timestamp'},'_meta/lastModifiedBy':currentUser.name||''};const res=await fetch(`${FIREBASE_DB_URL}parkingData.json`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!res.ok)throw new Error(`HTTP ${res.status}`);return true;}finally{await releaseCloudWriteLock();}
+  }
+  function uploadRegistrationForm(input){
+    if(!canManageRegistrationForms()){showAppToast('僅管理員與社區主任可上傳年度紙本登記表。','warn');input.value='';return;}const file=input.files?.[0],year=registrationArchiveYear();if(!file)return;
+    const accepted=/\.(pdf|png|jpe?g)$/i.test(file.name||'')||['application/pdf','image/png','image/jpeg'].includes(file.type);if(!validRegistrationArchiveYear(year)){showAppToast('請先輸入有效年度，例如 115 或 2026。','warn');input.value='';return;}if(!accepted){showAppToast('僅可上傳 PDF、JPG 或 PNG 格式的掃描登記表。','warn');input.value='';return;}if(file.size>2*1024*1024){showAppToast('檔案超過 2MB；請先壓縮掃描檔後再上傳。','warn');input.value='';return;}
+    registrationFormStatus(`正在讀取「${file.name}」…`);const reader=new FileReader();reader.onerror=()=>{registrationFormStatus('檔案讀取失敗。');input.value='';};reader.onload=async e=>{const data=String(e.target?.result||'');if(!data.startsWith('data:')){registrationFormStatus('檔案格式讀取失敗。');input.value='';return;}const id=`f_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,meta={name:file.name,mimeType:file.type||'application/octet-stream',size:file.size,uploadedBy:currentUser.name||'',uploadedAt:new Date().toLocaleString('zh-TW',{hour12:false})};registrationFormStatus(`正在保存「${file.name}」，請勿關閉頁面…`);try{await updateRegistrationFormPaths({[`registrationFormsFiles/${year}/${id}`]:{data,...meta},[`registrationFormsIndex/${year}/${id}`]:meta});registrationFormsIndex[year]={...(registrationFormsIndex[year]||{}),[id]:meta};renderRegistrationForms();registrationFormStatus(`已保存「${file.name}」。`);await addLog('住戶',`保存 ${year} 年度紙本機車位登記表：${file.name}`);showAppToast('年度紙本登記表已保存。','success');}catch(err){console.error('保存年度登記表失敗：',err);registrationFormStatus(`保存失敗：${err?.message||'無法寫入雲端'}。`);showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}finally{input.value='';}};reader.readAsDataURL(file);
+  }
+  async function downloadRegistrationForm(year,id){
+    if(!canManageRegistrationForms())return;try{registrationFormStatus('正在下載檔案…');const res=await fetch(`${FIREBASE_DB_URL}parkingData/registrationFormsFiles/${encodeURIComponent(year)}/${encodeURIComponent(id)}.json?_t=${Date.now()}`,{cache:'no-store'});if(!res.ok)throw new Error(`HTTP ${res.status}`);const item=await res.json();if(!item?.data||!String(item.data).startsWith('data:'))throw new Error('檔案內容不存在或已損毀');const a=document.createElement('a');a.href=item.data;a.download=item.name||`${year}_紙本登記表`;document.body.appendChild(a);a.click();a.remove();registrationFormStatus(`已開始下載「${item.name||'檔案'}」。`);}
+    catch(e){console.error('下載年度登記表失敗：',e);registrationFormStatus('下載失敗，檔案可能已被移除。');showAppToast('無法下載該年度登記表，請重新整理清單後再試。','warn');}}
+  async function deleteRegistrationForm(year,id){
+    const name=registrationFormsIndex?.[year]?.[id]?.name||'該年度登記表';
+    if(!canManageRegistrationForms())return;if(!confirm(`確定要刪除「${name}」嗎？此操作會一併移除該年度的保存檔案。`))return;try{registrationFormStatus(`正在刪除「${name}」…`);await updateRegistrationFormPaths({[`registrationFormsFiles/${year}/${id}`]:null,[`registrationFormsIndex/${year}/${id}`]:null});if(registrationFormsIndex[year])delete registrationFormsIndex[year][id];renderRegistrationForms();registrationFormStatus(`已刪除「${name}」。`);await addLog('住戶',`刪除 ${year} 年度紙本機車位登記表：${name}`);showAppToast('年度紙本登記表已刪除。','success');}catch(e){console.error('刪除年度登記表失敗：',e);registrationFormStatus(`刪除失敗：${e?.message||'無法寫入雲端'}。`);showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}}
 
   // ================= 12. 操作手冊(PDF) 動態預覽與權限管理 =================
   // 手冊採獨立 Firebase 節點，避免每次上傳都覆寫整包 media（背景、平面圖、兩份 PDF）。
