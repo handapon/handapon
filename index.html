@@ -1184,6 +1184,8 @@
         <option value="住戶">住戶異動</option>
         <option value="抽籤">抽籤執行</option>
         <option value="設定">設定變更</option>
+        <option value="文件">年度文件</option>
+        <option value="匯出">匯出／列印</option>
         <option value="互換">車位互換</option>
         <option value="審核">審核異動</option>
       </select>
@@ -8333,10 +8335,15 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     }
     // options.sync=false：只新增本機操作紀錄，不立即觸發同步。
     // 由呼叫端在完成整個狀態變更後明確呼叫 cloudSyncPush()，避免同一操作重複寫入兩次。
-    if (options.sync === false) return true;
+    if (options.sync === false) {
+      if (currentUser?.role === 'admin' && document.getElementById('page-logs')?.classList.contains('active')) renderLogs();
+      return true;
+    }
     // 💡 回傳雲端同步結果 (true/false)，讓關鍵操作（抽籤、互換、車位/名單異動等）可以偵測同步是否真的成功，
     // 並在失敗時提醒操作者，避免誤以為資料已經安全存到雲端。既有未使用回傳值的呼叫方式仍照常運作（fire-and-forget）。
-    return await cloudSyncPush();
+    const synced=await cloudSyncPush();
+    if (currentUser?.role === 'admin' && document.getElementById('page-logs')?.classList.contains('active')) renderLogs();
+    return synced;
   }
 
   function formatLogTime(log){
@@ -8703,10 +8710,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
   async function uploadRegistrationForm(){
     const p=pendingRegistrationForm;if(!p)return;const year=registrationArchiveYear();if(!registrationMayModify(year)||p.year!==year){showAppToast('年度已變更或已封存，請重新選擇檔案。','warn');clearRegistrationFormPreview();return;}const id=`f_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,now=new Date().toLocaleString('zh-TW',{hour12:false}),meta={name:p.name,originalName:p.file.name,mimeType:p.file.type||'application/octet-stream',size:p.file.size,category:p.category,building:p.building,version:p.version,isOfficial:true,sha256:p.sha256,uploadedBy:currentUser.name||'',uploadedAt:now},yearMeta={...registrationYearMeta(year),archived:false,retentionUntil:registrationYearMeta(year).retentionUntil||suggestedRegistrationRetention(year),updatedBy:currentUser.name||'',updatedAt:now},paths={[`registrationFormsFiles/${year}/${id}`]:{data:p.data,...meta},[`registrationFormsIndex/${year}/${id}`]:meta,[`registrationFormsYears/${year}`]:yearMeta,...registrationAuditPatch(year,'上傳',`${p.building}｜${p.category}｜v${p.version}`,id)};
-    registrationRows(year).filter(v=>v.category===p.category&&v.building===p.building&&v.isOfficial!==false).forEach(v=>{paths[`registrationFormsIndex/${year}/${v.id}/isOfficial`]=false;paths[`registrationFormsFiles/${year}/${v.id}/isOfficial`]=false;});try{registrationFormStatus(`正在保存「${p.name}」，請勿關閉頁面…`);await updateRegistrationFormPaths(paths);registrationFormsIndex[year]={...(registrationFormsIndex[year]||{}),[id]:meta};Object.values(registrationFormsIndex[year]).forEach(v=>{if(v.category===p.category&&v.building===p.building&&v!==meta)v.isOfficial=false;});registrationFormsYearMeta[year]=yearMeta;clearRegistrationFormPreview();renderRegistrationForms();registrationFormStatus(`已保存「${p.name}」。`);await addLog('住戶',`保存 ${year} 年度紙本登記表：${p.building} ${p.category} v${p.version}`);showAppToast('年度紙本登記表已保存並建立版本。','success');}catch(e){console.error('保存年度登記表失敗：',e);registrationFormStatus(`保存失敗：${e?.message||'無法寫入雲端'}。`);showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}
+    registrationRows(year).filter(v=>v.category===p.category&&v.building===p.building&&v.isOfficial!==false).forEach(v=>{paths[`registrationFormsIndex/${year}/${v.id}/isOfficial`]=false;paths[`registrationFormsFiles/${year}/${v.id}/isOfficial`]=false;});try{registrationFormStatus(`正在保存「${p.name}」，請勿關閉頁面…`);await updateRegistrationFormPaths(paths);registrationFormsIndex[year]={...(registrationFormsIndex[year]||{}),[id]:meta};Object.values(registrationFormsIndex[year]).forEach(v=>{if(v.category===p.category&&v.building===p.building&&v!==meta)v.isOfficial=false;});registrationFormsYearMeta[year]=yearMeta;clearRegistrationFormPreview();renderRegistrationForms();registrationFormStatus(`已保存「${p.name}」。`);const logOk=await addLog('文件',`上傳 ${year} 年度紙本登記表：${p.building} ${p.category} v${p.version}`);if(!logOk)showAppToast('檔案已保存，但操作紀錄尚未同步；請稍後重新整理確認。','warn',6000);showAppToast('年度紙本登記表已保存並建立版本。','success');}catch(e){console.error('保存年度登記表失敗：',e);registrationFormStatus(`保存失敗：${e?.message||'無法寫入雲端'}。`);showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}
   }
   async function downloadRegistrationForm(year,id){
-    if(!canManageRegistrationForms())return;try{registrationFormStatus('正在下載並驗證檔案…');const res=await fetch(`${FIREBASE_DB_URL}parkingData/registrationFormsFiles/${encodeURIComponent(year)}/${encodeURIComponent(id)}.json?_t=${Date.now()}`,{cache:'no-store'});if(!res.ok)throw new Error(`HTTP ${res.status}`);const item=await res.json();if(!item?.data||!String(item.data).startsWith('data:'))throw new Error('檔案內容不存在或已損毀');if(item.sha256){const bytes=Uint8Array.from(atob(String(item.data).split(',')[1]||''),c=>c.charCodeAt(0));const hash=await registrationSha256(bytes.buffer);if(!hash||hash!==item.sha256)throw new Error('SHA-256 驗證失敗，檔案可能已損毀');}try{await updateRegistrationFormPaths(registrationAuditPatch(year,'下載',item.name||'',id));}catch(auditError){console.warn('下載存取紀錄未寫入：',auditError);}const a=document.createElement('a');a.href=item.data;a.download=item.name||`${year}_紙本登記表`;document.body.appendChild(a);a.click();a.remove();registrationFormStatus(`${item.sha256?'完整性驗證通過，':''}已開始下載「${item.name||'檔案'}」。`);await addLog('文件',`下載 ${year} 年度紙本登記表：${item.building||'全社區'} ${item.category||'未分類'} v${item.version||1}`);}
+    if(!canManageRegistrationForms())return;try{registrationFormStatus('正在下載並驗證檔案…');const res=await fetch(`${FIREBASE_DB_URL}parkingData/registrationFormsFiles/${encodeURIComponent(year)}/${encodeURIComponent(id)}.json?_t=${Date.now()}`,{cache:'no-store'});if(!res.ok)throw new Error(`HTTP ${res.status}`);const item=await res.json();if(!item?.data||!String(item.data).startsWith('data:'))throw new Error('檔案內容不存在或已損毀');if(item.sha256){const bytes=Uint8Array.from(atob(String(item.data).split(',')[1]||''),c=>c.charCodeAt(0));const hash=await registrationSha256(bytes.buffer);if(!hash||hash!==item.sha256)throw new Error('SHA-256 驗證失敗，檔案可能已損毀');}try{await updateRegistrationFormPaths(registrationAuditPatch(year,'下載',item.name||'',id));}catch(auditError){console.warn('下載存取紀錄未寫入：',auditError);}const a=document.createElement('a');a.href=item.data;a.download=item.name||`${year}_紙本登記表`;document.body.appendChild(a);a.click();a.remove();registrationFormStatus(`${item.sha256?'完整性驗證通過，':''}已開始下載「${item.name||'檔案'}」。`);const logOk=await addLog('文件',`下載 ${year} 年度紙本登記表：${item.building||'全社區'} ${item.category||'未分類'} v${item.version||1}`);if(!logOk)showAppToast('檔案已下載，但操作紀錄尚未同步；請稍後重新整理確認。','warn',6000);}
     catch(e){console.error('下載年度登記表失敗：',e);registrationFormStatus(`下載失敗：${e?.message||'檔案可能已被移除'}。`);showAppToast('無法下載或驗證該年度登記表，請重新整理清單後再試。','warn');}}
   async function setRegistrationFormOfficial(year,id){
     if(!registrationMayModify(year))return;const target=registrationFormsIndex?.[year]?.[id];if(!target)return;const paths={...registrationAuditPatch(year,'設定正式版',target.name||'',id)};registrationRows(year).filter(v=>v.category===target.category&&v.building===target.building).forEach(v=>{const official=v.id===id;paths[`registrationFormsIndex/${year}/${v.id}/isOfficial`]=official;paths[`registrationFormsFiles/${year}/${v.id}/isOfficial`]=official;});try{await updateRegistrationFormPaths(paths);registrationRows(year).filter(v=>v.category===target.category&&v.building===target.building).forEach(v=>v.isOfficial=v.id===id);renderRegistrationForms();registrationFormStatus(`已將「${target.name}」設為正式版。`);await addLog('住戶',`設定 ${year} 年度紙本登記表正式版：${target.name}`);}catch(e){registrationFormStatus('設定正式版失敗。');showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}}
