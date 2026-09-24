@@ -887,10 +887,10 @@
   
   <div class="card card-pad-lg">
     <div class="resident-mode-switch" role="group" aria-label="住戶名單檢視模式">
-      <button class="btn btn-sm active" id="resident-mode-full" onclick="setResidentListMode('full')">完整管理表</button>
+      <button class="btn btn-sm" id="resident-mode-full" onclick="setResidentListMode('full')">完整管理表</button>
       <button class="btn btn-sm" id="resident-mode-plate" onclick="setResidentListMode('plate')">車牌核對表</button>
       <button class="btn btn-sm" id="resident-mode-pending" onclick="setResidentListMode('pending')">待核對清單</button>
-      <button class="btn btn-sm" id="resident-mode-verify" onclick="setResidentListMode('verify')">核對模式</button>
+      <button class="btn btn-sm active" id="resident-mode-verify" onclick="setResidentListMode('verify')">核對模式</button>
     </div>
     <div id="resident-filter-toolbar" class="form-row-3 filter-toolbar" style="margin-bottom:1.25rem">
       <input type="text" id="search-resident" placeholder="搜尋姓名 / 門牌 / 棟別 / 車牌" oninput="renderResidents()">
@@ -1925,7 +1925,8 @@
   let residentSortState = { column: null, dir: 1 };
   let resultSortState = { column: null, dir: 1 };
   let residentViewMode = 'table';
-  let residentListMode = 'full';
+  // 年度核對是管理端最常見的作業，因此預設採精簡的核對模式；完整欄位仍可隨時切換檢視。
+  let residentListMode = 'verify';
   let residentPlateQuickFilter = '';
   let dashboardDetailMode = false;
   let resultViewMode = 'table';
@@ -3931,6 +3932,11 @@
 
   // ================= 2. 住戶名單邏輯 =================
   function residentHasReviewIssue(r){return ['prior','pending'].includes(r.plateVerification||'current');}
+  // 新年度建立後，沿用的車牌必須先由管理端完成本年度核對；在此之前不可進入任何抽籤池。
+  function isPriorYearPlatePending(r){return (r?.plateVerification||'current')==='prior';}
+  function getPriorYearLotteryExclusions(roundNumber){
+    return residents.filter(r=>r[`r${roundNumber}`]==='Y'&&isPriorYearPlatePending(r));
+  }
   function residentPlateValues(r){return [r.plate1,r.plate2,r.plate3,r.plateWaitlist].map(x=>String(x||'').trim()).filter(Boolean);}
   function residentMatchesFilters(r){
     const search = document.getElementById("search-resident").value.toLowerCase();
@@ -4019,9 +4025,9 @@
     decorateCardMetadata(document.getElementById('page-residents'));
   }
   function toggleResidentAdvancedFilters(){const box=document.getElementById('resident-advanced-filters');if(box)box.style.display=box.style.display==='none'?'grid':'none';}
-  function setResidentListMode(mode){residentListMode=['full','plate','pending','verify'].includes(mode)?mode:'full';document.querySelectorAll('button[id^="resident-mode-"]').forEach(el=>el.classList.toggle('active',el.id===`resident-mode-${residentListMode}`));renderResidents();}
+  function setResidentListMode(mode){residentListMode=['full','plate','pending','verify'].includes(mode)?mode:'verify';document.querySelectorAll('button[id^="resident-mode-"]').forEach(el=>el.classList.toggle('active',el.id===`resident-mode-${residentListMode}`));renderResidents();}
   function setResidentPlateQuickFilter(filter){residentPlateQuickFilter=filter||'';document.querySelectorAll('[data-plate-quick]').forEach(el=>el.classList.toggle('active',el.dataset.plateQuick===residentPlateQuickFilter));renderResidents();}
-  function clearResidentFilters(){document.getElementById('search-resident').value='';document.getElementById('filter-build').value='';document.getElementById('filter-reserve').value='';document.getElementById('filter-plate-verify').value='';setResidentPlateQuickFilter('');setResidentListMode('full');}
+  function clearResidentFilters(){document.getElementById('search-resident').value='';document.getElementById('filter-build').value='';document.getElementById('filter-reserve').value='';document.getElementById('filter-plate-verify').value='';setResidentPlateQuickFilter('');setResidentListMode('verify');}
   async function batchConfirmPlateVerification(){if(!confirm('確定將目前篩選結果的車牌核對狀態標記為「本年度已核對」嗎？'))return;const targets=residents.filter(residentMatchesFilters);if(!targets.length){showAppToast('目前篩選條件沒有住戶。','info');return;}targets.forEach(x=>{x.plateVerification='current';x.plateVerificationNote='批次核對完成';});renderResidents();const ok=await addLog('住戶',`批次標記 ${targets.length} 戶車牌為本年度已核對`,{sync:false})&&await cloudSyncPush();if(!ok)showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}
 
   function setResidentViewMode(mode){
@@ -4937,15 +4943,16 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function updateLotteryPreflight(){
     const box=document.getElementById('lottery-preflight'), grid=document.getElementById('lottery-preflight-grid'), risk=document.getElementById('lottery-preflight-risk'); if(!box||!grid||!risk) return;
     const n=currentRound==='第一輪'?1:currentRound==='第二輪'?2:3;
-    const participants=residents.filter(r=>r[`r${n}`]==='Y'&&String(r[`plate${n}`]||'').trim()).length;
+    const priorExcluded=getPriorYearLotteryExclusions(n);
+    const participants=residents.filter(r=>r[`r${n}`]==='Y'&&!isPriorYearPlatePending(r)&&isValidTaiwanPlate(String(r[`plate${n}`]||''),true)).length;
     const free=getFormalLotteryStartFreeSeats(currentRound).length, voids=(systemSettings.voidSeats||[]).length;
     const later=currentRound==='第一輪'?['第二輪','第三輪','候補']:currentRound==='第二輪'?['第三輪','候補']:['候補'];
     const clearing=later.filter(r=>getValidWinnerCount(r)>0||(r==='候補'&&residents.some(x=>Number(x.assignWaitlist)>0)));
     const preconditions=cloudSyncReady&&free>0&&getValidWinnerCount(currentRound)===0;
     const last=[...(systemLogs||[])].find(x=>x.type==='抽籤'&&String(x.msg||'').includes(currentRound)&&/完成|執行/.test(String(x.msg||'')));
-    grid.innerHTML=`<div>目前輪次<b>${currentRound}</b></div><div>合格住戶<b>${participants} 位</b></div><div>可用／作廢位<b>${free}／${voids}</b></div><div>前置條件<b>${preconditions?'已完成':'待處理'}</b></div><div>本輪既有結果<b>${getValidWinnerCount(currentRound)} 席</b></div><div>最後執行<b>${last?formatLogTime(last):'尚未執行'}</b></div>`;
+    grid.innerHTML=`<div>目前輪次<b>${currentRound}</b></div><div>合格住戶<b>${participants} 位</b></div><div>可用／作廢位<b>${free}／${voids}</b></div><div>資料凍結<b>${isLotteryDataFrozen()?'處理中':'可執行'}</b></div><div>同步狀態<b>${cloudSyncReady?'正常':'待確認'}</b></div><div>去年待核對<b>${priorExcluded.length} 位</b></div>`;
     box.classList.toggle('risk',clearing.length>0); box.classList.toggle('safe',clearing.length===0);
-    risk.textContent=clearing.length?`⚠️ 重抽將清除：${clearing.join('、')} 的既有結果。`:'🟢 不會清除既有後續結果。';
+    risk.textContent=`${priorExcluded.length?`本輪有 ${priorExcluded.length} 位去年資料待確認住戶，已排除抽籤；請先於住戶名單完成核對。　`:''}${clearing.length?`重抽將清除：${clearing.join('、')} 的既有結果。`:'本次不會清除後續輪次或候補結果。'}`;
   }
   function updateLotteryCards() {
     normalizeSystemSettings();
@@ -4960,10 +4967,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       let plateKey = `plate${idx+1}`;
       
       let participants = residents.filter(x => {
-        if (x[rKey] !== 'Y') return false;
+        if (x[rKey] !== 'Y' || isPriorYearPlatePending(x)) return false;
         let plateVal = x[plateKey] ? x[plateKey].trim() : "";
-        if (!plateVal) return false;
-        return true;
+        return isValidTaiwanPlate(plateVal, true);
       }).length;
       
       let gotCount = getValidWinnerCount(r);
@@ -5076,7 +5082,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function getWaitlistCandidates() {
     return residents.filter(r => {
       const plateVal = String(r.plateWaitlist || '').trim();
-      if (r.waitlist !== 'Y' || !isValidTaiwanPlate(plateVal, true) || getUserSeat("候補", r.id) || hasActiveForfeitRecord(r.id)) return false;
+      if (r.waitlist !== 'Y' || isPriorYearPlatePending(r) || !isValidTaiwanPlate(plateVal, true) || getUserSeat("候補", r.id) || hasActiveForfeitRecord(r.id)) return false;
       if (plateVal === PENDING_PLATE_LABEL) return true;
       // 💡 一車一格防呆（與正式抽籤同一類修正）：候補車牌若正規化後與該住戶已中籤的
       // 第一~三輪車牌相同，代表是同一輛車，不得再透過候補取得第二個車位。
@@ -5619,26 +5625,30 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   function getLotteryDataVersion(){
-    const core={residents:residents.map(r=>[r.id,r.r1,r.r2,r.r3,r.plate1,r.plate2,r.plate3,r.pref1,r.pref2,r.pref3]),voidSeats:systemSettings.voidSeats,results:lotteryResults};
+    // 納入年度核對狀態，避免覆核後有人改成「去年資料待確認」卻仍使用舊覆核結果執行抽籤。
+    const core={residents:residents.map(r=>[r.id,r.r1,r.r2,r.r3,r.plate1,r.plate2,r.plate3,r.pref1,r.pref2,r.pref3,r.plateVerification]),voidSeats:systemSettings.voidSeats,results:lotteryResults};
     let h=2166136261; const s=JSON.stringify(core); for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);} return `${lastKnownServerModified||0}-${(h>>>0).toString(16)}`;
   }
   function getLotteryReviewData(){
     const n=currentRound==='第一輪'?1:currentRound==='第二輪'?2:3;
-    const eligible=residents.filter(r=>r[`r${n}`]==='Y'&&isValidTaiwanPlate(String(r[`plate${n}`]||''),true)).length;
+    const priorExcluded=getPriorYearLotteryExclusions(n);
+    const eligible=residents.filter(r=>r[`r${n}`]==='Y'&&!isPriorYearPlatePending(r)&&isValidTaiwanPlate(String(r[`plate${n}`]||''),true)).length;
     const free=getFormalLotteryStartFreeSeats(currentRound).length;
     const voids=(systemSettings.voidSeats||[]).length;
     const later=currentRound==='第一輪'?['第二輪','第三輪','候補']:currentRound==='第二輪'?['第三輪','候補']:['候補'];
     const clearing=later.filter(r=>getValidWinnerCount(r)>0||(r==='候補'&&residents.some(x=>Number(x.assignWaitlist)>0)));
-    const plateIssues=residents.filter(r=>r[`r${n}`]==='Y'&&!isValidTaiwanPlate(String(r[`plate${n}`]||''),true)).length;
-    return {round:currentRound,eligible,free,voids,unwon:Math.max(0,eligible-free),clearing,plateIssues,version:getLotteryDataVersion(),modified:lastKnownServerModified?new Date(lastKnownServerModified).toLocaleString('zh-TW'):'尚未同步'};
+    const plateIssues=residents.filter(r=>r[`r${n}`]==='Y'&&!isPriorYearPlatePending(r)&&!isValidTaiwanPlate(String(r[`plate${n}`]||''),true)).length;
+    const priorMasked=priorExcluded.slice(0,5).map(r=>maskName(r.name)).filter(Boolean);
+    return {round:currentRound,eligible,free,voids,unwon:Math.max(0,eligible-free),clearing,plateIssues,priorExcluded,priorMasked,version:getLotteryDataVersion(),modified:lastKnownServerModified?new Date(lastKnownServerModified).toLocaleString('zh-TW'):'尚未同步'};
   }
   function openLotteryReviewModal(){
     if(!currentUser || !['admin','director'].includes(currentUser.role)){showAppToast('正式抽籤僅限管理人員執行。','warn');return;}
     if(isLotteryDataFrozen()){showAppToast('抽籤處理中，請勿重複送出。','warn');return;}
     if(getValidWinnerCount(currentRound)>0){showAppToast(`${currentRound} 已完成抽籤。若需重新抽籤，請先使用「清除本輪結果」或「重置全部輪次結果」。`,'warn',5000);return;}
     const d=getLotteryReviewData(); const host=document.getElementById('lottery-review-summary'), impact=document.getElementById('lottery-review-impact');
-    host.innerHTML=`<div>執行輪次<b>${escapeHtml(d.round)}</b></div><div>合格住戶<b>${d.eligible} 位</b></div><div>可分配車位<b>${d.free} 席</b></div><div>作廢車位<b>${d.voids} 席</b></div><div>預計未中籤<b>${d.unwon} 位</b></div><div>車牌待處理<b>${d.plateIssues} 位</b></div><div>資料版本<b>${escapeHtml(d.version)}</b></div><div style="grid-column:1/-1">最後更新<b>${escapeHtml(d.modified)}</b></div>`;
-    impact.style.display='block'; impact.textContent=`${d.plateIssues?`注意：本輪有 ${d.plateIssues} 位參加資料的車牌格式待管理員於住戶名單核對；為保護個資，此處不顯示姓名或門牌。`:''}${d.plateIssues&&d.clearing.length?'　':''}${d.clearing.length?`影響範圍：執行後將清除 ${d.clearing.join('、')} 的既有結果。`:'影響範圍：本次不會清除後續輪次或候補結果。'}`;
+    host.innerHTML=`<div>執行輪次<b>${escapeHtml(d.round)}</b></div><div>合格住戶<b>${d.eligible} 位</b></div><div>可分配車位<b>${d.free} 席</b></div><div>作廢車位<b>${d.voids} 席</b></div><div>預計未中籤<b>${d.unwon} 位</b></div><div>去年待核對<b>${d.priorExcluded.length} 位</b></div><div>車牌待處理<b>${d.plateIssues} 位</b></div><div>資料版本<b>${escapeHtml(d.version)}</b></div><div style="grid-column:1/-1">最後更新<b>${escapeHtml(d.modified)}</b></div>`;
+    const privacyNotice=d.priorExcluded.length?`去年資料待確認 ${d.priorExcluded.length} 位已排除本輪抽籤${d.priorMasked.length?`（去識別化：${d.priorMasked.join('、')}${d.priorExcluded.length>d.priorMasked.length?' 等':''}）`:''}；請先於住戶名單完成本年度核對。`:'';
+    impact.style.display='block'; impact.textContent=`${privacyNotice}${privacyNotice&&(d.plateIssues||d.clearing.length)?'　':''}${d.plateIssues?`本輪另有 ${d.plateIssues} 位參加資料的車牌格式待核對；為保護個資，此處不顯示姓名或門牌。`:''}${(privacyNotice||d.plateIssues)&&d.clearing.length?'　':''}${d.clearing.length?`影響範圍：執行後將清除 ${d.clearing.join('、')} 的既有結果。`:'影響範圍：本次不會清除後續輪次或候補結果。'}`;
     document.getElementById('lottery-review-confirm-btn').disabled=false; document.getElementById('lottery-review-modal').classList.add('show');
   }
   function closeLotteryReviewModal(){document.getElementById('lottery-review-modal').classList.remove('show');}
@@ -5709,7 +5719,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       : currentRound === "第三輪" ? [["assign1","plate1"],["assign2","plate2"]]
       : [];
     let eligible = residents.filter(x => {
-      if (x[rKey] !== 'Y') return false;
+      // 年度尚未核對的舊車牌不可以抽籤；此規則必須在真正建立抽籤池時再次強制執行。
+      if (x[rKey] !== 'Y' || isPriorYearPlatePending(x)) return false;
       const plateVal = String(x[plateKey] || '').trim();
       // 「新戶待補」是系統手冊明確允許的暫代車牌；其他參加者必須通過台灣牌照格式驗證。
       if (!isValidTaiwanPlate(plateVal, true)) return false;
@@ -5725,7 +5736,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     });
     
     if(eligible.length === 0) {
-      alert(`${currentRound} 沒有符合資格（已填寫對應當輪車牌且勾選參加）的住戶！`);
+      const priorCount=getPriorYearLotteryExclusions(currentRound==='第一輪'?1:currentRound==='第二輪'?2:3).length;
+      alert(`${currentRound} 沒有符合資格（已完成本年度車牌核對、填寫對應當輪車牌且勾選參加）的住戶！${priorCount?`\n\n其中 ${priorCount} 位因「去年資料待確認」已排除，請先於住戶名單完成核對。`:''}`);
       return;
     }
     if (lotteryRunning) {
@@ -5839,7 +5851,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const expectedRoundKey = round === '第一輪' ? 'r1' : (round === '第二輪' ? 'r2' : 'r3');
     const badEligible = eligible.filter(r => {
       const plateVal = String(r[expectedPlateKey] || '').trim();
-      return !plateVal || r[expectedRoundKey] !== 'Y';
+      return !plateVal || r[expectedRoundKey] !== 'Y' || isPriorYearPlatePending(r);
     });
     if (badEligible.length > 0) throw new Error(`${round} 存在車牌空白或格式不合格的參加者資料，已中止分配。`);
 
