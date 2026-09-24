@@ -2055,6 +2055,8 @@
   // 年度紙本登記表僅載入索引；檔案本體於下載時才讀取，避免大型掃描檔拖慢日常同步。
   let registrationFormsIndex = {};
   let registrationFormsYearMeta = {};
+  // 年度紙本文件的存取稽核獨立保存；管理端操作紀錄頁會將它與一般系統紀錄合併呈現。
+  let registrationAuditLogs = [];
   let pendingRegistrationForm = null;
 
   function renderPlateCell(plateVal) {
@@ -3604,7 +3606,7 @@
     if(pageId === 'motorcycle-stats') renderMotorcycleStats();
     if(pageId === 'results') renderResults();
     if(pageId === 'summary') renderSummary();
-    if(pageId === 'logs') renderLogs();
+    if(pageId === 'logs') { renderLogs(); loadRegistrationAuditLogs(); }
     if(pageId === 'swap') renderSwap();
     if(pageId === 'guide') renderGuide(); 
     if(pageId === 'lottery') { updateLotteryCards(); checkPlateWarnings(); }
@@ -8360,8 +8362,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const from = document.getElementById("log-date-from").value;
     const to = document.getElementById("log-date-to").value;
 
-    const filtered = systemLogs.filter(l => {
-      const matchS = l.msg.toLowerCase().includes(search) || l.user.toLowerCase().includes(search);
+    const allLogs=getAllOperationLogs();
+    const filtered = allLogs.filter(l => {
+      const matchS = String(l.msg||'').toLowerCase().includes(search) || String(l.user||'').toLowerCase().includes(search);
       const matchT = typeFilter === "" || l.type === typeFilter;
       const highRisk=/重抽|清除|還原|鎖定互換|重置/.test(String(l.msg||''));
       const matchRisk = !riskFilter || (riskFilter==='high'?highRisk:!highRisk);
@@ -8380,10 +8383,12 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       filtered.forEach(l => {
         const highRisk=/重抽|清除|還原|鎖定互換|重置/.test(String(l.msg||''));
         const ctx=l.context||null;
-        const detail=ctx
-          ? `紀錄編號：${escapeHtml(l.id||'舊版紀錄')}｜當時住戶：<b>${Number(ctx.residents)||0}</b> 位｜已分配：<b>${Number(ctx.assigned)||0}</b> 位｜作廢：<b>${Number(ctx.voidSeats)||0}</b> 位｜資料版本：${escapeHtml(ctx.dataVersion||'—')}`
-          : '此筆為舊版紀錄，未保存當時的資料快照；訊息、時間與執行者仍可供稽核。';
-        const logId=l.id||`legacy_${systemLogs.indexOf(l)}`;
+      const detail=ctx?.documentAudit
+        ? `年度文件稽核｜年度：<b>${escapeHtml(ctx.year||'—')}</b>｜檔案識別碼：${escapeHtml(ctx.itemId||'—')}｜此筆紀錄由紙本文件獨立稽核保存。`
+        :ctx
+        ? `紀錄編號：${escapeHtml(l.id||'舊版紀錄')}｜當時住戶：<b>${Number(ctx.residents)||0}</b> 位｜已分配：<b>${Number(ctx.assigned)||0}</b> 位｜作廢：<b>${Number(ctx.voidSeats)||0}</b> 位｜資料版本：${escapeHtml(ctx.dataVersion||'—')}`
+        : '此筆為舊版紀錄，未保存當時的資料快照；訊息、時間與執行者仍可供稽核。';
+        const logId=l.id||`legacy_${allLogs.indexOf(l)}`;
         html += `<div class="log-tl-item ${highRisk?'high-risk':''}">
           <div class="log-tl-line"></div>
           <div class="log-tl-dot"></div>
@@ -8406,7 +8411,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
   function compareSelectedLogs(){
     const box=document.getElementById('log-compare-result');
-    const selected=selectedLogIds.map(id=>systemLogs.find((l,i)=>(l.id||`legacy_${i}`)===id)).filter(Boolean);
+    const allLogs=getAllOperationLogs();
+    const selected=selectedLogIds.map(id=>allLogs.find((l,i)=>(l.id||`legacy_${i}`)===id)).filter(Boolean);
     if(selected.length!==2){box.style.display='block';box.className='settings-risk-note';box.textContent='請先勾選兩筆操作紀錄再進行比較。';return;}
     const [a,b]=selected.slice().reverse();
     if(!a.context||!b.context){box.style.display='block';box.className='settings-risk-note';box.textContent='選取的舊版紀錄缺少資料快照，無法比較數量差異；請改選含快照的新紀錄。';return;}
@@ -8445,7 +8451,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function exportLogs() {
     if (!currentUser || currentUser.role !== 'admin') { alert('權限不足！僅系統管理員可匯出操作紀錄。'); return; }
     let csv = "\ufeff時間,類型,使用者,訊息\n";
-    systemLogs.forEach(l => {
+    const allLogs=getAllOperationLogs();
+    allLogs.forEach(l => {
       const row = [l.time || "", l.type || "", l.user || "", l.msg || ""];
       csv += row.map(csvEscape).join(',') + "\r\n";
     });
@@ -8455,7 +8462,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     newA.href = url;
     newA.download = `稙村秀操作紀錄_${getLocalDateStamp()}.csv`;
     newA.click();
-    addLog('匯出', `匯出操作紀錄 CSV（${systemLogs.length} 筆）`);
+    addLog('匯出', `匯出操作紀錄 CSV（${allLogs.length} 筆）`);
   }
 
   // ================= 11. 匯出工具 =================
@@ -8677,6 +8684,28 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function registrationMayModify(year){return canManageRegistrationForms()&&!registrationYearArchived(year);}
   function suggestedRegistrationRetention(year){const y=Number(year);const adYear=y>1000?y:y+1911;return `${adYear+5}-12-31`;}
   function registrationAuditPatch(year,action,detail,itemId=''){const id=`a_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;return {[`registrationFormsAudit/${year}/${id}`]:{action,detail,itemId,by:currentUser?.name||'',at:new Date().toLocaleString('zh-TW',{hour12:false})}};}
+  async function loadRegistrationAuditLogs(){
+    if(currentUser?.role!=='admin'||!FIREBASE_DB_URL||FIREBASE_DB_URL.includes('YOUR-FIREBASE'))return;
+    try{
+      const res=await fetch(`${FIREBASE_DB_URL}parkingData/registrationFormsAudit.json?_t=${Date.now()}`,{cache:'no-store'});
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      const data=await res.json()||{};
+      registrationAuditLogs=Object.entries(data).flatMap(([year,entries])=>Object.entries(entries||{}).map(([id,row])=>({
+        id:`fileaudit_${year}_${id}`,
+        time:row?.at||'', isoTime:row?.at||'', type:'文件', user:row?.by||'—',
+        msg:`${row?.action||'異動'} ${year} 年度紙本登記表${row?.detail?`：${row.detail}`:''}`,
+        context:{documentAudit:true,year,itemId:row?.itemId||''}
+      })));
+    }catch(e){console.warn('讀取年度文件稽核失敗：',e);registrationAuditLogs=[];}
+    if(document.getElementById('page-logs')?.classList.contains('active'))renderLogs();
+  }
+  function getAllOperationLogs(){
+    const system=Array.isArray(systemLogs)?systemLogs:[], documents=Array.isArray(registrationAuditLogs)?registrationAuditLogs:[];
+    const rows=[...system,...documents], seen=new Set();
+    return rows.filter(x=>{const id=String(x?.id||'');if(id&&seen.has(id))return false;if(id)seen.add(id);return true;}).sort((a,b)=>{
+      const at=new Date(a?.isoTime||a?.time||0).getTime(),bt=new Date(b?.isoTime||b?.time||0).getTime();return (Number.isFinite(bt)?bt:0)-(Number.isFinite(at)?at:0);
+    });
+  }
   async function registrationSha256(buffer){if(!window.crypto?.subtle)return '';const hash=await crypto.subtle.digest('SHA-256',buffer);return Array.from(new Uint8Array(hash)).map(n=>n.toString(16).padStart(2,'0')).join('');}
   function registrationRows(year){return Object.entries(registrationFormsIndex[year]||{}).map(([id,v])=>({id,...(v||{})})).sort((a,b)=>String(b.uploadedAt||'').localeCompare(String(a.uploadedAt||'')));}
   function clearRegistrationFormPreview(){pendingRegistrationForm=null;const p=document.getElementById('registration-form-preview'),btn=document.getElementById('registration-form-confirm-upload'),input=document.getElementById('registration-form-upload');if(p){p.style.display='none';p.innerHTML='';}if(btn)btn.disabled=true;if(input)input.value='';}
