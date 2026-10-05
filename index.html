@@ -508,6 +508,10 @@
   .guest-mode #page-dashboard #dashboard-seatmap-card{display:block!important;background:linear-gradient(145deg,#ffffff 0%,#f7faff 100%);border-color:#dbeafe;box-shadow:0 12px 28px -22px rgba(30,64,175,.45)}.guest-mode #dashboard-seatmap-card .legend-box{padding:10px 12px;background:rgba(255,255,255,.72);border-color:#e2e8f0}.guest-mode #dashboard-seatmap-card .card-title{font-size:18px}
   .guest-dashboard-card{margin-bottom:16px;background:rgba(255,255,255,.92);border-color:#e2e8f0;box-shadow:0 10px 26px -22px rgba(15,23,42,.42)}.guest-mode #my-parking-result-card{background:linear-gradient(145deg,#f8fbff,#f4fbf7)!important;border-color:#dbeafe!important;box-shadow:0 14px 30px -22px rgba(30,64,175,.48)}.guest-round-progress{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.guest-round-progress-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:var(--radius-sm);background:#fbfdff;font-size:14px;font-weight:800}.guest-round-progress-item .badge{font-size:11px;padding:3px 8px;min-height:26px}.guest-dashboard-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.guest-dashboard-actions .btn{min-height:48px;padding:8px 10px;white-space:normal;line-height:1.35}.guest-dashboard-announcement-content{color:#475569;font-size:14px;line-height:1.7;font-weight:500;white-space:pre-wrap}.guest-dashboard-announcement-content strong{display:block;margin-bottom:4px;color:#1e3a5f;font-weight:900}
   .resident-verify-view .table-group-row{display:none}
+  /* Sticky 整組表頭，避免兩排表頭各自偏移或隱藏群組列後仍留下 top 偏移。 */
+  #residents-table thead{position:sticky;top:0;z-index:6}
+  #residents-table thead tr th{position:static!important;top:auto!important}
+  #residents-table{border-collapse:separate;border-spacing:0}
   .resident-verify-view th:nth-child(1),.resident-verify-view td:nth-child(1),.resident-verify-view th:nth-child(2),.resident-verify-view td:nth-child(2),.resident-verify-view th:nth-child(n+6):nth-child(-n+13),.resident-verify-view td:nth-child(n+6):nth-child(-n+13),.resident-verify-view th:nth-child(18),.resident-verify-view td:nth-child(18){display:none}
   .resident-verify-view{min-width:720px!important}.resident-verify-view th:nth-child(3),.resident-verify-view th:nth-child(4),.resident-verify-view th:nth-child(5){background:#eef6ff!important}.resident-verify-view th:nth-child(n+14):nth-child(-n+17){background:#effcf5!important}
   .floorplan-mobile-shortcuts{display:none}
@@ -883,6 +887,13 @@
     <div class="registration-archive-controls"><span id="registration-archive-status" class="badge badge-gray">年度資料可編輯</span><label for="registration-retention-until">建議保留至</label><input id="registration-retention-until" type="date" onchange="saveRegistrationRetention()"><button class="btn btn-sm" id="registration-archive-toggle" onclick="toggleRegistrationYearArchive()">封存本年度</button><button class="btn btn-sm" onclick="exportRegistrationFormsManifest()">匯出檔案清冊</button></div>
     <small class="field-helper">PDF、JPG、PNG · 單檔上限 2 MB · 僅保存年度登記表。</small>
     <div id="registration-form-list" class="registration-form-list"></div>
+    <div class="registration-archive-toolbar" aria-label="年度文件篩選">
+      <button class="btn btn-sm" onclick="document.getElementById('registration-form-year').value=String(new Date().getFullYear()-1911);loadRegistrationFormsIndex()">今年度</button>
+      <select id="document-filter-building" aria-label="檔案棟別篩選" onchange="renderRegistrationForms()"><option value="">全部棟別</option><option>A棟</option><option>B棟</option><option>C棟</option><option>D棟</option><option>E棟</option><option>全社區</option></select>
+      <select id="document-filter-category" aria-label="檔案類別篩選" onchange="renderRegistrationForms()"><option value="">全部類別</option><option>空白表單</option><option>已填寫掃描檔</option><option>棟別彙整</option><option>簽核版</option><option>補件</option></select>
+      <select id="document-filter-official" aria-label="檔案版次篩選" onchange="renderRegistrationForms()"><option value="">全部版本</option><option value="yes">目前正式版</option><option value="no">歷史版本</option></select>
+    </div>
+    <p class="muted-note">沿用現有雲端同步保存年度文件，不需另外設定 Storage 或 Firebase 登入。</p>
   </section>
   
   <div class="card card-pad-lg">
@@ -1193,6 +1204,10 @@
       <input type="date" id="log-date-from" aria-label="紀錄開始日期" onchange="renderLogs()">
       <input type="date" id="log-date-to" aria-label="紀錄結束日期" onchange="renderLogs()">
       <button class="btn btn-sm" onclick="compareSelectedLogs()">比較勾選紀錄</button>
+      <input id="log-filter-year" placeholder="年度（例：115）" aria-label="紀錄年度" oninput="renderLogs()">
+      <input id="log-filter-user" placeholder="操作者" aria-label="操作者" oninput="renderLogs()">
+      <select id="log-filter-action" aria-label="動作" onchange="renderLogs()"><option value="">全部動作</option><option>上傳</option><option>下載</option><option>匯出</option><option>列印</option><option>刪除</option><option>封存</option><option>解封</option><option>還原</option></select>
+      <button class="btn btn-sm" onclick="clearOperationLogFilters()">清除篩選</button>
     </div>
     <div id="log-count" style="font-size:14.5px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800"></div>
     <div id="log-compare-result" style="display:none;margin:-.5rem 0 1rem"></div>
@@ -2057,6 +2072,9 @@
   let registrationFormsYearMeta = {};
   // 年度紙本文件的存取稽核獨立保存；管理端操作紀錄頁會將它與一般系統紀錄合併呈現。
   let registrationAuditLogs = [];
+  let registrationAuditLoadError = '';
+  let registrationAuditLoading = false;
+  let registrationIndexErrors = {};
   let pendingRegistrationForm = null;
 
   function renderPlateCell(plateVal) {
@@ -2330,11 +2348,11 @@
   }
 
   async function acquireCloudWriteLock(maxAttempts=3) {
-    const url=`${FIREBASE_DB_URL}parkingData/_syncLock.json`;
+    const url=await documentDatabaseUrl('parkingData/_syncLock.json',true);
     const token=`${currentUser?.username||'user'}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     for(let attempt=1; attempt<=maxAttempts; attempt++){
       try{
-        const res=await fetch(`${url}?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache','Pragma':'no-cache'}});
+        const res=await fetch(url,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache','Pragma':'no-cache'}});
         if(!res.ok) throw new Error('HTTP '+res.status);
         const etag=res.headers.get('ETag') || 'null_etag';
         const existing=await res.json();
@@ -2350,7 +2368,7 @@
           continue;
         }
         if(!put.ok) throw new Error('HTTP '+put.status);
-        const verify=await fetch(`${url}?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
+        const verify=await fetch(url,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
         if(!verify.ok) throw new Error('HTTP '+verify.status);
         const verifyData=await verify.json();
         if(!verifyData || verifyData.token!==token) {
@@ -2375,8 +2393,8 @@
     const lock=activeCloudWriteLockToken;
     if(!lock || lock.token!==token) return;
     try{
-      const url=`${FIREBASE_DB_URL}parkingData/_syncLock.json`;
-      const res=await fetch(`${url}?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
+      const url=await documentDatabaseUrl('parkingData/_syncLock.json',true);
+      const res=await fetch(url,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
       if(!res.ok) throw new Error('HTTP '+res.status);
       const data=await res.json(), etag=res.headers.get('ETag');
       if(!data || data.token!==token || !etag) throw new Error('寫入鎖已被其他裝置取代');
@@ -2395,8 +2413,8 @@
     activeCloudWriteLockToken=null;
     if(lock.heartbeat) clearInterval(lock.heartbeat);
     try{
-      const url=`${FIREBASE_DB_URL}parkingData/_syncLock.json`;
-      const res=await fetch(`${url}?_t=${Date.now()}`,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
+      const url=await documentDatabaseUrl('parkingData/_syncLock.json',true);
+      const res=await fetch(url,{cache:'no-store',headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'}});
       if(!res.ok) return;
       const data=await res.json(); const etag=res.headers.get('ETag');
       if(data && data.token===lock.token && etag){
@@ -2575,7 +2593,7 @@
       return true;
     }
     try {
-      const res = await fetch(`${FIREBASE_DB_URL}parkingData/archives.json?_t=${new Date().getTime()}`, { cache: "no-store", headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'} });
+      const res = await fetch(await documentDatabaseUrl('parkingData/archives.json',true), { cache: "no-store", headers:{'X-Firebase-ETag':'true','Cache-Control':'no-cache'} });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
       archivesCloudEtag = res.headers.get('ETag') || 'null_etag';
@@ -2605,7 +2623,7 @@
       const res = await fetch(`${FIREBASE_DB_URL}parkingData/archives.json`, {
         method: "PUT",
         headers,
-        body: JSON.stringify(archives)
+        body: JSON.stringify(archives.filter(a=>!a.readOnly))
       });
       if (res.status === 412) {
         throw new Error('封存資料版本衝突：其他管理裝置已更新，請先重新載入封存清單後再試。');
@@ -2741,7 +2759,7 @@
       try {
         // 加入 timestamp 與 no-store，徹底強制繞過瀏覽器快取，解決舊資料幽靈問題
         const timestamp = new Date().getTime();
-        const res = await fetch(`${FIREBASE_DB_URL}parkingData.json?_t=${timestamp}`, {
+        const res = await fetch(await documentDatabaseUrl('parkingData.json', true), {
           cache: "no-store",
           headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
         });
@@ -4907,7 +4925,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function isLotteryRoundCompleted(roundName){
     if(getValidWinnerCount(roundName) > 0) return true;
     const n = roundName === "第一輪" ? 1 : (roundName === "第二輪" ? 2 : 3);
-    const participants = residents.filter(r => r["r"+n] === "Y" && String(r["plate"+n] || "").trim() !== "").length;
+    const participants = getFormalLotteryEligibleResidents(roundName).length;
     // 沒有任何符合資格的參加住戶時，該輪可視為「無需分配」；允許流程往下一輪前進。
     return participants === 0;
   }
@@ -5633,10 +5651,40 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const core={residents:residents.map(r=>[r.id,r.r1,r.r2,r.r3,r.plate1,r.plate2,r.plate3,r.pref1,r.pref2,r.pref3,r.plateVerification]),voidSeats:systemSettings.voidSeats,results:lotteryResults};
     let h=2166136261; const s=JSON.stringify(core); for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);} return `${lastKnownServerModified||0}-${(h>>>0).toString(16)}`;
   }
+  function getFormalLotteryEligibleResidents(round){
+    const n={'第一輪':1,'第二輪':2,'第三輪':3}[round];
+    if(!n)return [];
+    const usedPlates=new Set();
+    for(let k=1;k<n;k++)residents.forEach(r=>{
+      const p=String(r['plate'+k]||'').trim();
+      if(getUserSeat(['','第一輪','第二輪','第三輪'][k],r.id)&&p&&p!==PENDING_PLATE_LABEL)usedPlates.add(normalizePlateValue(p));
+    });
+    return residents.filter(r=>{
+      const p=String(r['plate'+n]||'').trim();
+      return r['r'+n]==='Y'&&!isPriorYearPlatePending(r)&&isValidTaiwanPlate(p,true)&&(p===PENDING_PLATE_LABEL||!usedPlates.has(normalizePlateValue(p)));
+    });
+  }
+  function getLotteryQualificationDifferences(n){
+    const entries=[],field='plate'+n,roundKey='r'+n,plates=new Map();
+    residents.filter(r=>r[roundKey]==='Y').forEach(r=>{
+      const raw=String(r[field]||'').trim(),plate=normalizePlateValue(raw);
+      if(raw&&raw!==PENDING_PLATE_LABEL&&!isPriorYearPlatePending(r)&&isValidTaiwanPlate(raw,true)){if(!plates.has(plate))plates.set(plate,[]);plates.get(plate).push(r);}
+      const name=maskName(r.name)||'住戶';
+      if(isPriorYearPlatePending(r))entries.push({name,kind:'去年待確認',effect:'排除本輪'});
+      else if(!raw)entries.push({name,kind:'缺車牌',effect:'排除本輪'});
+      else if(!isValidTaiwanPlate(raw,true))entries.push({name,kind:'格式異常',effect:'排除本輪'});
+      const earlier=n===2?[['第一輪','plate1']]:n===3?[['第一輪','plate1'],['第二輪','plate2']]:[];
+      if(raw!==PENDING_PLATE_LABEL&&raw&&residents.some(holder=>earlier.some(([round,key])=>getUserSeat(round,holder.id)&&normalizePlateValue(holder[key])===plate)))entries.push({name,kind:'同車已中籤',effect:'排除本輪'});
+    });
+    for(const rows of plates.values())if(rows.length>1)rows.forEach(r=>entries.push({name:maskName(r.name)||'住戶',kind:'重複車牌',effect:'暫停抽籤，請核對'}));
+    const baseline=versionedBackups.find(b=>Array.isArray(b.residents))?.residents||[];
+    residents.forEach(r=>{const old=baseline.find(x=>Number(x.id)===Number(r.id));if(old&&['r1','r2','r3','reserve','plateVerification'].some(k=>(old[k]||'')!==(r[k]||'')))entries.push({name:maskName(r.name)||'住戶',kind:'資格變更',effect:r[roundKey]!=='Y'?'未參加本輪':isPriorYearPlatePending(r)?'排除本輪':'依目前核對狀態納入'});});
+    return entries;
+  }
   function getLotteryReviewData(){
     const n=currentRound==='第一輪'?1:currentRound==='第二輪'?2:3;
     const priorExcluded=getPriorYearLotteryExclusions(n);
-    const eligible=residents.filter(r=>r[`r${n}`]==='Y'&&!isPriorYearPlatePending(r)&&isValidTaiwanPlate(String(r[`plate${n}`]||''),true)).length;
+    const eligible=getFormalLotteryEligibleResidents(currentRound).length;
     const free=getFormalLotteryStartFreeSeats(currentRound).length;
     const voids=(systemSettings.voidSeats||[]).length;
     const later=currentRound==='第一輪'?['第二輪','第三輪','候補']:currentRound==='第二輪'?['第三輪','候補']:['候補'];
@@ -5653,15 +5701,22 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     host.innerHTML=`<div>執行輪次<b>${escapeHtml(d.round)}</b></div><div>合格住戶<b>${d.eligible} 位</b></div><div>可分配車位<b>${d.free} 席</b></div><div>作廢車位<b>${d.voids} 席</b></div><div>預計未中籤<b>${d.unwon} 位</b></div><div>去年待核對<b>${d.priorExcluded.length} 位</b></div><div>車牌待處理<b>${d.plateIssues} 位</b></div><div>資料版本<b>${escapeHtml(d.version)}</b></div><div style="grid-column:1/-1">最後更新<b>${escapeHtml(d.modified)}</b></div>`;
     const privacyNotice=d.priorExcluded.length?`去年資料待確認 ${d.priorExcluded.length} 位已排除本輪抽籤${d.priorMasked.length?`（去識別化：${d.priorMasked.join('、')}${d.priorExcluded.length>d.priorMasked.length?' 等':''}）`:''}；請先於住戶名單完成本年度核對。`:'';
     impact.style.display='block'; impact.textContent=`${privacyNotice}${privacyNotice&&(d.plateIssues||d.clearing.length)?'　':''}${d.plateIssues?`本輪另有 ${d.plateIssues} 位參加資料的車牌格式待核對；為保護個資，此處不顯示姓名或門牌。`:''}${(privacyNotice||d.plateIssues)&&d.clearing.length?'　':''}${d.clearing.length?`影響範圍：執行後將清除 ${d.clearing.join('、')} 的既有結果。`:'影響範圍：本次不會清除後續輪次或候補結果。'}`;
-    document.getElementById('lottery-review-confirm-btn').disabled=false; document.getElementById('lottery-review-modal').classList.add('show');
+    const differences=getLotteryQualificationDifferences(currentRound==='第一輪'?1:currentRound==='第二輪'?2:3);
+    let diffBox=document.getElementById('lottery-qualification-differences');
+    if(!diffBox){diffBox=document.createElement('div');diffBox.id='lottery-qualification-differences';impact.after(diffBox);}
+    diffBox.innerHTML=`<details ${differences.length?'open':''}><summary>資格差異清單（${differences.length} 項）</summary><p class="muted-note">與最近備份比較資格變更；姓名去識別化，不顯示車牌或門牌。</p><table><thead><tr><th>住戶</th><th>項目</th><th>抽籤影響</th></tr></thead><tbody>${differences.map(x=>`<tr><td>${escapeHtml(x.name)}</td><td>${escapeHtml(x.kind)}</td><td>${escapeHtml(x.effect)}</td></tr>`).join('')||'<tr><td colspan="3">目前沒有資格異常或變更。</td></tr>'}</tbody></table><button class="btn" onclick="closeLotteryReviewModal();showPage('residents')">回住戶名單核對</button></details>`;
+    document.getElementById('lottery-review-confirm-btn').disabled=differences.some(x=>x.kind==='重複車牌'); document.getElementById('lottery-review-modal').classList.add('show');
   }
   function closeLotteryReviewModal(){document.getElementById('lottery-review-modal').classList.remove('show');}
   function confirmLotteryReview(){
+    if(getLotteryQualificationDifferences(currentRound==='第一輪'?1:currentRound==='第二輪'?2:3).some(x=>x.kind==='重複車牌')){showAppToast('本輪有重複車牌，請先於住戶名單核對。','warn');return;}
     const d=getLotteryReviewData();
     lotteryReviewApproval={round:d.round,version:d.version,approvedAt:Date.now()}; closeLotteryReviewModal(); runLottery();
   }
 
   async function runLottery() {
+    if(lotteryRunning||waitlistLotteryRunning){showAppToast('抽籤正在處理中，請勿重複執行。','warn');return;}
+    if(getValidWinnerCount(currentRound)>0){showAppToast('本輪已有結果，請先清除本輪結果後再執行。','warn');return;}
     // 先關閉任何殘留的動畫 Modal，再進行流程／權限防呆，避免非阻塞 Toast 期間留下舊的抽籤畫面。
     closeLotteryModal();
     if (!currentUser || !['admin', 'director'].includes(currentUser.role)) {
@@ -5693,6 +5748,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       return;
     }
     const rKey = currentRound === "第一輪" ? "r1" : (currentRound === "第二輪" ? "r2" : "r3");
+    if(getLotteryQualificationDifferences(currentRound==='第一輪'?1:currentRound==='第二輪'?2:3).some(x=>x.kind==='重複車牌')){showAppToast('本輪有重複車牌，已中止抽籤，請先核對。','warn');return;}
     const plateKey = currentRound === "第一輪" ? "plate1" : (currentRound === "第二輪" ? "plate2" : "plate3");
 
     const hasWaitlistResults = getValidWinnerCount("候補") > 0;
@@ -5748,11 +5804,15 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       alert("抽籤正在執行中，請勿重複點擊。");
       return;
     }
+    eligible=getFormalLotteryEligibleResidents(currentRound);
+    const reviewedVersion=getLotteryDataVersion().split('-').slice(1).join('-');
     if(!await autoBackupBeforeMajorOperation(`執行${currentRound}抽籤`)) return;
+    if(lotteryRunning||waitlistLotteryRunning||getLotteryDataVersion().split('-').slice(1).join('-')!==reviewedVersion){showAppToast('資料或抽籤狀態已變更，請重新覆核。','warn');return;}
     lotteryRunning = true;
     setLotteryDataFreeze(true,currentRound);
 
     const runSnapshot = {
+      originalLotteryResults: JSON.parse(JSON.stringify(originalLotteryResults || {})),
       residents: JSON.parse(JSON.stringify(residents)),
       lotteryResults: JSON.parse(JSON.stringify(lotteryResults)),
       forfeitRecords: JSON.parse(JSON.stringify(forfeitRecords || [])),
@@ -5784,10 +5844,13 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         try {
           executeLotteryAllocation(currentRound, eligible);
           // 正式抽籤完成時保存原始分配快照；後續互換只改目前使用權，不覆寫此稽核依據。
-          originalLotteryResults = JSON.parse(JSON.stringify(lotteryResults));
+          originalLotteryResults[currentRound] = JSON.parse(JSON.stringify(lotteryResults[currentRound] || {}));
+          const laterRounds=currentRound==='第一輪'?['第二輪','第三輪','候補']:currentRound==='第二輪'?['第三輪','候補']:['候補'];
+          laterRounds.forEach(round=>{originalLotteryResults[round]={};});
         } catch (e) {
           console.error(`執行 ${currentRound} 抽籤分配失敗：`, e);
           residents = runSnapshot.residents;
+          originalLotteryResults = runSnapshot.originalLotteryResults;
           lotteryResults = runSnapshot.lotteryResults;
           forfeitRecords = runSnapshot.forfeitRecords;
           systemLogs = runSnapshot.systemLogs;
@@ -5813,6 +5876,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         addLog("抽籤", `執行 ${currentRound} 抽籤完成（共抽出 ${winCount} 席）`).then(ok => {
           if (!ok) {
             residents = runSnapshot.residents;
+            originalLotteryResults = runSnapshot.originalLotteryResults;
             lotteryResults = runSnapshot.lotteryResults;
             forfeitRecords = runSnapshot.forfeitRecords;
             systemLogs = runSnapshot.systemLogs;
@@ -5823,6 +5887,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           }
         }).catch(e => {
           residents = runSnapshot.residents;
+          originalLotteryResults = runSnapshot.originalLotteryResults;
           lotteryResults = runSnapshot.lotteryResults;
           forfeitRecords = runSnapshot.forfeitRecords;
           systemLogs = runSnapshot.systemLogs;
@@ -7790,10 +7855,116 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function renderVersionedBackupList(){const box=document.getElementById('versioned-backup-list-box');if(!box)return;box.style.display='block';if(!versionedBackups.length){box.innerHTML='<div class="empty">尚無版本化備份。建立備份後可在此比較並選擇性還原。</div>';return;}box.innerHTML=`<div class="card-title">版本化備份（最近 ${versionedBackups.length} 份）</div>${versionedBackups.map(b=>`<div class="management-item" style="margin-top:10px"><b>${new Date(b.backupTime).toLocaleString('zh-TW')}</b><span class="muted-note">${escapeHtml(b.reason||'手動建立')}｜建立者：${escapeHtml(b.createdBy||'—')}｜${escapeHtml(backupDiffSummary(b))}</span><div class="btn-row" style="margin-top:9px"><button class="btn btn-sm" onclick="restoreVersionedBackup('${b.id}','residents')">僅還原住戶</button><button class="btn btn-sm" onclick="restoreVersionedBackup('${b.id}','results')">僅還原抽籤結果</button><button class="btn btn-sm btn-danger" onclick="restoreVersionedBackup('${b.id}','all')">完整還原</button></div></div>`).join('')}`;}
   function renderBackupHealth(){const box=document.getElementById('annual-workflow-status');if(!box)return;const latest=versionedBackups[0], age=latest?Math.floor((Date.now()-new Date(latest.backupTime).getTime())/86400000):null;box.innerHTML=`<div class="lottery-preflight-grid"><div>最近備份<b>${latest?new Date(latest.backupTime).toLocaleString('zh-TW'):'尚無'}</b></div><div>備份數量／保留<b>${versionedBackups.length}／6 份</b></div><div>同步狀態<b>${cloudSyncReady?'正常':'待確認'}</b></div><div>還原演練<b>尚未記錄</b></div></div><div class="lottery-preflight-risk">${!latest||age>7?'建議立即建立備份。':'備份狀態正常；重大操作前會自動建立版本備份。'}</div>`;}
   function openNewYearWizard(){if(!currentUser||currentUser.role!=='admin'){showAppToast('僅系統管理員可建立新年度。','warn');return;}document.getElementById('new-year-label').value=`${new Date().getFullYear()+1} 年度機車位抽籤`;document.getElementById('new-year-modal').classList.add('show');}
-  async function initializeNewYear(){const label=document.getElementById('new-year-label').value.trim();if(!label){showAppToast('請輸入新年度名稱。','warn');return;}if(!confirm(`確定建立「${label}」？目前年度會先封存，之後清空抽籤相關結果。`))return;if(!await autoBackupBeforeMajorOperation(`建立新年度：${label}`))return;await loadArchivesFromCloud();archives.push({id:archives.length?Math.max(...archives.map(a=>Number(a.id)||0))+1:1,label:`${label}－前年度封存`,archivedAt:new Date().toISOString(),archivedBy:currentUser.name,snapshot:makeBackupSnapshot('年度封存')});if(!await pushArchivesToCloud()){archives.pop();showAppToast('年度封存失敗，已中止新年度建立。','warn');return;}lotteryResults={"第一輪":{},"第二輪":{},"第三輪":{},"候補":{}};swapLogs=[];forfeitRecords=[];residents.forEach(r=>{r.assign1='';r.assign2='';r.assign3='';r.assignWaitlist='';r.waitlistExclusionOverride=false;r.plateVerification='prior';r.plateVerificationNote='新年度待核對';});currentRound='第一輪';await addLog('年度',`建立新年度：${label}；已封存前年度並保留 ${residents.length} 戶基本資料`,{sync:false});const ok=await cloudSyncPush();if(!ok){showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');return;}renderDashboard();renderResidents();renderResults();renderSwap();updateLotteryCards();initFloorplanSeats();renderBackupHealth();document.getElementById('new-year-modal').classList.remove('show');showAppToast('新年度已建立，請先核對住戶車牌資料。','success');}
+  async function initializeNewYear(){
+    if(currentUser?.role!=='admin'){showAppToast('僅管理員可建立新年度。','warn');return;}
+    if(isLotteryDataFrozen()||lotteryRunning||waitlistLotteryRunning){showAppToast('抽籤處理中，請稍後建立新年度。','warn');return;}
+    const label=document.getElementById('new-year-label').value.trim();
+    if(!label){showAppToast('請輸入新年度名稱。','warn');return;}
+    if(!cloudSyncReady){showAppToast('請先完成雲端同步。','warn');return;}
+    if(!confirm(`確定建立「${label}」？將先保存目前年度快照，再清空抽籤、候補、棄權與互換結果。封存沿用程式端檢視限制，不具資料庫唯讀保護。`))return;
+    if(!await autoBackupBeforeMajorOperation('建立新年度')||!await loadArchivesFromCloud())return;
+    const before=makeBackupSnapshot('年度建立前'),oldRound=currentRound;
+    const oldArchives=JSON.parse(JSON.stringify(archives));
+    let archiveSaved=false;
+    try{
+      archives.push({id:Math.max(0,...archives.map(a=>Number(a.id)||0))+1,label:systemSettings.currentYearLabel||'前年度',archivedAt:new Date().toISOString(),archivedBy:currentUser.name,snapshot:{...before,totalSeats:systemSettings.totalSeats,voidSeats:JSON.parse(JSON.stringify(systemSettings.voidSeats||[]))}});
+      if(!await pushArchivesToCloud())throw new Error('前年度封存保存失敗，未建立新年度');
+      archiveSaved=true;
+      residents=JSON.parse(JSON.stringify(residents));
+      residents.forEach(r=>{r.assign1='';r.assign2='';r.assign3='';r.assignWaitlist='';r.waitlist='N';r.plateVerification='prior';r.plateVerificationNote='待本年度核對';r.waitlistForfeitOverride=false;});
+      lotteryResults={'第一輪':{},'第二輪':{},'第三輪':{},'候補':{}};originalLotteryResults={};swapLogs=[];forfeitRecords=[];
+      systemSettings.currentYearLabel=label;
+      await addLog('年度',`建立新年度：${label}；已保留前年度封存，住戶車牌待年度核對`,{sync:false});
+      if(!await cloudSyncPush())throw new Error('新年度同步失敗');
+      currentRound='第一輪';lotteryReviewApproval=null;
+    }catch(e){
+      residents=before.residents;lotteryResults=before.lotteryResults;originalLotteryResults=before.originalLotteryResults;swapLogs=before.swapLogs;forfeitRecords=before.forfeitRecords;systemLogs=before.systemLogs;currentRound=oldRound;
+      systemSettings={...systemSettings,...before.systemSettings};
+      if(!archiveSaved)archives=oldArchives;
+      renderDashboard();renderResidents();renderResults();renderSwap();updateLotteryCards();initFloorplanSeats();
+      showAppToast(String(e.message||e)+'；已回復操作前畫面，成功保存的安全封存仍保留。請重新同步確認雲端狀態。','warn',7000);return;
+    }
+    renderDashboard();renderResidents();renderResults();renderSwap();updateLotteryCards();initFloorplanSeats();renderBackupHealth();
+    document.getElementById('new-year-modal').classList.remove('show');showAppToast('新年度已建立，前年度已保存至既有封存。','success');
+  }
+  function makeRestoreCandidate(backup,scope){
+    const current=makeBackupSnapshot('還原預覽');
+    if(scope==='residents'||scope==='all')current.residents=JSON.parse(JSON.stringify(backup.residents||[]));
+    if(scope==='results'||scope==='all'){
+      current.lotteryResults=JSON.parse(JSON.stringify(backup.lotteryResults||{}));
+      current.originalLotteryResults=JSON.parse(JSON.stringify(backup.originalLotteryResults||backup.lotteryResults||{}));
+      current.swapLogs=JSON.parse(JSON.stringify(backup.swapLogs||[]));
+      current.forfeitRecords=JSON.parse(JSON.stringify(backup.forfeitRecords||[]));
+      const keys={'第一輪':'assign1','第二輪':'assign2','第三輪':'assign3','候補':'assignWaitlist'};
+      current.residents.forEach(r=>Object.entries(keys).forEach(([round,key])=>{
+        const map=current.lotteryResults[round]||{};r[key]=map[r.id]||map['p_'+r.id]||'';
+      }));
+    }
+    if(scope==='all')current.systemSettings={...current.systemSettings,...JSON.parse(JSON.stringify(backup.systemSettings||{}))};
+    return current;
+  }
+  function rehearseBackupRestore(candidate){
+    const errors=[],ids=new Set(),seats=new Set(),rows=candidate.residents||[],total=Number(candidate.systemSettings?.totalSeats);
+    if(!Array.isArray(rows)||!Number.isInteger(total)||total<1)return {ok:false,errors:['住戶或車位設定格式無效']};
+    rows.forEach(r=>{if(!Number.isInteger(Number(r.id))||ids.has(Number(r.id)))errors.push('住戶 ID 無效或重複');ids.add(Number(r.id));});
+    const voids=new Set((candidate.systemSettings?.voidSeats||[]).map(Number));
+    const keys={'第一輪':'assign1','第二輪':'assign2','第三輪':'assign3','候補':'assignWaitlist'};
+    Object.entries(keys).forEach(([round,key])=>{
+      const map=candidate.lotteryResults?.[round]||{};
+      Object.entries(map).forEach(([id,raw])=>{
+        const resident=rows.find(r=>Number(r.id)===Number(String(id).replace(/^p_/,''))),seat=Number(raw);
+        if(!resident||!Number.isInteger(seat)||seat<1||seat>total||voids.has(seat)||seats.has(seat))errors.push(round+' 存在無效／重複／作廢車位');
+        seats.add(seat);
+        if(resident&&Number(resident[key])!==seat)errors.push(round+' 結果與住戶使用權不一致');
+      });
+      rows.forEach(r=>{if(Number(r[key])>0&&Number(map[r.id]||map['p_'+r.id])!==Number(r[key]))errors.push(round+' 住戶有未登錄的車位');});
+    });
+    return {ok:errors.length===0,errors:[...new Set(errors)]};
+  }
+  function getRestoreDifferences(candidate){
+    const old=new Map(residents.map(r=>[Number(r.id),r])),next=new Map(candidate.residents.map(r=>[Number(r.id),r]));
+    const fields=['r1','r2','r3','waitlist','reserve','plateVerification'];
+    return [
+      ['新增住戶',candidate.residents.filter(r=>!old.has(Number(r.id))).length],
+      ['移除住戶',residents.filter(r=>!next.has(Number(r.id))).length],
+      ['住戶資料變更',candidate.residents.filter(r=>old.has(Number(r.id))&&['name','build','room','plate1','plate2','plate3','plateWaitlist'].some(k=>String(old.get(Number(r.id))[k]||'')!==String(r[k]||''))).length],
+      ['資格變更',candidate.residents.filter(r=>old.has(Number(r.id))&&fields.some(k=>String(old.get(Number(r.id))[k]||'')!==String(r[k]||''))).length],
+      ['車位對應變更',candidate.residents.filter(r=>['assign1','assign2','assign3','assignWaitlist'].some(k=>String(old.get(Number(r.id))?.[k]||'')!==String(r[k]||''))).length],
+      ['互換紀錄',`${swapLogs.length} → ${candidate.swapLogs.length} 筆`]
+    ];
+  }
+  function reviewBackupRestore(backup,scope){
+    const candidate=makeRestoreCandidate(backup,scope),result=rehearseBackupRestore(candidate),version=getLotteryDataVersion();
+    let dialog=document.getElementById('restore-review-modal');
+    if(!dialog){dialog=document.createElement('div');dialog.id='restore-review-modal';dialog.className='modal-overlay';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');document.body.appendChild(dialog);}
+    dialog.innerHTML=`<div class="modal-box"><div class="modal-title">還原差異預覽</div><p class="muted-note">先在獨立資料複本檢查，不會寫入雲端或改動目前住戶。</p><div class="review-summary">${getRestoreDifferences(candidate).map(([name,n])=>`<div>${escapeHtml(name)}<b>${escapeHtml(String(n))}</b></div>`).join('')}</div><div class="settings-risk-note">影響範圍：將覆蓋所選資料範圍；正式還原前會保留目前版本。</div><div id="restore-rehearsal-report" role="status">${result.ok?'隔離還原演練通過：資料格式、車位唯一性與使用權一致性正常。':escapeHtml(result.errors.join('；'))}</div><div class="modal-footer"><button class="btn" id="restore-review-cancel">取消</button><button class="btn" id="restore-review-rehearse">重新演練</button><button class="btn btn-primary" id="restore-review-accept" ${result.ok?'':'disabled'}>確認還原</button></div></div>`;
+    dialog.classList.add('show');
+    return new Promise(resolve=>{
+      const onEscape=e=>{if(e.key==='Escape'){e.preventDefault();finish(false);}};
+      const finish=value=>{dialog.classList.remove('show');document.removeEventListener('keydown',onEscape);resolve(value);};
+      document.addEventListener('keydown',onEscape);
+      dialog.onclick=e=>{if(e.target===dialog)finish(false);};
+      document.getElementById('restore-review-cancel').onclick=()=>finish(false);
+      document.getElementById('restore-review-rehearse').onclick=()=>{const r=rehearseBackupRestore(candidate);document.getElementById('restore-rehearsal-report').textContent=r.ok?'隔離演練通過；目前資料未變更。':r.errors.join('；');};
+      document.getElementById('restore-review-accept').onclick=()=>{if(version!==getLotteryDataVersion()){showAppToast('目前資料已變更，請重新開啟還原預覽。','warn');finish(false);return;}finish(result.ok);};
+    });
+  }
   async function restoreVersionedBackup(id,scope){
-    if(!currentUser||currentUser.role!=='admin'){showAppToast('僅系統管理員可還原版本化備份。','warn');return;} const b=versionedBackups.find(x=>x.id===id);if(!b)return;const labels={residents:'住戶資料',results:'抽籤結果與互換紀錄',all:'全部核心資料'};if(!confirm(`確定要還原此版本的「${labels[scope]}」嗎？目前資料會被覆蓋；還原前會先建立一份新版本備份。`))return;
-    const before=makeBackupSnapshot();versionedBackups.unshift(before);versionedBackups=versionedBackups.slice(0,6);const current={residents,lotteryResults,originalLotteryResults,systemSettings,swapLogs,forfeitRecords,systemLogs};if(scope==='residents'||scope==='all')residents=JSON.parse(JSON.stringify(b.residents||[]));if(scope==='results'||scope==='all'){lotteryResults=JSON.parse(JSON.stringify(b.lotteryResults||{}));originalLotteryResults=JSON.parse(JSON.stringify(b.originalLotteryResults||b.lotteryResults||{}));swapLogs=JSON.parse(JSON.stringify(b.swapLogs||[]));forfeitRecords=JSON.parse(JSON.stringify(b.forfeitRecords||[]));}if(scope==='all')systemSettings={...systemSettings,...JSON.parse(JSON.stringify(b.systemSettings||{}))};normalizeSystemSettings();if(!validateCurrentAllocationState({alert:false}).ok){residents=current.residents;lotteryResults=current.lotteryResults;originalLotteryResults=current.originalLotteryResults;systemSettings=current.systemSettings;swapLogs=current.swapLogs;forfeitRecords=current.forfeitRecords;systemLogs=current.systemLogs;showAppToast('該版本與目前資料不相容，已取消還原。','warn');return;}const ok=await addLog('備份',`選擇性還原版本化備份：${labels[scope]}`,{sync:false})&&await cloudSyncPush();if(!ok){residents=current.residents;lotteryResults=current.lotteryResults;originalLotteryResults=current.originalLotteryResults;systemSettings=current.systemSettings;swapLogs=current.swapLogs;forfeitRecords=current.forfeitRecords;systemLogs=current.systemLogs;showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');return;}renderDashboard();renderResidents();renderResults();renderSwap();initFloorplanSeats();renderVersionedBackupList();showAppToast('版本化備份還原完成。','success');
+    if(!currentUser||currentUser.role!=='admin'){showAppToast('僅系統管理員可還原版本化備份。','warn');return;} const b=versionedBackups.find(x=>x.id===id);if(!b)return;const labels={residents:'住戶資料',results:'抽籤結果與互換紀錄',all:'全部核心資料'};if(!await reviewBackupRestore(b,scope))return;
+    const before=makeBackupSnapshot(),oldBackups=versionedBackups.slice(),candidate=makeRestoreCandidate(b,scope);
+    versionedBackups=[before,...versionedBackups].slice(0,6);
+    residents=candidate.residents;lotteryResults=candidate.lotteryResults;originalLotteryResults=candidate.originalLotteryResults;
+    swapLogs=candidate.swapLogs;forfeitRecords=candidate.forfeitRecords;systemSettings={...systemSettings,...candidate.systemSettings};
+    let ok=false;
+    try{normalizeSystemSettings();if(!validateCurrentAllocationState({alert:false}).ok)throw new Error('還原後資料驗證未通過');
+      await addLog('備份',`選擇性還原版本化備份：${labels[scope]}`,{sync:false});ok=await cloudSyncPush();
+    }catch(e){console.warn('版本還原失敗',e);}
+    if(!ok){residents=before.residents;lotteryResults=before.lotteryResults;originalLotteryResults=before.originalLotteryResults;
+      swapLogs=before.swapLogs;forfeitRecords=before.forfeitRecords;systemLogs=before.systemLogs;systemSettings={...systemSettings,...before.systemSettings};versionedBackups=oldBackups;
+      showAppToast('還原未完成，已回復操作前資料。請重新同步確認雲端狀態。','warn',6000);
+    }
+    renderDashboard();renderResidents();renderResults();renderSwap();updateLotteryCards();initFloorplanSeats();renderVersionedBackupList();
+    if(ok)showAppToast('版本化備份還原完成。','success');
   }
   // ============ 立即完整備份 ============
   function downloadFullBackup() {
@@ -7860,6 +8031,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     }
 
     const backupTimeText = backup.backupTime ? new Date(backup.backupTime).toLocaleString('zh-TW') : '未知時間';
+    if(!Array.isArray(backup.residents)){showAppToast('備份住戶名冊格式無效，已取消還原。','warn');inputEl.value='';return;}
+    if(!await reviewBackupRestore(backup,'all')){inputEl.value='';return;}
     const residentCount = Array.isArray(backup.residents) ? backup.residents.length : '未知';
     // 💡 這是系統裡影響範圍最大、最不可逆的操作（整個資料庫都會被這份備份檔完全覆蓋），
     // 因此比照「重置系統資料」的嚴謹程度，要求管理員先看清楚備份檔的基本資訊，
@@ -7880,6 +8053,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const preRestoreSnapshot = {
       residents: JSON.parse(JSON.stringify(residents)),
       lotteryResults: JSON.parse(JSON.stringify(lotteryResults)),
+      originalLotteryResults: JSON.parse(JSON.stringify(originalLotteryResults)),
+      lastKnownServerModified,
+      lastKnownServerModifiedBy,
       systemSettings: JSON.parse(JSON.stringify(systemSettings)),
       swapLogs: JSON.parse(JSON.stringify(swapLogs || [])),
       forfeitRecords: JSON.parse(JSON.stringify(forfeitRecords || [])),
@@ -7929,6 +8105,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       // 💡 還原失敗時完整回滾，確保不會停留在「本機已改、雲端沒改」的不一致狀態。
       residents = preRestoreSnapshot.residents;
       lotteryResults = preRestoreSnapshot.lotteryResults;
+      originalLotteryResults = preRestoreSnapshot.originalLotteryResults;
+      lastKnownServerModified = preRestoreSnapshot.lastKnownServerModified;
+      lastKnownServerModifiedBy = preRestoreSnapshot.lastKnownServerModifiedBy;
       systemSettings = preRestoreSnapshot.systemSettings;
       swapLogs = preRestoreSnapshot.swapLogs;
       forfeitRecords = preRestoreSnapshot.forfeitRecords;
@@ -7968,7 +8147,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       return;
     }
     archives.push({
-      id: archives.length > 0 ? Math.max(...archives.map(a => a.id || 0)) + 1 : 1,
+      id: Math.max(0,...archives.filter(a=>!a.readOnly).map(a=>Number(a.id)||0))+1,
       label: label.trim(),
       archivedAt: new Date().toISOString(),
       archivedBy: currentUser.name,
@@ -8019,19 +8198,19 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           <span style="font-size:12.5px;color:var(--text-muted);font-weight:700">封存時間：${new Date(a.archivedAt).toLocaleString('zh-TW')}　封存人：${escapeHtml(a.archivedBy || '未知')}　住戶數：${(a.snapshot.residents||[]).length}　已分配車位數：${winnerCount}</span>
         </div>
         <div class="btn-row" style="margin:0">
-          <button class="btn btn-sm" onclick="viewArchive(${a.id})">檢視</button>
-          <button class="btn btn-sm" onclick="compareArchiveResidents(${a.id})">年度異動</button>
-          <button class="btn btn-sm btn-success" onclick="downloadArchive(${a.id})">💾 下載</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteArchive(${a.id})">🗑️ 刪除</button>
+          <button class="btn btn-sm" onclick="viewArchive(\'${a.id}\')">檢視</button>
+          <button class="btn btn-sm" onclick="compareArchiveResidents(\'${a.id}\')">年度異動</button>
+          <button class="btn btn-sm btn-success" onclick="downloadArchive(\'${a.id}\')">💾 下載</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteArchive('${a.id}')" ${a.readOnly?'disabled title="唯讀年度封存不可刪除"':''}>刪除</button>
         </div>
       </div>`;
     });
     box.innerHTML = html;
   }
 
-  function compareArchiveResidents(archiveId){const a=archives.find(x=>Number(x.id)===Number(archiveId));if(!a)return;const oldRows=a.snapshot?.residents||[],oldByRoom=new Map(oldRows.map(r=>[`${r.build}|${r.room}`.toLowerCase(),r])),nowByRoom=new Map(residents.map(r=>[`${r.build}|${r.room}`.toLowerCase(),r]));const added=residents.filter(r=>!oldByRoom.has(`${r.build}|${r.room}`.toLowerCase())),removed=oldRows.filter(r=>!nowByRoom.has(`${r.build}|${r.room}`.toLowerCase())),changed=[];residents.forEach(r=>{const old=oldByRoom.get(`${r.build}|${r.room}`.toLowerCase());if(!old)return;const diffs=[];if(String(old.name||'')!==String(r.name||''))diffs.push('姓名／住戶');if([old.plate1,old.plate2,old.plate3,old.plateWaitlist].join('|')!==[r.plate1,r.plate2,r.plate3,r.plateWaitlist].join('|'))diffs.push('車牌');if([old.r1,old.r2,old.r3,old.waitlist,old.reserve].join('|')!==[r.r1,r.r2,r.r3,r.waitlist,r.reserve].join('|'))diffs.push('資格');if(diffs.length)changed.push(`${r.build}-${r.room}：${diffs.join('、')}`);});const box=document.getElementById('archive-list-box');box.style.display='block';box.innerHTML=`<div class="flex-between" style="margin-bottom:12px"><b>年度住戶異動比對｜${escapeHtml(a.label)}</b><button class="btn btn-sm" onclick="showArchiveList()">返回封存列表</button></div><div class="archive-diff"><b>新增 ${added.length} 戶</b>｜${added.map(r=>`${r.build}-${r.room}`).join('、')||'無'}<br><b>搬離 ${removed.length} 戶</b>｜${removed.map(r=>`${r.build}-${r.room}`).join('、')||'無'}<br><b>資料變更 ${changed.length} 戶</b>｜${changed.join('；')||'無'}<br><span class="muted-note">比對基準為封存時的門牌；門牌本身若變動會分別列入搬離與新增，供管理員人工確認。</span></div>`;}
+  function compareArchiveResidents(archiveId){const a=archives.find(x=>String(x.id)===String(archiveId));if(!a)return;const oldRows=a.snapshot?.residents||[],oldByRoom=new Map(oldRows.map(r=>[`${r.build}|${r.room}`.toLowerCase(),r])),nowByRoom=new Map(residents.map(r=>[`${r.build}|${r.room}`.toLowerCase(),r]));const added=residents.filter(r=>!oldByRoom.has(`${r.build}|${r.room}`.toLowerCase())),removed=oldRows.filter(r=>!nowByRoom.has(`${r.build}|${r.room}`.toLowerCase())),changed=[];residents.forEach(r=>{const old=oldByRoom.get(`${r.build}|${r.room}`.toLowerCase());if(!old)return;const diffs=[];if(String(old.name||'')!==String(r.name||''))diffs.push('姓名／住戶');if([old.plate1,old.plate2,old.plate3,old.plateWaitlist].join('|')!==[r.plate1,r.plate2,r.plate3,r.plateWaitlist].join('|'))diffs.push('車牌');if([old.r1,old.r2,old.r3,old.waitlist,old.reserve].join('|')!==[r.r1,r.r2,r.r3,r.waitlist,r.reserve].join('|'))diffs.push('資格');if(diffs.length)changed.push(`${r.build}-${r.room}：${diffs.join('、')}`);});const box=document.getElementById('archive-list-box');box.style.display='block';box.innerHTML=`<div class="flex-between" style="margin-bottom:12px"><b>年度住戶異動比對｜${escapeHtml(a.label)}</b><button class="btn btn-sm" onclick="showArchiveList()">返回封存列表</button></div><div class="archive-diff"><b>新增 ${added.length} 戶</b>｜${added.map(r=>`${r.build}-${r.room}`).join('、')||'無'}<br><b>搬離 ${removed.length} 戶</b>｜${removed.map(r=>`${r.build}-${r.room}`).join('、')||'無'}<br><b>資料變更 ${changed.length} 戶</b>｜${changed.join('；')||'無'}<br><span class="muted-note">比對基準為封存時的門牌；門牌本身若變動會分別列入搬離與新增，供管理員人工確認。</span></div>`;}
   function viewArchive(archiveId) {
-    const a = archives.find(x => x.id === archiveId);
+    const a = archives.find(x => String(x.id) === String(archiveId));
     if (!a) return;
     const rs = a.snapshot.residents || [];
     let rows = rs.map(r => {
@@ -8054,7 +8233,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   function downloadArchive(archiveId) {
-    const a = archives.find(x => x.id === archiveId);
+    const a = archives.find(x => String(x.id) === String(archiveId));
     if (!a) return;
     const blob = new Blob([JSON.stringify(a, null, 2)], { type: 'application/json;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -8070,8 +8249,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       alert("權限不足，僅系統管理員可刪除封存紀錄！");
       return;
     }
-    const a = archives.find(x => x.id === archiveId);
+    const a = archives.find(x => String(x.id) === String(archiveId));
     if (!a) return;
+    if(a.readOnly){showAppToast('唯讀年度封存不可刪除。','warn');return;}
     if (!confirm(`確定要刪除封存「${a.label}」嗎？此動作無法復原！（建議刪除前先點「下載」保留一份檔案）`)) return;
     const previousArchives = archives.slice();
     archives = archives.filter(x => x.id !== archiveId);
@@ -8365,13 +8545,18 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const allLogs=getAllOperationLogs();
     const filtered = allLogs.filter(l => {
       const matchS = String(l.msg||'').toLowerCase().includes(search) || String(l.user||'').toLowerCase().includes(search);
-      const matchT = typeFilter === "" || l.type === typeFilter;
+      const documentEvent=l.type==='文件'||/年度紙本登記表/.test(String(l.msg||''));
+      const matchT = typeFilter === '' || (typeFilter==='文件'?documentEvent:l.type===typeFilter);
+      const yearFilter=document.getElementById('log-filter-year')?.value.trim()||'';
+      const userFilter=document.getElementById('log-filter-user')?.value.trim()||'';
+      const actionFilter=document.getElementById('log-filter-action')?.value||'';
+      const matchExtra=(!yearFilter||String(l.year||l.context?.year||l.msg||'').includes(yearFilter))&&(!userFilter||String(l.user||'').includes(userFilter))&&(!actionFilter||String(l.action||l.msg||'').includes(actionFilter));
       const highRisk=/重抽|清除|還原|鎖定互換|重置/.test(String(l.msg||''));
       const matchRisk = !riskFilter || (riskFilter==='high'?highRisk:!highRisk);
       const dateMatch=String(l.time||'').match(/(\d{4})\D(\d{1,2})\D(\d{1,2})/);
       const dateKey=dateMatch?`${dateMatch[1]}-${String(dateMatch[2]).padStart(2,'0')}-${String(dateMatch[3]).padStart(2,'0')}`:'';
       const matchDate=(!from||dateKey>=from)&&(!to||dateKey<=to);
-      return matchS && matchT && matchRisk && matchDate;
+      return matchS && matchT && matchRisk && matchDate && matchExtra;
     });
 
     document.getElementById("log-count").innerText = `目前顯示 ${filtered.length} 筆紀錄`;
@@ -8400,11 +8585,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         </div>`;
       });
     }
-    document.getElementById("log-timeline").innerHTML = html;
+    const notice=registrationAuditLoadError?`<div class="settings-risk-note" role="alert">${escapeHtml(registrationAuditLoadError)} <button class="btn btn-sm" onclick="loadRegistrationAuditLogs()">重新載入</button></div>`:registrationAuditLoading?'<p role="status">正在讀取年度文件紀錄…</p>':'';
+    if(!filtered.length&&(registrationAuditLoadError||registrationAuditLoading))html='';
+    document.getElementById('log-timeline').innerHTML = notice+html;
+    document.getElementById('logs-table-tbody').innerHTML=filtered.map(l=>`<tr><td>${escapeHtml(l.time||'')}</td><td>${escapeHtml(l.type||'')}</td><td>${escapeHtml(l.msg||'')}</td><td>${escapeHtml(l.user||'')}</td></tr>`).join('');
     decorateEmptyStates(document.getElementById('page-logs'));
     decorateCardMetadata(document.getElementById('page-logs'));
   }
 
+  function clearOperationLogFilters(){
+    ['log-search','log-filter-type','log-filter-risk','log-date-from','log-date-to','log-filter-year','log-filter-user','log-filter-action'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderLogs();
+  }
   function toggleLogCompare(id, checked){
     selectedLogIds=checked?[...new Set([...selectedLogIds,id])]:selectedLogIds.filter(x=>x!==id);
     if(selectedLogIds.length>2){selectedLogIds=selectedLogIds.slice(-2);showAppToast('最多比較兩筆紀錄，已保留最近勾選的兩筆。','info');renderLogs();}
@@ -8678,31 +8869,47 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function registrationArchiveYear(){const input=document.getElementById('registration-form-year');if(!input)return String(new Date().getFullYear());if(!input.value.trim())input.value=String(new Date().getFullYear());return input.value.trim();}
   function validRegistrationArchiveYear(year){return /^\d{2,6}$/.test(String(year||''));}
   function registrationFormStatus(text){const el=document.getElementById('registration-form-status');if(el)el.textContent=text;}
+  async function documentDatabaseUrl(path,refresh=false){
+    const url=new URL(`${FIREBASE_DB_URL}${path}`);if(refresh)url.searchParams.set('_t',Date.now());
+    return url.toString();
+  }
+  async function readDocumentBlob(item){
+    if(item.storagePath&&!item.data)throw new Error('此檔案屬於未啟用的 Storage 格式，請管理員以原檔重新上傳');
+    if(!String(item.data||'').startsWith('data:'))throw new Error('檔案內容不存在');
+    const encoded=String(item.data).split(',')[1]||'',bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));return new Blob([bytes],{type:item.mimeType||'application/octet-stream'});
+  }
+  function filterRegistrationDocuments(rows){
+    const build=document.getElementById('document-filter-building')?.value||'',category=document.getElementById('document-filter-category')?.value||'',official=document.getElementById('document-filter-official')?.value||'';
+    return rows.filter(r=>(!build||r.building===build)&&(!category||r.category===category)&&(!official||(official==='yes'?r.isOfficial!==false:r.isOfficial===false)));
+  }
   function registrationFileSize(bytes){const n=Number(bytes)||0;return n<=0?'0 B':n>=1024*1024?`${(n/(1024*1024)).toFixed(1)} MB`:`${Math.max(1,Math.round(n/1024))} KB`;}
   function registrationYearMeta(year){return registrationFormsYearMeta[year]||{};}
   function registrationYearArchived(year){return !!registrationYearMeta(year).archived;}
   function registrationMayModify(year){return canManageRegistrationForms()&&!registrationYearArchived(year);}
   function suggestedRegistrationRetention(year){const y=Number(year);const adYear=y>1000?y:y+1911;return `${adYear+5}-12-31`;}
-  function registrationAuditPatch(year,action,detail,itemId=''){const id=`a_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;return {[`registrationFormsAudit/${year}/${id}`]:{action,detail,itemId,by:currentUser?.name||'',at:new Date().toLocaleString('zh-TW',{hour12:false})}};}
+  function registrationAuditPatch(year,action,detail,itemId=''){const id=`a_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;return {[`registrationFormsAudit/${year}/${id}`]:{eventId:id,action,detail,itemId,by:currentUser?.name||'',at:new Date().toISOString()}};}
   async function loadRegistrationAuditLogs(){
     if(currentUser?.role!=='admin'||!FIREBASE_DB_URL||FIREBASE_DB_URL.includes('YOUR-FIREBASE'))return;
+    if(registrationAuditLoading)return;
+    registrationAuditLoading=true; registrationAuditLoadError=''; renderLogs();
     try{
-      const res=await fetch(`${FIREBASE_DB_URL}parkingData/registrationFormsAudit.json?_t=${Date.now()}`,{cache:'no-store'});
+      const res=await fetch(await documentDatabaseUrl('parkingData/registrationFormsAudit.json',true),{cache:'no-store'});
       if(!res.ok)throw new Error(`HTTP ${res.status}`);
       const data=await res.json()||{};
       registrationAuditLogs=Object.entries(data).flatMap(([year,entries])=>Object.entries(entries||{}).map(([id,row])=>({
-        id:`fileaudit_${year}_${id}`,
+        id:`fileaudit_${year}_${id}`, eventId:row?.eventId||id, action:row?.action||'', year,
         time:row?.at||'', isoTime:row?.at||'', type:'文件', user:row?.by||'—',
         msg:`${row?.action||'異動'} ${year} 年度紙本登記表${row?.detail?`：${row.detail}`:''}`,
         context:{documentAudit:true,year,itemId:row?.itemId||''}
       })));
-    }catch(e){console.warn('讀取年度文件稽核失敗：',e);registrationAuditLogs=[];}
+    }catch(e){console.warn('讀取年度文件稽核失敗：',e);registrationAuditLoadError='年度文件紀錄讀取失敗，請重新載入；目前列表可能不完整。';}
+    finally{registrationAuditLoading=false;}
     if(document.getElementById('page-logs')?.classList.contains('active'))renderLogs();
   }
   function getAllOperationLogs(){
     const system=Array.isArray(systemLogs)?systemLogs:[], documents=Array.isArray(registrationAuditLogs)?registrationAuditLogs:[];
     const rows=[...system,...documents], seen=new Set();
-    return rows.filter(x=>{const id=String(x?.id||'');if(id&&seen.has(id))return false;if(id)seen.add(id);return true;}).sort((a,b)=>{
+    return rows.filter(x=>{const id=String(x?.eventId||x?.id||'');if(id&&seen.has(id))return false;if(id)seen.add(id);return true;}).sort((a,b)=>{
       const at=new Date(a?.isoTime||a?.time||0).getTime(),bt=new Date(b?.isoTime||b?.time||0).getTime();return (Number.isFinite(bt)?bt:0)-(Number.isFinite(at)?at:0);
     });
   }
@@ -8712,15 +8919,16 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   async function loadRegistrationFormsIndex(){
     if(!canManageRegistrationForms())return;const year=registrationArchiveYear();clearRegistrationFormPreview();if(!validRegistrationArchiveYear(year)){registrationFormStatus('請輸入有效年度，例如 115 或 2026。');return;}
     if(!FIREBASE_DB_URL||FIREBASE_DB_URL.includes('YOUR-FIREBASE')){registrationFormsIndex[year]={};registrationFormsYearMeta[year]={archived:false,retentionUntil:suggestedRegistrationRetention(year)};registrationFormStatus('尚未設定雲端保存位置。');renderRegistrationForms();return;}
-    registrationFormStatus('正在讀取年度檔案…');
-    try{const [indexRes,metaRes]=await Promise.all([fetch(`${FIREBASE_DB_URL}parkingData/registrationFormsIndex/${encodeURIComponent(year)}.json?_t=${Date.now()}`,{cache:'no-store'}),fetch(`${FIREBASE_DB_URL}parkingData/registrationFormsYears/${encodeURIComponent(year)}.json?_t=${Date.now()}`,{cache:'no-store'})]);if(!indexRes.ok||!metaRes.ok)throw new Error(`HTTP ${!indexRes.ok?indexRes.status:metaRes.status}`);registrationFormsIndex[year]=await indexRes.json()||{};registrationFormsYearMeta[year]=await metaRes.json()||{archived:false,retentionUntil:suggestedRegistrationRetention(year)};registrationFormStatus('年度檔案已同步。');}
-    catch(e){console.warn('讀取年度紙本登記表索引失敗：',e);registrationFormsIndex[year]={};registrationFormsYearMeta[year]={archived:false,retentionUntil:suggestedRegistrationRetention(year)};registrationFormStatus('讀取雲端檔案失敗，請確認同步狀態。');}
+    registrationIndexErrors[year]='';registrationFormStatus('正在讀取年度檔案…');
+    try{const [indexRes,metaRes]=await Promise.all([fetch(await documentDatabaseUrl(`parkingData/registrationFormsIndex/${encodeURIComponent(year)}.json`,true),{cache:'no-store'}),fetch(await documentDatabaseUrl(`parkingData/registrationFormsYears/${encodeURIComponent(year)}.json`,true),{cache:'no-store'})]);if(!indexRes.ok||!metaRes.ok)throw new Error(`HTTP ${!indexRes.ok?indexRes.status:metaRes.status}`);registrationFormsIndex[year]=await indexRes.json()||{};registrationFormsYearMeta[year]=await metaRes.json()||{archived:false,retentionUntil:suggestedRegistrationRetention(year)};registrationFormStatus('年度檔案已同步。');}
+    catch(e){console.warn('讀取年度紙本登記表索引失敗：',e);registrationIndexErrors[year]='年度文件讀取失敗，請重新載入；原有畫面資料保留。';registrationFormStatus(registrationIndexErrors[year]);}
     renderRegistrationForms();
   }
   function renderRegistrationForms(){
     const card=document.getElementById('registration-archive-card'),list=document.getElementById('registration-form-list');if(!card||!list)return;const allowed=canManageRegistrationForms();card.style.display=allowed?'':'none';if(!allowed)return;
     const year=registrationArchiveYear();if(!validRegistrationArchiveYear(year)){list.innerHTML='<div class="registration-form-empty">請輸入年度後查看已保存的紙本登記表。</div>';return;}
-    const meta=registrationYearMeta(year),archived=!!meta.archived,admin=isRegistrationFormsAdmin(),canEdit=registrationMayModify(year),rows=registrationRows(year),bytes=rows.reduce((sum,row)=>sum+(Number(row.size)||0),0),archiveSummary=document.getElementById('registration-archive-summary');
+    if(registrationIndexErrors[year]){list.innerHTML=`<div class="settings-risk-note" role="alert">${escapeHtml(registrationIndexErrors[year])}<button class="btn" onclick="loadRegistrationFormsIndex()">重新載入</button></div>`;return;}
+    const meta=registrationYearMeta(year),archived=!!meta.archived,admin=isRegistrationFormsAdmin(),canEdit=registrationMayModify(year),rows=filterRegistrationDocuments(registrationRows(year)),bytes=rows.reduce((sum,row)=>sum+(Number(row.size)||0),0),archiveSummary=document.getElementById('registration-archive-summary');
     const category=document.getElementById('registration-form-category'),building=document.getElementById('registration-form-building'),file=document.getElementById('registration-form-upload'),confirmUpload=document.getElementById('registration-form-confirm-upload'),archiveStatus=document.getElementById('registration-archive-status'),archiveToggle=document.getElementById('registration-archive-toggle'),retention=document.getElementById('registration-retention-until');
     [category,building,file].forEach(el=>{if(el)el.disabled=!canEdit;});if(confirmUpload)confirmUpload.disabled=!canEdit||!pendingRegistrationForm;if(archiveStatus){archiveStatus.textContent=archived?'本年度已封存：僅可檢視與下載':'本年度資料可編輯';archiveStatus.className=`badge ${archived?'badge-gray':'badge-green'}`;}if(retention){retention.value=meta.retentionUntil||suggestedRegistrationRetention(year);retention.disabled=!admin;}if(archiveToggle){archiveToggle.style.display=admin?'':'none';archiveToggle.textContent=archived?'解封本年度':'封存本年度';archiveToggle.className=`btn btn-sm ${archived?'btn-primary':'btn-danger'}`;}
     if(archiveSummary)archiveSummary.innerHTML=`<span>${escapeHtml(year)} 年度 · ${rows.length} 份</span><span>${registrationFileSize(bytes)}</span><span>${meta.updatedAt?`最近更新 ${escapeHtml(meta.updatedAt)}`:'尚未上傳檔案'}</span>${archived?'<span>已封存</span>':''}`;
@@ -8730,7 +8938,26 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   async function updateRegistrationFormPaths(paths){
     if(!canManageRegistrationForms())throw new Error('僅管理員與社區主任可管理年度登記表');if(!cloudSyncReady)throw new Error('尚未完成雲端同步，暫時不可寫入');
     const token=await acquireCloudWriteLock();if(!token)throw new Error('無法取得雲端寫入鎖');
-    try{const payload={...paths,'_meta/lastModified':{'.sv':'timestamp'},'_meta/lastModifiedBy':currentUser.name||''};const res=await fetch(`${FIREBASE_DB_URL}parkingData.json`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!res.ok)throw new Error(`HTTP ${res.status}`);return true;}finally{await releaseCloudWriteLock();}
+    try{
+      const logsRes=await fetch(await documentDatabaseUrl('parkingData/systemLogs.json',true),{cache:'no-store'});
+      if(!logsRes.ok)throw new Error('無法讀取最新操作紀錄，已中止文件異動');
+      const logsData=await logsRes.json(),latestLogs=Array.isArray(logsData)?logsData:Object.values(logsData||{});
+      const events=Object.entries(paths).filter(([path])=>path.startsWith('registrationFormsAudit/')).map(([path,row])=>{
+        const year=path.split('/')[1],eventId=row.eventId||path.split('/')[2];
+        return {id:eventId,eventId,year,action:row.action,type:'文件',time:row.at,isoTime:row.at,user:row.by,msg:`${row.action} ${year} 年度紙本登記表：${row.detail||''}`,context:{documentAudit:true,year,itemId:row.itemId||''}};
+      });
+      const nextLogs=[...events,...latestLogs].slice(0,300);
+      const payload={...paths,systemLogs:nextLogs,'_meta/lastModified':{'.sv':'timestamp'},'_meta/lastModifiedBy':currentUser.name||''};
+      const res=await fetch(await documentDatabaseUrl('parkingData.json'),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      systemLogs=nextLogs;
+      // PATCH 已成功；後續版本讀取失敗不得被誤認為文件保存失敗，更不能刪除已被索引引用的 Storage 檔。
+      try{const verify=await fetch(await documentDatabaseUrl('parkingData/_meta/lastModified.json',true),{cache:'no-store'});
+        if(verify.ok)lastKnownServerModified=Number(await verify.json())||lastKnownServerModified;
+      }catch(e){console.warn('文件已保存，版本確認待重試',e);}
+      if(currentUser?.role==='admin'&&document.getElementById('page-logs')?.classList.contains('active'))renderLogs();
+      return true;
+    }finally{await releaseCloudWriteLock();}
   }
   async function selectRegistrationFormFile(input){
     const file=input?.files?.[0],year=registrationArchiveYear();if(!canManageRegistrationForms()||!file)return;if(!registrationMayModify(year)){showAppToast('本年度已封存，請由管理員解封後再新增檔案。','warn');input.value='';return;}const accepted=/\.(pdf|png|jpe?g)$/i.test(file.name||'')||['application/pdf','image/png','image/jpeg'].includes(file.type);if(!validRegistrationArchiveYear(year)||!accepted||file.size>2*1024*1024){showAppToast(!accepted?'僅可上傳 PDF、JPG 或 PNG 格式。':file.size>2*1024*1024?'檔案超過 2MB，請先壓縮掃描檔。':'請先輸入有效年度。','warn');input.value='';return;}
@@ -8738,20 +8965,48 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     catch(e){console.error('建立登記表預覽失敗：',e);clearRegistrationFormPreview();registrationFormStatus('檔案讀取或預覽失敗。');showAppToast('無法建立檔案預覽，請重新選擇檔案。','warn');}
   }
   async function uploadRegistrationForm(){
-    const p=pendingRegistrationForm;if(!p)return;const year=registrationArchiveYear();if(!registrationMayModify(year)||p.year!==year){showAppToast('年度已變更或已封存，請重新選擇檔案。','warn');clearRegistrationFormPreview();return;}const id=`f_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,now=new Date().toLocaleString('zh-TW',{hour12:false}),meta={name:p.name,originalName:p.file.name,mimeType:p.file.type||'application/octet-stream',size:p.file.size,category:p.category,building:p.building,version:p.version,isOfficial:true,sha256:p.sha256,uploadedBy:currentUser.name||'',uploadedAt:now},yearMeta={...registrationYearMeta(year),archived:false,retentionUntil:registrationYearMeta(year).retentionUntil||suggestedRegistrationRetention(year),updatedBy:currentUser.name||'',updatedAt:now},paths={[`registrationFormsFiles/${year}/${id}`]:{data:p.data,...meta},[`registrationFormsIndex/${year}/${id}`]:meta,[`registrationFormsYears/${year}`]:yearMeta,...registrationAuditPatch(year,'上傳',`${p.building}｜${p.category}｜v${p.version}`,id)};
-    registrationRows(year).filter(v=>v.category===p.category&&v.building===p.building&&v.isOfficial!==false).forEach(v=>{paths[`registrationFormsIndex/${year}/${v.id}/isOfficial`]=false;paths[`registrationFormsFiles/${year}/${v.id}/isOfficial`]=false;});try{registrationFormStatus(`正在保存「${p.name}」，請勿關閉頁面…`);await updateRegistrationFormPaths(paths);registrationFormsIndex[year]={...(registrationFormsIndex[year]||{}),[id]:meta};Object.values(registrationFormsIndex[year]).forEach(v=>{if(v.category===p.category&&v.building===p.building&&v!==meta)v.isOfficial=false;});registrationFormsYearMeta[year]=yearMeta;clearRegistrationFormPreview();renderRegistrationForms();registrationFormStatus(`已保存「${p.name}」。`);const logOk=await addLog('文件',`上傳 ${year} 年度紙本登記表：${p.building} ${p.category} v${p.version}`);if(!logOk)showAppToast('檔案已保存，但操作紀錄尚未同步；請稍後重新整理確認。','warn',6000);showAppToast('年度紙本登記表已保存並建立版本。','success');}catch(e){console.error('保存年度登記表失敗：',e);registrationFormStatus(`保存失敗：${e?.message||'無法寫入雲端'}。`);showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}
+    const p=pendingRegistrationForm;if(!p)return;const year=registrationArchiveYear();
+    if(!registrationMayModify(year)||p.year!==year){showAppToast('年度已變更或已封存，請重新選擇檔案。','warn');return;}
+    const id='f_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+    const button=document.getElementById('registration-form-confirm-upload');if(button?.disabled)return;if(button)button.disabled=true;
+    try{
+      if(!String(p.data||'').startsWith('data:'))throw new Error('檔案內容不存在，請重新選取');
+      registrationFormStatus('正在保存年度文件與操作紀錄…');
+      const now=new Date().toISOString(),meta={name:p.name,originalName:p.file.name,mimeType:p.file.type||(/\.pdf$/i.test(p.file.name)?'application/pdf':/\.png$/i.test(p.file.name)?'image/png':'image/jpeg'),size:p.file.size,category:p.category,building:p.building,version:p.version,isOfficial:true,sha256:p.sha256||'',uploadedBy:currentUser.name,uploadedAt:now};
+      const yearMeta={...registrationYearMeta(year),archived:false,updatedAt:now,updatedBy:currentUser.name};
+      const paths={[`registrationFormsFiles/${year}/${id}`]:{...meta,data:p.data},[`registrationFormsIndex/${year}/${id}`]:meta,[`registrationFormsYears/${year}`]:yearMeta,...registrationAuditPatch(year,'上傳',`${p.building}｜${p.category}｜v${p.version}`,id)};
+      registrationRows(year).filter(v=>v.category===p.category&&v.building===p.building&&v.isOfficial!==false).forEach(v=>paths[`registrationFormsIndex/${year}/${v.id}/isOfficial`]=false);
+      await updateRegistrationFormPaths(paths);
+      registrationFormsIndex[year]={...(registrationFormsIndex[year]||{}),[id]:meta};
+      Object.values(registrationFormsIndex[year]).forEach(v=>{if(v!==meta&&v.building===p.building&&v.category===p.category)v.isOfficial=false;});
+      registrationFormsYearMeta[year]=yearMeta;clearRegistrationFormPreview();renderRegistrationForms();registrationFormStatus('檔案、版本與操作紀錄已保存。');showAppToast('紙本登記表已保存。','success');
+    }catch(e){
+      registrationFormStatus('保存失敗：'+String(e.message||e));showAppToast('檔案未完成保存，請確認儲存連線與權限。','warn');
+    }finally{if(button)button.disabled=!pendingRegistrationForm;}
   }
   async function downloadRegistrationForm(year,id){
-    if(!canManageRegistrationForms())return;try{registrationFormStatus('正在下載並驗證檔案…');const res=await fetch(`${FIREBASE_DB_URL}parkingData/registrationFormsFiles/${encodeURIComponent(year)}/${encodeURIComponent(id)}.json?_t=${Date.now()}`,{cache:'no-store'});if(!res.ok)throw new Error(`HTTP ${res.status}`);const item=await res.json();if(!item?.data||!String(item.data).startsWith('data:'))throw new Error('檔案內容不存在或已損毀');if(item.sha256){const bytes=Uint8Array.from(atob(String(item.data).split(',')[1]||''),c=>c.charCodeAt(0));const hash=await registrationSha256(bytes.buffer);if(!hash||hash!==item.sha256)throw new Error('SHA-256 驗證失敗，檔案可能已損毀');}try{await updateRegistrationFormPaths(registrationAuditPatch(year,'下載',item.name||'',id));}catch(auditError){console.warn('下載存取紀錄未寫入：',auditError);}const a=document.createElement('a');a.href=item.data;a.download=item.name||`${year}_紙本登記表`;document.body.appendChild(a);a.click();a.remove();registrationFormStatus(`${item.sha256?'完整性驗證通過，':''}已開始下載「${item.name||'檔案'}」。`);const logOk=await addLog('文件',`下載 ${year} 年度紙本登記表：${item.building||'全社區'} ${item.category||'未分類'} v${item.version||1}`);if(!logOk)showAppToast('檔案已下載，但操作紀錄尚未同步；請稍後重新整理確認。','warn',6000);}
-    catch(e){console.error('下載年度登記表失敗：',e);registrationFormStatus(`下載失敗：${e?.message||'檔案可能已被移除'}。`);showAppToast('無法下載或驗證該年度登記表，請重新整理清單後再試。','warn');}}
+    if(!canManageRegistrationForms())return;
+    try{
+      registrationFormStatus('正在讀取並驗證檔案…');let item=registrationFormsIndex[year]?.[id];
+      if(!item?.storagePath){
+        const res=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${encodeURIComponent(year)}/${encodeURIComponent(id)}.json`,true),{cache:'no-store'});
+        if(!res.ok)throw new Error('HTTP '+res.status);item=await res.json();
+      }
+      if(!item)throw new Error('檔案索引不存在');const blob=await readDocumentBlob(item);
+      if(item.sha256&&(await registrationSha256(await blob.arrayBuffer()))!==item.sha256)throw new Error('SHA-256 驗證失敗');
+      await updateRegistrationFormPaths(registrationAuditPatch(year,'下載',`${item.building||'全社區'}｜${item.category||'未分類'}｜v${item.version||1}（發起下載）`,id));
+      const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=item.name||year+'_紙本登記表';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+      registrationFormStatus('完整性驗證通過，已發起下載並保存操作紀錄。');
+    }catch(e){registrationFormStatus('下載未完成：'+String(e.message||e));showAppToast('無法讀取檔案或保存下載紀錄，請確認連線與權限。','warn');}
+  }
   async function setRegistrationFormOfficial(year,id){
-    if(!registrationMayModify(year))return;const target=registrationFormsIndex?.[year]?.[id];if(!target)return;const paths={...registrationAuditPatch(year,'設定正式版',target.name||'',id)};registrationRows(year).filter(v=>v.category===target.category&&v.building===target.building).forEach(v=>{const official=v.id===id;paths[`registrationFormsIndex/${year}/${v.id}/isOfficial`]=official;paths[`registrationFormsFiles/${year}/${v.id}/isOfficial`]=official;});try{await updateRegistrationFormPaths(paths);registrationRows(year).filter(v=>v.category===target.category&&v.building===target.building).forEach(v=>v.isOfficial=v.id===id);renderRegistrationForms();registrationFormStatus(`已將「${target.name}」設為正式版。`);await addLog('住戶',`設定 ${year} 年度紙本登記表正式版：${target.name}`);}catch(e){registrationFormStatus('設定正式版失敗。');showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}}
+    if(!registrationMayModify(year))return;const target=registrationFormsIndex?.[year]?.[id];if(!target)return;const paths={...registrationAuditPatch(year,'設定正式版',target.name||'',id)};registrationRows(year).filter(v=>v.category===target.category&&v.building===target.building).forEach(v=>{const official=v.id===id;paths[`registrationFormsIndex/${year}/${v.id}/isOfficial`]=official;if(!v.storagePath)paths[`registrationFormsFiles/${year}/${v.id}/isOfficial`]=official;});try{await updateRegistrationFormPaths(paths);registrationRows(year).filter(v=>v.category===target.category&&v.building===target.building).forEach(v=>v.isOfficial=v.id===id);renderRegistrationForms();registrationFormStatus(`已將「${target.name}」設為正式版。`);}catch(e){registrationFormStatus('設定正式版失敗。');showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}}
   async function deleteRegistrationForm(year,id){
-    const item=registrationFormsIndex?.[year]?.[id],name=item?.name||'該年度登記表';if(!registrationMayModify(year)){showAppToast('本年度已封存，請由管理員解封後再刪除。','warn');return;}if(!confirm(`確定要刪除「${name}」嗎？\n\n影響範圍：將移除 1 份年度檔案、其版本索引與下載完整性資料。此操作無法復原。`))return;try{registrationFormStatus(`正在刪除「${name}」…`);await updateRegistrationFormPaths({[`registrationFormsFiles/${year}/${id}`]:null,[`registrationFormsIndex/${year}/${id}`]:null,...registrationAuditPatch(year,'刪除',name,id)});delete registrationFormsIndex[year][id];renderRegistrationForms();registrationFormStatus(`已刪除「${name}」。`);await addLog('住戶',`刪除 ${year} 年度紙本登記表：${name}`);showAppToast('年度紙本登記表已刪除。','success');}catch(e){console.error('刪除年度登記表失敗：',e);registrationFormStatus(`刪除失敗：${e?.message||'無法寫入雲端'}。`);showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}}
+    const item=registrationFormsIndex?.[year]?.[id],name=item?.name||'該年度登記表';if(!registrationMayModify(year)){showAppToast('本年度已封存，請由管理員解封後再刪除。','warn');return;}if(!confirm(`確定要刪除「${name}」嗎？\n\n影響範圍：將移除 1 份年度檔案、其版本索引與下載完整性資料。此操作無法復原。`))return;try{registrationFormStatus(`正在刪除「${name}」…`);await updateRegistrationFormPaths({[`registrationFormsFiles/${year}/${id}`]:null,[`registrationFormsIndex/${year}/${id}`]:null,...registrationAuditPatch(year,'刪除',name,id)});delete registrationFormsIndex[year][id];renderRegistrationForms();registrationFormStatus(`已刪除「${name}」。`);showAppToast('年度紙本登記表已刪除。','success');}catch(e){console.error('刪除年度登記表失敗：',e);registrationFormStatus(`刪除失敗：${e?.message||'無法寫入雲端'}。`);showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}}
   async function toggleRegistrationYearArchive(){
-    const year=registrationArchiveYear();if(!isRegistrationFormsAdmin()){showAppToast('僅管理員可封存或解封年度登記表。','warn');return;}const archived=registrationYearArchived(year),verb=archived?'解封':'封存';if(!confirm(`${verb}${year}年度紙本登記表？${archived?'解封後管理員與社區主任可新增或刪除檔案。':'封存後所有人僅能檢視與下載；需管理員解封才能異動。'}`))return;const now=new Date().toLocaleString('zh-TW',{hour12:false}),meta={...registrationYearMeta(year),archived:!archived,retentionUntil:document.getElementById('registration-retention-until')?.value||suggestedRegistrationRetention(year),updatedBy:currentUser.name||'',updatedAt:now,[archived?'unarchivedBy':'archivedBy']:currentUser.name||'',[archived?'unarchivedAt':'archivedAt']:now};try{await updateRegistrationFormPaths({[`registrationFormsYears/${year}`]:meta,...registrationAuditPatch(year,verb,`${year}年度`, '')});registrationFormsYearMeta[year]=meta;clearRegistrationFormPreview();renderRegistrationForms();registrationFormStatus(`已${verb}${year}年度資料。`);await addLog('住戶',`${verb}${year}年度紙本登記表`);showAppToast(`年度資料已${verb}。`,'success');}catch(e){registrationFormStatus(`${verb}失敗。`);showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}}
-  async function saveRegistrationRetention(){const year=registrationArchiveYear(),input=document.getElementById('registration-retention-until');if(!isRegistrationFormsAdmin()||!input?.value)return;const meta={...registrationYearMeta(year),retentionUntil:input.value,updatedBy:currentUser.name||'',updatedAt:new Date().toLocaleString('zh-TW',{hour12:false})};try{await updateRegistrationFormPaths({[`registrationFormsYears/${year}`]:meta,...registrationAuditPatch(year,'更新保留期限',input.value)});registrationFormsYearMeta[year]=meta;registrationFormStatus(`保留期限已更新為 ${input.value}。`);await addLog('文件',`更新 ${year} 年度紙本登記表保留期限：${input.value}`);}catch(e){showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');renderRegistrationForms();}}
-  async function exportRegistrationFormsManifest(){const year=registrationArchiveYear(),rows=registrationRows(year);if(!canManageRegistrationForms())return;const data=rows.map(v=>({'年度':year,'檔名':v.name||'','原始檔名':v.originalName||'','類別':v.category||'','棟別':v.building||'','版本':v.version||1,'目前正式版':v.isOfficial===false?'否':'是','檔案大小':registrationFileSize(v.size),'上傳人':v.uploadedBy||'','上傳時間':v.uploadedAt||'','SHA-256':v.sha256||''}));try{if(window.XLSX?.utils){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'年度檔案清冊');XLSX.writeFile(wb,`${year}年度_紙本登記表清冊.xlsx`);}else{const header=Object.keys(data[0]||{'年度':year});const csv=[header,...data.map(row=>header.map(key=>`"${String(row[key]??'').replace(/"/g,'""')}"`))].map(r=>r.join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download=`${year}年度_紙本登記表清冊.csv`;a.click();URL.revokeObjectURL(a.href);}await updateRegistrationFormPaths(registrationAuditPatch(year,'匯出清冊',`${rows.length} 份檔案`));registrationFormStatus('已匯出年度檔案清冊。');await addLog('文件',`匯出 ${year} 年度紙本登記表清冊（${rows.length} 份）`);}catch(e){console.error('匯出年度檔案清冊失敗：',e);showAppToast('匯出年度檔案清冊失敗。','warn');}}
+    const year=registrationArchiveYear();if(!isRegistrationFormsAdmin()){showAppToast('僅管理員可封存或解封年度登記表。','warn');return;}const archived=registrationYearArchived(year),verb=archived?'解封':'封存';if(!confirm(`${verb}${year}年度紙本登記表？${archived?'解封後管理員與社區主任可新增或刪除檔案。':'封存後所有人僅能檢視與下載；需管理員解封才能異動。'}`))return;const now=new Date().toLocaleString('zh-TW',{hour12:false}),meta={...registrationYearMeta(year),archived:!archived,retentionUntil:document.getElementById('registration-retention-until')?.value||suggestedRegistrationRetention(year),updatedBy:currentUser.name||'',updatedAt:now,[archived?'unarchivedBy':'archivedBy']:currentUser.name||'',[archived?'unarchivedAt':'archivedAt']:now};try{await updateRegistrationFormPaths({[`registrationFormsYears/${year}`]:meta,...registrationAuditPatch(year,verb,`${year}年度`, '')});registrationFormsYearMeta[year]=meta;clearRegistrationFormPreview();renderRegistrationForms();registrationFormStatus(`已${verb}${year}年度資料。`);showAppToast(`年度資料已${verb}。`,'success');}catch(e){registrationFormStatus(`${verb}失敗。`);showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');}}
+  async function saveRegistrationRetention(){const year=registrationArchiveYear(),input=document.getElementById('registration-retention-until');if(!isRegistrationFormsAdmin()||!input?.value)return;const meta={...registrationYearMeta(year),retentionUntil:input.value,updatedBy:currentUser.name||'',updatedAt:new Date().toLocaleString('zh-TW',{hour12:false})};try{await updateRegistrationFormPaths({[`registrationFormsYears/${year}`]:meta,...registrationAuditPatch(year,'更新保留期限',input.value)});registrationFormsYearMeta[year]=meta;registrationFormStatus(`保留期限已更新為 ${input.value}。`);}catch(e){showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');renderRegistrationForms();}}
+  async function exportRegistrationFormsManifest(){const year=registrationArchiveYear(),rows=registrationRows(year);if(!canManageRegistrationForms())return;const data=rows.map(v=>({'年度':year,'檔名':v.name||'','原始檔名':v.originalName||'','類別':v.category||'','棟別':v.building||'','版本':v.version||1,'目前正式版':v.isOfficial===false?'否':'是','檔案大小':registrationFileSize(v.size),'上傳人':v.uploadedBy||'','上傳時間':v.uploadedAt||'','SHA-256':v.sha256||''}));try{if(window.XLSX?.utils){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'年度檔案清冊');XLSX.writeFile(wb,`${year}年度_紙本登記表清冊.xlsx`);}else{const header=Object.keys(data[0]||{'年度':year});const csv=[header,...data.map(row=>header.map(key=>`"${String(row[key]??'').replace(/"/g,'""')}"`))].map(r=>r.join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download=`${year}年度_紙本登記表清冊.csv`;a.click();URL.revokeObjectURL(a.href);}await updateRegistrationFormPaths(registrationAuditPatch(year,'匯出清冊',`${rows.length} 份檔案`));registrationFormStatus('已匯出年度檔案清冊。');}catch(e){console.error('匯出年度檔案清冊失敗：',e);showAppToast('匯出年度檔案清冊失敗。','warn');}}
 
   // ================= 12. 操作手冊(PDF) 動態預覽與權限管理 =================
   // 手冊採獨立 Firebase 節點，避免每次上傳都覆寫整包 media（背景、平面圖、兩份 PDF）。
