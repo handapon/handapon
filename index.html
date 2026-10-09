@@ -608,6 +608,12 @@
     .table-wrap{max-width:100%;overscroll-behavior-x:contain}
     .registration-form-actions .btn{min-height:44px;white-space:normal}
   }
+  @media screen and (max-width:700px){
+    body:not(.guest-mode) #mobile-bottom-nav .guest-only-nav{display:none!important}
+    body.guest-mode #mobile-bottom-nav .admin-only-nav{display:none!important}
+    body.guest-mode #mobile-bottom-nav .guest-only-nav,body:not(.guest-mode) #mobile-bottom-nav .admin-only-nav,#mobile-bottom-nav #mobile-more-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+    #mobile-bottom-nav [hidden],#nav-menu-mobile [hidden]{display:none!important}
+  }
 </style>
 </head>
 <body>
@@ -751,12 +757,11 @@
   <button class="mobile-bottom-btn admin-only-nav" onclick="showPage('residents')">住戶</button>
   <button class="mobile-bottom-btn admin-only-nav" onclick="showPage('lottery')">抽籤</button>
   <button class="mobile-bottom-btn admin-only-nav" onclick="showPage('settings')">設定</button>
-  <button class="mobile-bottom-btn admin-only-nav" onclick="toggleMobileMenu()">更多</button>
   <button class="mobile-bottom-btn guest-only-nav" onclick="showPage('inquiry')">我的結果</button>
   <button class="mobile-bottom-btn guest-only-nav" onclick="showPage('results')">結果</button>
   <button class="mobile-bottom-btn guest-only-nav" onclick="showPage('floorplan')">平面圖</button>
   <button class="mobile-bottom-btn guest-only-nav" onclick="showPage('dashboard')">公告</button>
-  <button class="mobile-bottom-btn guest-only-nav" onclick="toggleMobileMenu()">更多</button>
+  <button class="mobile-bottom-btn" id="mobile-more-btn" onclick="toggleMobileMenu()" aria-label="開啟更多功能">更多</button>
 </nav>
 
 <!-- ===== 登入對話框 ===== -->
@@ -3449,6 +3454,7 @@
     
     const isGuest = currentUser.role === 'guest';
     document.body.classList.toggle('guest-mode', isGuest);
+    updateMobileRoleVisibility();
 
     const guestQuickNav = document.getElementById("guest-quick-nav");
     if (guestQuickNav) guestQuickNav.style.display = isGuest ? 'block' : 'none';
@@ -3694,7 +3700,19 @@
   }
   function loadAnnouncementTemplate(){const type=document.getElementById('announcement-template-type')?.value,box=document.getElementById('announcement-template-content');if(!type||!box)return;const defaults={lottery:'本年度 {輪次} 抽籤結果已公告，請住戶至系統查詢。',waitlist:'您已獲候補遞補 {車位} 號車位，請依社區規定完成確認。',forfeit:'已收到 {門牌} 對 {輪次} {車位} 號車位的棄權確認。',swap:'車位互換已完成，{門牌} 的使用車位為 {車位}。'};box.value=(systemSettings.announcementTemplates||{})[type]||defaults[type]||'';}
 
+  function updateMobileRoleVisibility(){
+    const role=currentUser?.role;
+    const allowed=role==='admin'?['dashboard','residents','lottery','results','logs','swap','inquiry','floorplan','settings','guide']:role==='director'?['dashboard','residents','lottery','results','swap','inquiry','floorplan','guide']:role==='guest'?['dashboard','results','inquiry','floorplan','guide']:[];
+    document.querySelectorAll('#mobile-bottom-nav button,#nav-menu-mobile button').forEach(button=>{
+      const page=String(button.getAttribute('onclick')||'').match(/showPage\('([^']+)'\)/)?.[1];
+      const wrongRole=(role==='guest'&&button.classList.contains('admin-only-nav'))||(role!=='guest'&&button.classList.contains('guest-only-nav'));
+      button.hidden=!role||wrongRole||(page&&!allowed.includes(page));
+    });
+    const nav=document.getElementById('mobile-bottom-nav');
+    if(nav){const count=[...nav.querySelectorAll('button')].filter(b=>!b.hidden).length;nav.style.gridTemplateColumns=`repeat(${Math.max(1,count)},minmax(0,1fr))`;}
+  }
   function toggleMobileMenu() {
+    updateMobileRoleVisibility();
     document.getElementById('nav-hamburger').classList.toggle('open');
     document.getElementById('nav-menu-mobile').classList.toggle('open');
   }
