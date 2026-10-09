@@ -1884,11 +1884,20 @@
   }
 
   function formatTaiwanPlate(value) {
+    const raw=String(value??'').trim().toUpperCase().replace(/[\u2010-\u2015\u2212\uFF0D]/g,'-').replace(/\s+/g,'');
     const normalized = normalizePlateValue(value);
     if (normalized === normalizePlateValue(PENDING_PLATE_LABEL)) return PENDING_PLATE_LABEL;
     if (!isValidTaiwanPlate(normalized, false)) return '';
     // 微型電動二輪車官方格式為 2 英文 + 5 數字，牌面不含連字號。
     if (MICRO_E2W_PLATE_PATTERN.test(normalized)) return normalized;
+    // 保留明確輸入的合法分段；CW-3822 與 CW3-822 不能僅憑去除連字號後的字串區分。
+    const explicit=raw.match(/^([A-Z0-9]+)-([A-Z0-9]+)$/);
+    if(explicit){
+      const [_,left,right]=explicit;
+      const standard=(/^[A-Z]+$/.test(left)&&/^\d+$/.test(right))||(/^\d+$/.test(left)&&/^[A-Z]+$/.test(right));
+      const mixed=left.length===3&&/^[A-Z0-9]{3}$/.test(left)&&/[A-Z]/.test(left)&&/\d/.test(left)&&/^\d{3}$/.test(right);
+      if(standard||mixed)return left+'-'+right;
+    }
     // 一般規則先處理，以免 AB1234 被誤切成 AB1-234。
     // 格式化也要涵蓋舊牌的 I、O；是否合法仍由 isValidTaiwanPlate() 的現代／舊式規則決定。
     const m = normalized.match(/^([A-Z]+)(\d+)$/) || normalized.match(/^(\d+)([A-Z]+)$/);
@@ -4193,6 +4202,13 @@
   }
 
   function onPlateInput(inputElem) {
+    if(inputElem&&!inputElem.disabled){
+      const start=inputElem.selectionStart,end=inputElem.selectionEnd;
+      inputElem.value=inputElem.value.toUpperCase().replace(/[\u2010-\u2015\u2212\uFF0D]/g,'-');
+      if(typeof start==='number'&&inputElem.setSelectionRange)inputElem.setSelectionRange(start,end);
+      // 離開欄位後才補齊，避免打字途中插入連字號、移動游標或妨礙輸入舊式分段。
+      inputElem.onblur=()=>{const formatted=formatTaiwanPlate(inputElem.value);if(formatted)inputElem.value=formatted;markPlateInputValidity(inputElem);};
+    }
     const fields = [
       ['res-plate1', 'res-r1'], ['res-plate2', 'res-r2'],
       ['res-plate3', 'res-r3'], ['res-plateW', 'res-waitlist']
