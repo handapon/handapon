@@ -893,7 +893,7 @@
       <select id="document-filter-category" aria-label="檔案類別篩選" onchange="renderRegistrationForms()"><option value="">全部類別</option><option>空白表單</option><option>已填寫掃描檔</option><option>棟別彙整</option><option>簽核版</option><option>補件</option></select>
       <select id="document-filter-official" aria-label="檔案版次篩選" onchange="renderRegistrationForms()"><option value="">全部版本</option><option value="yes">目前正式版</option><option value="no">歷史版本</option></select>
     </div>
-    <p class="muted-note">沿用現有雲端同步保存年度文件，不需另外設定 Storage 或 Firebase 登入。</p>
+    <p class="muted-note">PDF 上限 5 MB，超過 3 MB 自動嘗試保留文字與表單的結構壓縮；JPG、PNG 上限 2 MB。保存前可預覽，保存後可線上預覽。沿用現有同步，不需設定 Storage。</p>
   </section>
   
   <div class="card card-pad-lg">
@@ -8933,7 +8933,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     [category,building,file].forEach(el=>{if(el)el.disabled=!canEdit;});if(confirmUpload)confirmUpload.disabled=!canEdit||!pendingRegistrationForm;if(archiveStatus){archiveStatus.textContent=archived?'本年度已封存：僅可檢視與下載':'本年度資料可編輯';archiveStatus.className=`badge ${archived?'badge-gray':'badge-green'}`;}if(retention){retention.value=meta.retentionUntil||suggestedRegistrationRetention(year);retention.disabled=!admin;}if(archiveToggle){archiveToggle.style.display=admin?'':'none';archiveToggle.textContent=archived?'解封本年度':'封存本年度';archiveToggle.className=`btn btn-sm ${archived?'btn-primary':'btn-danger'}`;}
     if(archiveSummary)archiveSummary.innerHTML=`<span>${escapeHtml(year)} 年度 · ${rows.length} 份</span><span>${registrationFileSize(bytes)}</span><span>${meta.updatedAt?`最近更新 ${escapeHtml(meta.updatedAt)}`:'尚未上傳檔案'}</span>${archived?'<span>已封存</span>':''}`;
     const summary=`<div class="registration-form-empty">${year} 年度共 ${rows.length} 份、${registrationFileSize(bytes)}。${archived?'資料已封存；欲異動須由管理員先解封。':`保留至 ${escapeHtml(meta.retentionUntil||suggestedRegistrationRetention(year))}。`}</div>`;
-    list.innerHTML=summary+(rows.length?rows.map(item=>{const tags=`<div class="registration-form-tags"><span class="badge badge-blue">${escapeHtml(item.category||'未分類')}</span><span class="badge badge-gray">${escapeHtml(item.building||'未標記')}</span><span class="badge ${item.isOfficial===false?'badge-gray':'badge-green'}">${item.isOfficial===false?'歷史版本':'目前正式版'}${item.version?` v${item.version}`:''}</span><span class="badge badge-gray">SHA-256 ${item.sha256?'已記錄':'舊檔未記錄'}</span></div>`;const actions=`<button class="btn btn-sm" onclick="downloadRegistrationForm('${year}','${item.id}')">下載</button>${canEdit?`<button class="btn btn-sm" onclick="setRegistrationFormOfficial('${year}','${item.id}')" ${item.isOfficial!==false?'disabled':''}>設為正式版</button><button class="btn btn-sm btn-danger" onclick="deleteRegistrationForm('${year}','${item.id}')">刪除</button>`:''}`;return `<div class="registration-form-item ${item.isOfficial===false?'':'is-official'}"><div class="registration-form-item-main"><strong title="${escapeHtml(item.name||'未命名檔案')}">${escapeHtml(item.name||'未命名檔案')}</strong><small>${escapeHtml(item.mimeType||'檔案')}｜${registrationFileSize(item.size)}｜上傳者：${escapeHtml(item.uploadedBy||'—')}｜${escapeHtml(item.uploadedAt||'時間未記錄')}</small>${tags}</div><div class="registration-form-actions">${actions}</div></div>`;}).join(''):'<div class="registration-form-empty">本年度尚未保存紙本登記表。請先選取檔案，確認預覽後再保存。</div>');
+    list.innerHTML=summary+(rows.length?rows.map(item=>{const tags=`<div class="registration-form-tags"><span class="badge badge-blue">${escapeHtml(item.category||'未分類')}</span><span class="badge badge-gray">${escapeHtml(item.building||'未標記')}</span><span class="badge ${item.isOfficial===false?'badge-gray':'badge-green'}">${item.isOfficial===false?'歷史版本':'目前正式版'}${item.version?` v${item.version}`:''}</span><span class="badge badge-gray">SHA-256 ${item.sha256?'已記錄':'舊檔未記錄'}</span></div>`;const actions=`<button class="btn btn-sm" onclick="previewRegistrationForm('${year}','${item.id}')">線上預覽</button><button class="btn btn-sm" onclick="downloadRegistrationForm('${year}','${item.id}')">下載</button>${canEdit?`<button class="btn btn-sm" onclick="setRegistrationFormOfficial('${year}','${item.id}')" ${item.isOfficial!==false?'disabled':''}>設為正式版</button><button class="btn btn-sm btn-danger" onclick="deleteRegistrationForm('${year}','${item.id}')">刪除</button>`:''}`;return `<div class="registration-form-item ${item.isOfficial===false?'':'is-official'}"><div class="registration-form-item-main"><strong title="${escapeHtml(item.name||'未命名檔案')}">${escapeHtml(item.name||'未命名檔案')}</strong><small>${escapeHtml(item.mimeType||'檔案')}｜${registrationFileSize(item.size)}｜上傳者：${escapeHtml(item.uploadedBy||'—')}｜${escapeHtml(item.uploadedAt||'時間未記錄')}</small>${tags}</div><div class="registration-form-actions">${actions}</div></div>`;}).join(''):'<div class="registration-form-empty">本年度尚未保存紙本登記表。請先選取檔案，確認預覽後再保存。</div>');
   }
   async function updateRegistrationFormPaths(paths){
     if(!canManageRegistrationForms())throw new Error('僅管理員與社區主任可管理年度登記表');if(!cloudSyncReady)throw new Error('尚未完成雲端同步，暫時不可寫入');
@@ -8959,13 +8959,55 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       return true;
     }finally{await releaseCloudWriteLock();}
   }
+  function registrationUploadLimit(file){return /\.pdf$/i.test(file.name||'')||file.type==='application/pdf'?5*1024*1024:2*1024*1024;}
+  let registrationSelectionSequence=0;
+  let registrationPdfLibraryPromise=null;
+  async function loadRegistrationPdfLibrary(){
+    if(window.PDFLib)return window.PDFLib;
+    if(!registrationPdfLibraryPromise)registrationPdfLibraryPromise=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+      const timer=setTimeout(()=>{script.remove();reject(new Error('PDF 壓縮元件載入逾時'));},20000);
+      script.onload=()=>{clearTimeout(timer);window.PDFLib?resolve(window.PDFLib):reject(new Error('PDF 壓縮元件不可用'));};
+      script.onerror=()=>{clearTimeout(timer);script.remove();reject(new Error('PDF 壓縮元件載入失敗，請確認網路'));};document.head.appendChild(script);
+    }).catch(e=>{registrationPdfLibraryPromise=null;throw e;});
+    return registrationPdfLibraryPromise;
+  }
+  async function compressRegistrationPdf(file){
+    const bytes=new Uint8Array(await file.arrayBuffer());
+    if(!new TextDecoder().decode(bytes.slice(0,1024)).includes('%PDF-'))throw new Error('檔案內容不是有效 PDF');
+    // 不重寫含數位簽章的文件，避免破壞簽章驗證。
+    if(new TextDecoder('latin1').decode(bytes).includes('/ByteRange'))return {file,note:'偵測到數位簽章，為保留驗證效力未壓縮。'};
+    const lib=await loadRegistrationPdfLibrary();
+    const pdf=await lib.PDFDocument.load(bytes,{updateMetadata:false});
+    const packed=await pdf.save({useObjectStreams:true,addDefaultPage:false});
+    if(packed.length>=file.size)return {file,note:'已自動嘗試結構壓縮；原檔較小，保留原檔。'};
+    return {file:new File([packed],file.name,{type:'application/pdf',lastModified:file.lastModified}),note:`已自動壓縮：${registrationFileSize(file.size)} → ${registrationFileSize(packed.length)}；請預覽核對。`};
+  }
   async function selectRegistrationFormFile(input){
-    const file=input?.files?.[0],year=registrationArchiveYear();if(!canManageRegistrationForms()||!file)return;if(!registrationMayModify(year)){showAppToast('本年度已封存，請由管理員解封後再新增檔案。','warn');input.value='';return;}const accepted=/\.(pdf|png|jpe?g)$/i.test(file.name||'')||['application/pdf','image/png','image/jpeg'].includes(file.type);if(!validRegistrationArchiveYear(year)||!accepted||file.size>2*1024*1024){showAppToast(!accepted?'僅可上傳 PDF、JPG 或 PNG 格式。':file.size>2*1024*1024?'檔案超過 2MB，請先壓縮掃描檔。':'請先輸入有效年度。','warn');input.value='';return;}
+    const sequence=++registrationSelectionSequence,source=input?.files?.[0];
+    clearRegistrationFormPreview();
+    if(!source||!canManageRegistrationForms())return;
+    if(source.size>registrationUploadLimit(source)){showAppToast('PDF 上限 5 MB；JPG、PNG 上限 2 MB。','warn');return;}
+    try{
+      let selected=source,note='';
+      if(registrationUploadLimit(source)===5*1024*1024&&source.size>3*1024*1024){
+        registrationFormStatus('PDF 超過 3 MB，正在自動壓縮，請稍候…');
+        const result=await compressRegistrationPdf(source);selected=result.file;note=result.note;
+      }
+      if(sequence!==registrationSelectionSequence)return;
+      await selectRegistrationFormFileLegacy({files:[selected],value:''});
+      if(sequence!==registrationSelectionSequence){clearRegistrationFormPreview();return;}
+      if(pendingRegistrationForm&&note){const message=document.createElement('small');message.textContent=note;document.getElementById('registration-form-preview')?.appendChild(message);registrationFormStatus(note+' 確認後即可保存。');}
+    }catch(e){if(sequence!==registrationSelectionSequence)return;clearRegistrationFormPreview();registrationFormStatus('PDF 處理失敗：'+String(e.message||e));showAppToast('未保存檔案，請確認 PDF 未加密且可正常開啟後重試。','warn');}
+  }
+  async function selectRegistrationFormFileLegacy(input){
+    const file=input?.files?.[0],year=registrationArchiveYear();if(!canManageRegistrationForms()||!file)return;if(!registrationMayModify(year)){showAppToast('本年度已封存，請由管理員解封後再新增檔案。','warn');input.value='';return;}const accepted=/\.(pdf|png|jpe?g)$/i.test(file.name||'')||['application/pdf','image/png','image/jpeg'].includes(file.type);if(!validRegistrationArchiveYear(year)||!accepted||file.size>registrationUploadLimit(file)){showAppToast(!accepted?'僅可上傳 PDF、JPG 或 PNG 格式。':file.size>registrationUploadLimit(file)?'PDF 上限 5 MB；圖片上限 2 MB。':'請先輸入有效年度。','warn');input.value='';return;}
     try{registrationFormStatus(`正在建立「${file.name}」預覽與完整性指紋…`);const buffer=await file.arrayBuffer(),sha256=await registrationSha256(buffer),data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=e=>resolve(String(e.target?.result||''));reader.onerror=reject;reader.readAsDataURL(file);});if(!data.startsWith('data:'))throw new Error('檔案格式讀取失敗');const category=document.getElementById('registration-form-category')?.value||'已填寫掃描檔',building=document.getElementById('registration-form-building')?.value||'全社區',siblings=registrationRows(year).filter(v=>v.category===category&&v.building===building),version=Math.max(0,...siblings.map(v=>Number(v.version)||1))+1,ext=(file.name.match(/\.([a-z0-9]+)$/i)||['','pdf'])[1].toLowerCase(),stamp=new Date().toISOString().slice(0,10),name=`${year}年度_${building}_${category}_v${version}_${stamp}.${ext}`;pendingRegistrationForm={file,data,sha256,year,category,building,version,name};const preview=document.getElementById('registration-form-preview'),kind=file.type==='application/pdf'||/\.pdf$/i.test(file.name)?'pdf':'image';if(preview){preview.style.display='grid';preview.innerHTML=`${kind==='pdf'?`<iframe src="${data}#page=1&view=FitH" title="PDF 首頁預覽"></iframe>`:`<img src="${data}" alt="圖片預覽">`}<div><strong>上傳前預覽</strong><small>原始檔：${escapeHtml(file.name)}｜${registrationFileSize(file.size)}</small><small>保存檔名：${escapeHtml(name)}</small><small>SHA-256：${sha256||'此瀏覽器無法產生'}</small></div>`;}document.getElementById('registration-form-confirm-upload').disabled=false;registrationFormStatus('已完成預覽，請確認後保存。');}
     catch(e){console.error('建立登記表預覽失敗：',e);clearRegistrationFormPreview();registrationFormStatus('檔案讀取或預覽失敗。');showAppToast('無法建立檔案預覽，請重新選擇檔案。','warn');}
   }
   async function uploadRegistrationForm(){
     const p=pendingRegistrationForm;if(!p)return;const year=registrationArchiveYear();
+    if(p.file.size>registrationUploadLimit(p.file)){showAppToast('PDF 上限 5 MB；圖片上限 2 MB。','warn');return;}
     if(!registrationMayModify(year)||p.year!==year){showAppToast('年度已變更或已封存，請重新選擇檔案。','warn');return;}
     const id='f_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
     const button=document.getElementById('registration-form-confirm-upload');if(button?.disabled)return;if(button)button.disabled=true;
@@ -8983,6 +9025,25 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     }catch(e){
       registrationFormStatus('保存失敗：'+String(e.message||e));showAppToast('檔案未完成保存，請確認儲存連線與權限。','warn');
     }finally{if(button)button.disabled=!pendingRegistrationForm;}
+  }
+  async function previewRegistrationForm(year,id){
+    if(!canManageRegistrationForms()||!validRegistrationArchiveYear(year))return;
+    try{
+      registrationFormStatus('正在載入線上預覽…');
+      const response=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${encodeURIComponent(year)}/${encodeURIComponent(id)}.json`,true),{cache:'no-store'});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const item=await response.json();if(!item)throw new Error('檔案不存在');
+      const blob=await readDocumentBlob(item);
+      if(item.sha256&&await registrationSha256(await blob.arrayBuffer())!==item.sha256)throw new Error('完整性驗證失敗');
+      if(!['application/pdf','image/png','image/jpeg'].includes(blob.type))throw new Error('不支援的預覽格式');
+      await updateRegistrationFormPaths(registrationAuditPatch(year,'預覽',`${item.name||'年度文件'}（線上預覽）`,id));
+      document.getElementById('registration-online-preview')?.remove();
+      const url=URL.createObjectURL(blob),modal=document.createElement('div');modal.id='registration-online-preview';modal.className='modal-overlay show';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','年度文件線上預覽');
+      modal.innerHTML=`<div class="modal-box" style="width:min(1000px,95vw);max-width:1000px"><h2>年度文件預覽</h2><p>${escapeHtml(item.name||'年度文件')}</p>${blob.type==='application/pdf'?'<iframe title="年度登記表 PDF 預覽" style="width:100%;height:65vh;border:0"></iframe>':'<img alt="年度登記表圖片預覽" style="max-width:100%;max-height:65vh;object-fit:contain">'}<p class="muted-note">若瀏覽器不支援 PDF 預覽，請關閉此視窗並使用下載功能。</p><div class="modal-footer"><button class="btn">關閉預覽</button></div></div>`;
+      modal.querySelector(blob.type==='application/pdf'?'iframe':'img').src=url;
+      const close=()=>{URL.revokeObjectURL(url);document.removeEventListener('keydown',key);modal.remove();};
+      const key=e=>{if(e.key==='Escape')close();};modal.querySelector('button').onclick=close;modal.onclick=e=>{if(e.target===modal)close();};document.addEventListener('keydown',key);document.body.appendChild(modal);modal.querySelector('button').focus();registrationFormStatus('已開啟預覽。');
+    }catch(e){registrationFormStatus('預覽失敗：'+String(e.message||e));showAppToast('無法開啟文件預覽，請確認網路與檔案完整性。','warn');}
   }
   async function downloadRegistrationForm(year,id){
     if(!canManageRegistrationForms())return;
