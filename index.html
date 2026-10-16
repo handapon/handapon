@@ -1738,7 +1738,7 @@
     <div style="font-size:12.5px;color:#475569;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;margin-top:14px;font-weight:700;line-height:1.6">💡 車牌格式：支援台灣現行各型機車（含燃油機車新舊式號牌、電動機車、大型重型機車、微型電動二輪車等）。英文字母 I、O 不使用；數字沒有限制，可以包含 4。中間連字號「-」可省略，系統會自動排版。尚無車牌請勾選「新戶待補」。</div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveResident()">儲存</button>
+      <button id="resident-save-btn" class="btn btn-primary" onclick="saveResident()" aria-describedby="resident-save-status">儲存</button>
     </div>
   </div>
 </div>
@@ -2217,9 +2217,72 @@
   let cloudPullRunning = false;
   function isLotteryDataFrozen(){ return lotteryDataFreeze.active || lotteryRunning || waitlistLotteryRunning || plateVerificationBatchRunning || lotteryBackupPending || backupRestoreRunning || bulkDeletionRunning || residentMutationRunning || cloudPullRunning || pendingPushCount > 0; }
   function blockFrozenMutation(action){
-    if(!isLotteryDataFrozen()) return false;
-    showAppToast(`重大操作處理中，${action}暫時鎖定；完成後會自動解除。`,'warn',4200); return true;
+    const reason=getMutationBlockReason();
+    if(!reason)return false;
+    const message=`${reason}，暫時無法${action}。請待處理完成後再試；本次點擊未提交新變更。`;
+    const now=Date.now();
+    if(message!==lastMutationBlockNotice.message||now-lastMutationBlockNotice.time>2500){
+      lastMutationBlockNotice={message,time:now};showAppToast(message,'warn',4200);
+    }
+    updateResidentSaveAvailability();return true;
   }
+
+  let lastMutationBlockNotice={message:'',time:0};
+  let residentSaveWatchTimer=null;
+  let residentSaveWatchObserver=null;
+  let residentSaveBusySince=0;
+  function getMutationBlockReason(){
+    if(lotteryRunning)return '正式抽籤正在執行';
+    if(waitlistLotteryRunning)return '候補抽籤正在執行';
+    if(lotteryBackupPending)return '正在建立操作前備份';
+    if(backupRestoreRunning)return '正在還原備份';
+    if(bulkDeletionRunning)return '正在處理住戶清除或刪除';
+    if(plateVerificationBatchRunning)return '正在保存車牌批次核對結果';
+    if(residentMutationRunning)return managedMutationContext?.label==='住戶資料保存'?'住戶資料正在儲存':`正在處理${managedMutationContext?.label||'另一筆資料變更'}`;
+    if(lotteryDataFreeze.active)return '抽籤資料目前已凍結';
+    if(cloudPullRunning)return '正在讀取最新雲端資料';
+    if(pendingPushCount>0)return '尚有資料等待雲端確認保存';
+    return '';
+  }
+  function updateResidentSaveAvailability(){
+    const button=document.getElementById('resident-save-btn');if(!button)return;
+    const hint=document.getElementById('resident-save-status');
+    const reason=getMutationBlockReason();
+    const review=!reason&&syncRecoveryNeedsReview;
+    const notReady=!reason&&!review&&!cloudSyncReady;
+    const disabled=!!reason||review||notReady;
+    button.disabled=disabled;
+    button.setAttribute?.('aria-busy',reason?'true':'false');
+    button.textContent=residentMutationRunning&&managedMutationContext?.label==='住戶資料保存'?'儲存中…':reason?'處理中，請稍候':'儲存';
+    if(!disabled)residentSaveBusySince=0;else if(!residentSaveBusySince)residentSaveBusySince=Date.now();
+    let message=reason?`${reason}，完成後儲存按鈕會自動恢復。尚未提交的表單內容會保留，不會自動重送。`:review?'雲端保存狀態需要重新確認，請先確認同步狀態後再儲存。':notReady?'尚未載入最新資料，請先確認雲端連線與同步狀態。':'';
+    if(reason&&Date.now()-residentSaveBusySince>=20000)message+=' 等待時間較長，請檢查頂端同步狀態；尚未確認前請勿關閉或重新整理，以免遺失輸入內容。';
+    button.title=message;
+    if(hint){hint.textContent=message;hint.style.display=message?'block':'none';}
+  }
+  function initResidentSaveWatcher(){
+    if(residentSaveWatchObserver||typeof MutationObserver==='undefined')return;
+    const modal=document.getElementById('resident-modal');if(!modal)return;
+    let hint=document.getElementById('resident-save-status');
+    if(!hint){
+      hint=document.createElement('div');hint.id='resident-save-status';hint.setAttribute('role','status');hint.setAttribute('aria-live','polite');
+      hint.style.cssText='display:none;margin:12px 0;color:var(--text-muted,#64748b);font-size:14px;line-height:1.6;overflow-wrap:anywhere';
+      const button=document.getElementById('resident-save-btn');button?.parentElement?.insertAdjacentElement('beforebegin',hint);
+    }
+    const refresh=()=>{
+      if(modal.classList.contains('show')){
+        updateResidentSaveAvailability();
+        if(residentSaveWatchTimer===null)residentSaveWatchTimer=setInterval(updateResidentSaveAvailability,300);
+      }else{
+        if(residentSaveWatchTimer!==null)clearInterval(residentSaveWatchTimer);
+        residentSaveWatchTimer=null;residentSaveBusySince=0;
+      }
+    };
+    residentSaveWatchObserver=new MutationObserver(refresh);
+    residentSaveWatchObserver.observe(modal,{attributes:true,attributeFilter:['class']});refresh();
+  }
+  document.addEventListener('DOMContentLoaded',initResidentSaveWatcher);
+  if(document.readyState&&document.readyState!=='loading')initResidentSaveWatcher();
   function setLotteryDataFreeze(active, round=''){
     lotteryDataFreeze={active:!!active,round:active?round:'',startedAt:active?Date.now():0};
     const banner=document.getElementById('lottery-freeze-banner');
@@ -4244,6 +4307,7 @@
     const snapshot = JSON.parse(JSON.stringify({residents,lotteryResults,originalLotteryResults,forfeitRecords,swapLogs,systemLogs,pendingAudits,systemSettings,accountsList,currentUser,versionedBackups,currentRound}));
     residentMutationRunning = true;
     const owner={label,failed:false};managedMutationContext=owner;
+    updateResidentSaveAvailability();
     try {
       const result = await operation();
       if (result === false || owner.failed) throw new Error(label + '未確認保存');
@@ -4260,6 +4324,7 @@
     } finally {
       residentMutationRunning=false;
       managedMutationContext=null;
+      updateResidentSaveAvailability();
       refreshMutationViews();
     }
   }
@@ -9630,6 +9695,6 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
 </script>
   
 
-<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261009.15｜修訂日期 2026/10/09｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
+<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261016.16｜修訂日期 2026/10/16｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
 </body>
 </html>
