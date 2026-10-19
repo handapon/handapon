@@ -1734,7 +1734,7 @@
     </div>
     <div class="form-row" style="margin-top:14px"><div><label for="res-motorcycle-class">大型重機人工確認</label><select id="res-motorcycle-class"><option value="auto">未人工確認（採系統推定）</option><option value="ordinary">確認為一般機車</option><option value="yellow">確認為黃牌大重機</option><option value="red">確認為紅牌大重機</option><option value="electric-yellow">確認為電動黃牌大重機</option><option value="electric-red">確認為電動紅牌大重機</option><option value="unknown">待行照確認</option></select></div><div><label for="res-motorcycle-source">確認依據</label><select id="res-motorcycle-source"><option value="">未提供</option><option value="plate">系統號牌推定</option><option value="license">已查驗行車執照</option><option value="resident">住戶聲明</option><option value="admin">管理員確認</option></select></div></div>
     <div style="margin-top:10px"><label for="res-motorcycle-note">車種確認備註</label><input id="res-motorcycle-note" type="text" maxlength="100" placeholder="例：已查驗行照，650cc 黃牌"></div>
-    <div style="font-size:12.5px;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:9px 12px;margin-top:10px;font-weight:700;line-height:1.6">「去年資料待確認」只做管理提醒，不會取消抽籤資格；社區主任可依本年度登記表逐戶核對後改為「本年度已核對」。</div>
+    <div id="prior-year-qualification-note" style="font-size:12.5px;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--radius-sm);padding:9px 12px;margin-top:10px;font-weight:500;line-height:1.6">標記為「去年資料待確認」的住戶，暫不參與第一、二、三輪及候補抽籤。管理員或社區主任須依本年度登記表完成核對，改為「本年度已核對」並儲存後，才會依其他資格條件納入抽籤。</div>
     <div style="font-size:12.5px;color:#475569;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;margin-top:14px;font-weight:700;line-height:1.6">💡 車牌格式：支援台灣現行各型機車（含燃油機車新舊式號牌、電動機車、大型重型機車、微型電動二輪車等）。英文字母 I、O 不使用；數字沒有限制，可以包含 4。中間連字號「-」可省略，系統會自動排版。尚無車牌請勾選「新戶待補」。</div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal()">取消</button>
@@ -2108,6 +2108,82 @@
   let originalLotteryResults = {};
   let swapLogs = [];
   let systemLogs = [];
+  // 登入歷程獨立追加保存，不受一般操作紀錄 300 筆上限及還原舊備份影響。
+  // 這仍是前端回報紀錄，不等同後端身分驗證或不可竄改的稽核。
+  let accessHistory = {};
+  let pendingAccessEvents = [];
+  let accessSessionId = '';
+  let accessResumeRecorded = false;
+  let accessLoginInProgress = false;
+  let accessLogoutInProgress = false;
+  const ACCESS_OUTBOX_KEY = 'parking_lottery_access_outbox_v1';
+  function validAccessEvent(event){return event&&typeof event==='object'&&/^access_[A-Za-z0-9_-]+$/.test(String(event.id||''))&&event.type==='登入'&&typeof event.msg==='string';}
+  function readAccessOutbox(){
+    try{const rows=JSON.parse(localStorage.getItem(ACCESS_OUTBOX_KEY)||'[]');return Array.isArray(rows)?rows.filter(validAccessEvent).map(e=>({id:e.id,type:'登入',action:String(e.action||'access').slice(0,60),msg:e.msg.slice(0,1000),user:String(e.user||'未登入').slice(0,160),username:String(e.username||'').slice(0,80),role:String(e.role||'anonymous').slice(0,30),sessionId:String(e.sessionId||'').slice(0,120),isoTime:String(e.isoTime||'').slice(0,40),time:String(e.time||'').slice(0,80),clientReported:true})):[];}catch(e){console.warn('讀取本機登入紀錄失敗：',e);return [];}
+  }
+  function getPendingAccessEvents(){
+    const merged=new Map();
+    [...readAccessOutbox(),...pendingAccessEvents].filter(validAccessEvent).forEach(e=>{if(!accessHistory[e.id])merged.set(e.id,e);});
+    return [...merged.values()];
+  }
+  function persistAccessOutbox(rows){
+    pendingAccessEvents=rows;
+    try{localStorage.setItem(ACCESS_OUTBOX_KEY,JSON.stringify(rows));return true;}catch(e){console.warn('本機登入紀錄無法保存，僅保留於此頁記憶體：',e);return false;}
+  }
+  function beginAccessSession(force=false){
+    if(force)accessSessionId='';
+    if(!accessSessionId&&!force){try{accessSessionId=sessionStorage.getItem('parking_lottery_access_session')||'';}catch(_){} }
+    if(!accessSessionId){accessSessionId='session_'+(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():`${Date.now()}_${Math.random().toString(36).slice(2)}`);try{sessionStorage.setItem('parking_lottery_access_session',accessSessionId);}catch(_){} }
+    return accessSessionId;
+  }
+  function accessEventIdentity(log){
+    const id=String(log?.eventId||log?.id||'');if(/^access_[A-Za-z0-9_-]+$/.test(id))return id;
+    const text=id||JSON.stringify([log?.isoTime||log?.time||'',log?.user||'',log?.msg||'']);
+    let a=2166136261,b=5381;for(let i=0;i<text.length;i++){a=Math.imul(a^text.charCodeAt(i),16777619);b=Math.imul(b,33)^text.charCodeAt(i);}
+    return 'access_legacy_'+(a>>>0).toString(16)+'_'+(b>>>0).toString(16);
+  }
+  function stageLegacyAccessLogs(){
+    if(!currentUser||!['admin','director'].includes(currentUser.role))return;
+    const rows=getPendingAccessEvents(),known=new Set([...Object.keys(accessHistory),...rows.map(e=>e.id)]);
+    for(const log of systemLogs||[]){
+      if(log?.type!=='登入')continue;
+      const id=accessEventIdentity(log);if(known.has(id))continue;
+      rows.push({id,type:'登入',action:'legacy_access',msg:String(log.msg||'舊版登入紀錄').slice(0,1000),user:String(log.user||'舊版未記錄').slice(0,160),username:'',role:'legacy_unknown',sessionId:'legacy_unavailable',isoTime:String(log.isoTime||''),time:String(log.time||''),clientReported:true});known.add(id);
+    }
+    if(rows.length)persistAccessOutbox(rows);
+  }
+  async function recordAccessEvent(action,msg,options={}){
+    stageLegacyAccessLogs();
+    const actor=options.actor||currentUser||{name:'未登入',role:'anonymous',username:''};
+    const event={id:'access_'+(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():`${Date.now()}_${Math.random().toString(36).slice(2)}`),type:'登入',action:String(action).slice(0,60),msg:String(msg).slice(0,1000),user:String(actor.name||'未登入').slice(0,160),username:String(actor.username||'').slice(0,80),role:String(actor.role||'anonymous').slice(0,30),sessionId:beginAccessSession(),isoTime:new Date().toISOString(),time:new Date().toLocaleString(),clientReported:true};
+    const durable=persistAccessOutbox([...getPendingAccessEvents(),event]);
+    if(!durable)showAppToast('登入紀錄目前僅留在此頁，關閉前請確認瀏覽器儲存空間。','warn');
+    if(currentUser?.role==='admin'&&document.getElementById('page-logs')?.classList.contains('active'))renderLogs();
+    // 住戶及未登入者絕不藉由記錄事件取得管理資料寫入權限。
+    if(options.sync===false||!currentUser||!['admin','director'].includes(currentUser.role)||!cloudSyncReady||syncRecoveryNeedsReview)return false;
+    try{return await cloudSyncPush();}catch(e){console.warn('登入紀錄尚未確認雲端保存：',e);return false;}
+  }
+  function confirmAccessEventsSaved(batch){
+    const ids=new Set(batch.map(e=>e.id));
+    batch.forEach(e=>{accessHistory[e.id]={...e};});
+    persistAccessOutbox(getPendingAccessEvents().filter(e=>!ids.has(e.id)));
+  }
+  function getAccessLogRows(){
+    const saved=Object.values(accessHistory).filter(validAccessEvent).map(e=>({...e,context:{accessAudit:true,cloudSaved:true,sessionId:e.sessionId,role:e.role,username:e.username,action:e.action}}));
+    const pending=getPendingAccessEvents().map(e=>({...e,context:{accessAudit:true,cloudSaved:false,sessionId:e.sessionId,role:e.role,username:e.username,action:e.action}}));
+    return [...saved,...pending];
+  }
+  async function syncPendingAccessHistory(){
+    if(currentUser?.role!=='admin'){showAppToast('僅管理員可補送登入歷程。','warn');return false;}
+    if(blockFrozenMutation('補送登入歷程'))return false;
+    if(!cloudSyncReady||syncRecoveryNeedsReview){showAppToast('請先重新確認雲端版本；不會直接重送未確認資料。','warn');return false;}
+    if(!getPendingAccessEvents().length){showAppToast('沒有待補送的本機登入紀錄。','info');return true;}
+    let ok=false;try{ok=await cloudSyncPush();}catch(e){console.warn('補送登入歷程失敗：',e);}
+    renderLogs();showAppToast(ok?'登入歷程已保存至雲端。':'登入歷程尚未確認保存，仍保留本機待補送。',ok?'success':'warn');return ok;
+  }
+  window.addEventListener('pagehide',()=>{
+    if(currentUser&&!accessLogoutInProgress)void recordAccessEvent('page_leave','頁面離開（不代表已確認登出；瀏覽器關閉事件不保證送達）',{sync:false});
+  });
   // 最多保留六份可比較、可選擇性還原的雲端版本快照；不保存帳號密碼雜湊。
   let versionedBackups = [];
   let pendingCsvImport = null;
@@ -2695,6 +2771,9 @@
         payload.media = { ...systemSettings };
         payload.manuals = Object.fromEntries(['director','resident'].map(type=>[type,{data:systemSettings[type==='director'?'directorManualPdf':'residentManualPdf']||null,deleted:!systemSettings[type==='director'?'directorManualPdf':'residentManualPdf'],updatedAt:{'.sv':'timestamp'},updatedBy:currentUser.name||''}]));
       }
+      stageLegacyAccessLogs();
+      const accessBatch=getPendingAccessEvents();
+      accessBatch.forEach(event=>{payload[`accessHistory/${event.id}`]={...event,savedAt:{'.sv':'timestamp'},submittedBy:currentUser.username||currentUser.name||''};});
 
       // 💡 改用 PATCH（而非 PUT）：只更新上面列出的這幾個欄位，完全不會動到
       // 另外存放在 parkingData/media 的大型檔案，兩者互不影響、互不拖累。
@@ -2706,6 +2785,7 @@
         body: JSON.stringify(payload)
       });
       if (!pushRes.ok) throw new Error("HTTP " + pushRes.status);
+      confirmAccessEventsSaved(accessBatch);
       // 💡 Firebase 官方文件：PATCH 成功時，回應內容就是「實際寫入的資料」，
       // 其中 {".sv":"timestamp"} 已經被伺服器解析成真正的時間戳數字，直接讀回來用，
       // 不再自己用本機時鐘猜測，確保 lastKnownServerModified 永遠是伺服器認定的權威時間。
@@ -3010,6 +3090,8 @@
           swapLogs = Array.isArray(data.swapLogs) ? data.swapLogs : (data.swapLogs ? Object.values(data.swapLogs) : []);
           forfeitRecords = Array.isArray(data.forfeitRecords) ? data.forfeitRecords : (data.forfeitRecords ? Object.values(data.forfeitRecords) : []);
           systemLogs = Array.isArray(data.systemLogs) ? data.systemLogs : (data.systemLogs ? Object.values(data.systemLogs) : []);
+          accessHistory=currentUser?.role==='guest'?{}:Object.fromEntries(Object.entries(data.accessHistory||{}).filter(([key,event])=>validAccessEvent(event)&&event.id===key));
+          if(currentUser?.role!=='guest')persistAccessOutbox(getPendingAccessEvents());
           versionedBackups = Array.isArray(data.versionedBackups) ? data.versionedBackups : (data.versionedBackups ? Object.values(data.versionedBackups) : []);
           originalLotteryResults = data.originalLotteryResults || {};
           // 手冊改用獨立路徑，避免大型 PDF 與背景圖／平面圖一起回寫造成請求過大。
@@ -3025,6 +3107,7 @@
           swapLogs = [];
           forfeitRecords = [];
           systemLogs = []; versionedBackups = []; originalLotteryResults = {};
+          accessHistory={};
           pendingAudits = [];
           lastKnownServerModified = 0;
           lastKnownServerModifiedBy = "";
@@ -3289,6 +3372,8 @@
       // 住戶查詢是公開入口，不存在 accountsList；重新整理時不可誤當成已刪除的管理帳號。
       if (currentUser.role === 'guest' && sessionUsername === 'guest') {
         currentUser = { name: '社區住戶', role: 'guest', username: 'guest' };
+        accessHistory={};
+        if(!accessResumeRecorded){accessResumeRecorded=true;void recordAccessEvent('session_resumed','恢復住戶查詢工作階段（匿名入口）',{sync:false});}
         currentResultRound = '全部輪次';
         resultViewMode = 'table';
         initUserBar();
@@ -3305,6 +3390,7 @@
       }
       currentUser = { ...liveAcc };
       delete currentUser.password;
+      if(!accessResumeRecorded){accessResumeRecorded=true;void recordAccessEvent('session_resumed','恢復管理端登入工作階段');}
       initUserBar();
       startAutoSync();
     }
@@ -3450,6 +3536,9 @@
   function updateLoginHealth(ok){const el=document.getElementById('login-health-note');if(!el)return;el.textContent=ok?'系統健康：Firebase 連線正常':'系統健康：同步異常；可查詢，暫勿執行抽籤。';el.style.color=ok?'#15803d':'#b91c1c';}
 
   async function doLogin() {
+    if(accessLoginInProgress)return;
+    accessLoginInProgress=true;
+    try{
     renderLoginAnnouncement('admin');
     const u = document.getElementById("login-user").value.trim();
     const p = document.getElementById("login-pw").value.trim();
@@ -3470,6 +3559,7 @@
     const pullOk=await cloudSyncPull();
     updateLoginHealth(pullOk);
     if(!pullOk){
+      await recordAccessEvent('login_unavailable','登入資料讀取失敗，尚未驗證帳號密碼',{sync:false,actor:{name:'未登入',role:'anonymous',username:u}});
       if(progressEl) progressEl.innerText='無法載入最新資料，請檢查網路後再試。';
       if(loginBtn){loginBtn.disabled=false;loginBtn.innerText='登入系統';}
       return;
@@ -3479,6 +3569,7 @@
     let loginOk = acc ? await verifyPassword(p, acc.password) : false;
 
     if(loginOk && acc?.role==='director' && systemSettings.directorLoginEnabled===false){
+      await recordAccessEvent('login_blocked','社區主任入口已停用，登入遭拒',{sync:false,actor:{name:'未登入',role:'anonymous',username:u}});
       document.getElementById("login-error").textContent='目前暫停開放社區主任登入，請洽系統管理員。';
       document.getElementById("login-error").style.display='block';
       if(loginBtn){loginBtn.disabled=false;loginBtn.innerText='登入系統';}if(progressEl)progressEl.style.display='none';
@@ -3490,11 +3581,11 @@
       // 管理員/主任完全不需要額外操作，下次登入起密碼就已經是雜湊過的，資料庫不會再留有明文密碼。
       if (!isHashedPassword(acc.password)) {
         acc.password = await hashPassword(p);
-        cloudSyncPush();
       }
 
       currentUser = { ...acc };
       delete currentUser.password; // 💡 currentUser 不需要保留密碼（雜湊值也不必要），避免被存進 localStorage
+      beginAccessSession(true);accessResumeRecorded=true;accessLogoutInProgress=false;
       localStorage.setItem("lottery_user", JSON.stringify(currentUser));
       document.getElementById("login-overlay").style.display = "none";
       if(bgCarouselTimer) clearInterval(bgCarouselTimer);
@@ -3502,7 +3593,8 @@
       initApp();
       showFirstLoginGuide();
       startAutoSync();
-      addLog("登入", `${currentUser.name} (${currentUser.role === 'admin' ? '管理員' : '社區主任'}) 登入系統`).then(ok => { if (!ok) alert(CLOUD_SYNC_FAIL_MSG); });
+      const accessSaved=await recordAccessEvent('login_success',`${currentUser.name} (${currentUser.role === 'admin' ? '管理員' : '社區主任'}) 登入系統`);
+      if(!accessSaved)showAppToast('已登入，但登入紀錄尚未確認雲端保存；已保留本機待補送。請確認同步狀態。','warn');
 
       if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = "登入系統"; }
       if(progressEl) progressEl.style.display='none';
@@ -3511,7 +3603,16 @@
       if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = "登入系統"; }
       if(progressEl) progressEl.style.display='none';
       // 💡 記錄登入失敗嘗試（不記錄密碼本身），方便日後稽核是否有人在嘗試猜測帳密
-      addLog("登入", `登入失敗：帳號「${u}」密碼錯誤或帳號不存在`);
+      document.getElementById('login-error').textContent='帳號或密碼不正確';
+      await recordAccessEvent('login_failed',`登入失敗：帳號「${u}」密碼錯誤或帳號不存在`,{sync:false,actor:{name:'未登入',role:'anonymous',username:u}});
+    }
+    }catch(e){
+      console.error('登入流程失敗：',e);
+      const error=document.getElementById('login-error');if(error){error.textContent='無法完成登入，請確認網路與同步狀態後再試。';error.style.display='block';}
+      await recordAccessEvent('login_error','登入流程未完成，請檢查同步狀態',{sync:false,actor:{name:'未登入',role:'anonymous',username:''}});
+    }finally{
+      accessLoginInProgress=false;
+      const button=document.querySelector('#login-overlay .btn-primary');if(button){button.disabled=false;button.textContent='登入系統';}
     }
   }
 
@@ -3533,8 +3634,9 @@
     if(resultInput)resultInput.value='';if(resultBox)resultBox.textContent='請輸入門牌、棟別或樓層後查詢我的車位。';if(resultError)resultError.textContent='';
 
     currentUser = { name: "社區住戶", role: "guest", username: "guest", password: "" };
+    beginAccessSession(true);accessResumeRecorded=true;accessLogoutInProgress=false;
     // 住戶模式不需要管理端帳號、稽核紀錄與操作紀錄；即使這些資料曾在同步回應中存在，也不再長期留在前端記憶體。
-    accountsList = []; pendingAudits = []; systemLogs = [];
+    accountsList = []; pendingAudits = []; systemLogs = []; accessHistory={};
     localStorage.setItem("lottery_user", JSON.stringify(currentUser));
     document.getElementById("login-overlay").style.display = "none";
     if(bgCarouselTimer) clearInterval(bgCarouselTimer);
@@ -3545,20 +3647,24 @@
     selectResultRound('全部輪次');
     showFirstLoginGuide();
     startAutoSync();
-    addLog("登入", "以社區住戶身分進入系統");
+    await recordAccessEvent('guest_entry','以社區住戶身分進入查詢（匿名入口，未驗證個別住戶）',{sync:false});
 
     if (guestBtn) { guestBtn.disabled = false; guestBtn.innerText = "進入社區住戶查詢入口"; }
   }
 
   async function doLogout() {
+    if(accessLogoutInProgress)return;
     if(isLotteryDataFrozen()){showAppToast('資料處理或同步尚未完成，請稍候再登出。','warn');return;}
+    accessLogoutInProgress=true;
     stopAutoSync();
+    await recordAccessEvent('logout','使用者主動登出',{sync:false});
+    if(currentUser&&['admin','director'].includes(currentUser.role)&&cloudSyncReady&&!syncRecoveryNeedsReview)void cloudSyncPush().catch(e=>console.warn('登出紀錄待補送：',e));
     // 💡 重要修正：先前的寫法只會等待「登出這個動作自己觸發的那一次寫入」完成，
     // 但如果使用者是在執行完抽籤後很快就按登出，抽籤結果那次的寫入很可能還在進行中、
     // 根本是「另一次」獨立的寫入，並不會被登出當下這次的等待涵蓋到！
     // 加上先前版本額外的檢查機制拖慢了每次寫入速度，兩者疊加後就很容易讓
     // 「抽籤剛跑完的那次寫入」還沒送達雲端，就被登出流程的重新整理直接中斷。
-    // 修正為：登出時不再另外觸發新的寫入（登出紀錄本身不是關鍵資料，犧牲它換取更高的可靠性），
+    // 登出紀錄先留在本機待送區，再嘗試雲端寫入；未確認時保留，不宣稱已保存。
     // 而是確實等待「目前所有」還在進行中的雲端寫入（不論是誰、哪個動作觸發的）都真正完成，
     // 才清除登入狀態並重新整理頁面，確保剛執行的抽籤結果等資料一定有安全送達雲端。
     const logoutBtns = document.querySelectorAll(".user-bar-btn");
@@ -3569,6 +3675,8 @@
 
     localStorage.removeItem("lottery_user");
     localStorage.removeItem("parking_lottery_last_room");
+    try{sessionStorage.removeItem('parking_lottery_access_session');}catch(_){}
+    currentUser=null;
     location.reload();
   }
 
@@ -8990,6 +9098,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   async function addLog(type, msg, options = {}) {
+    if(type==='登入')return recordAccessEvent(options.action||'access',msg,options);
     lastManualMutationAt = Date.now();
     systemLogs.unshift({
       id: options.eventId || `log_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
@@ -8997,7 +9106,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       isoTime: new Date().toISOString(),
       type,
       msg,
-      user: currentUser.name,
+      user: currentUser?.name||'未登入',
       context: getLogContextSnapshot()
     });
     // 💡 重要修正：操作紀錄若無限累加，會讓每一次同步的資料量隨著使用時間越來越肥大、越來越慢、
@@ -9059,7 +9168,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       filtered.forEach(l => {
         const highRisk=/重抽|清除|還原|鎖定互換|重置/.test(String(l.msg||''));
         const ctx=l.context||null;
-      const detail=ctx?.documentAudit
+        const detail=ctx?.accessAudit
+        ? `登入歷程｜<b>${ctx.cloudSaved?'雲端已保存':'本機待補送（僅此瀏覽器）'}</b>｜工作階段：${escapeHtml(ctx.sessionId||'—')}｜回報身分：${escapeHtml(ctx.role||'—')}｜帳號：${escapeHtml(ctx.username||'—')}<br>此為前端回報，不是後端驗證；匿名住戶事件無法辨識個別住戶。`
+        :ctx?.documentAudit
         ? `年度文件稽核｜年度：<b>${escapeHtml(ctx.year||'—')}</b>｜檔案識別碼：${escapeHtml(ctx.itemId||'—')}｜此筆紀錄由紙本文件獨立稽核保存。`
         :ctx
         ? `紀錄編號：${escapeHtml(l.id||'舊版紀錄')}｜當時住戶：<b>${Number(ctx.residents)||0}</b> 位｜已分配：<b>${Number(ctx.assigned)||0}</b> 位｜作廢：<b>${Number(ctx.voidSeats)||0}</b> 位｜資料版本：${escapeHtml(ctx.dataVersion||'—')}`
@@ -9070,7 +9181,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           <div class="log-tl-dot"></div>
           <div class="log-tl-content">
             <div style="font-size:13.5px;color:var(--text-muted);margin-bottom:6px;font-weight:800"><label style="display:inline-flex;align-items:center;gap:5px;margin-right:8px;font-size:12px"><input type="checkbox" value="${escapeHtml(logId)}" ${selectedLogIds.includes(logId)?'checked':''} onchange="toggleLogCompare(this.value,this.checked)">比較</label>${escapeHtml(formatLogTime(l))} <span class="badge status-action" style="margin:0 8px">${escapeHtml(l.type)}</span> 執行者：${escapeHtml(l.user)}</div>
-            <div style="font-size:15px;color:var(--text-main);font-weight:700;line-height:1.6">${highRisk?'<span class="log-risk-label">高風險操作</span> ':''}${escapeHtml(l.msg)}</div>
+            <div style="font-size:15px;color:var(--text-main);font-weight:700;line-height:1.6">${highRisk?'<span class="log-risk-label">高風險操作</span> ':''}${escapeHtml(l.msg)}${ctx?.accessAudit?` <span class="badge" data-access-save-state="${ctx.cloudSaved?'cloud':'local'}" style="margin-left:8px;color:${ctx.cloudSaved?'#166534':'#9a3412'};background:${ctx.cloudSaved?'#f0fdf4':'#fff7ed'}">${ctx.cloudSaved?'雲端已保存':'本機待補送'}</span>`:''}</div>
             <details class="log-detail"><summary>資料版本與當時摘要</summary><div>${detail}</div></details>
           </div>
         </div>`;
@@ -9078,7 +9189,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     }
     const notice=registrationAuditLoadError?`<div class="settings-risk-note" role="alert">${escapeHtml(registrationAuditLoadError)} <button class="btn btn-sm" onclick="loadRegistrationAuditLogs()">重新載入</button></div>`:registrationAuditLoading?'<p role="status">正在讀取年度文件紀錄…</p>':'';
     if(!filtered.length&&(registrationAuditLoadError||registrationAuditLoading))html='';
-    document.getElementById('log-timeline').innerHTML = notice+html;
+    const accessNotice=`<div class="muted-note" role="note">登入歷程獨立保留，不受一般紀錄 300 筆上限影響。本機待補送 ${getPendingAccessEvents().length} 筆（僅此瀏覽器）；匿名入口與關閉頁面不構成完整身分稽核。 <button class="btn btn-sm" onclick="syncPendingAccessHistory()">補送本機登入紀錄</button></div>`;
+    document.getElementById('log-timeline').innerHTML = accessNotice+notice+html;
     document.getElementById('logs-table-tbody').innerHTML=filtered.map(l=>`<tr><td>${escapeHtml(l.time||'')}</td><td>${escapeHtml(l.type||'')}</td><td>${escapeHtml(l.msg||'')}</td><td>${escapeHtml(l.user||'')}</td></tr>`).join('');
     decorateEmptyStates(document.getElementById('page-logs'));
     decorateCardMetadata(document.getElementById('page-logs'));
@@ -9118,11 +9230,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       alert('權限不足，僅系統管理員可清除操作紀錄！');
       return;
     }
-    if (!confirm("確定要清除所有操作紀錄嗎？")) return;
+    if (!confirm("確定要清除一般操作紀錄嗎？登入歷程與年度文件稽核會保留。")) return;
     const snapshot = JSON.parse(JSON.stringify(systemLogs || []));
     systemLogs = [];
     renderLogs();
-    const ok = await addLog("設定", "清除全部操作紀錄", {sync:false}) && await cloudSyncPush();
+    const ok = await addLog("設定", "清除一般操作紀錄（保留登入歷程與年度文件稽核）", {sync:false}) && await cloudSyncPush();
     if (!ok) {
       systemLogs = snapshot;
       renderLogs();
@@ -9132,10 +9244,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
 
   function exportLogs() {
     if (!currentUser || currentUser.role !== 'admin') { alert('權限不足！僅系統管理員可匯出操作紀錄。'); return; }
-    let csv = "\ufeff時間,類型,使用者,訊息\n";
+    let csv = "\ufeff時間,類型,使用者,訊息,登入紀錄保存狀態,動作,工作階段,回報身分,帳號\n";
     const allLogs=getAllOperationLogs();
     allLogs.forEach(l => {
-      const row = [l.time || "", l.type || "", l.user || "", l.msg || ""];
+      const access=l.context?.accessAudit;
+      const row = [l.time || "", l.type || "", l.user || "", l.msg || "",access?(l.context.cloudSaved?'雲端已保存':'本機待補送'):'',access?l.action||'':'',access?l.sessionId||'':'',access?l.role||'':'',access?l.username||'':''];
       csv += row.map(csvEscape).join(',') + "\r\n";
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -9399,8 +9512,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
   function getAllOperationLogs(){
     const system=Array.isArray(systemLogs)?systemLogs:[], documents=Array.isArray(registrationAuditLogs)?registrationAuditLogs:[];
-    const rows=[...system,...documents], seen=new Set();
-    return rows.filter(x=>{const id=String(x?.eventId||x?.id||'');if(id&&seen.has(id))return false;if(id)seen.add(id);return true;}).sort((a,b)=>{
+    const access=currentUser?.role==='admin'?getAccessLogRows():[];
+    const rows=[...access,...system,...documents], seen=new Set();
+    return rows.filter(x=>{const id=x?.type==='登入'?accessEventIdentity(x):String(x?.eventId||x?.id||'');if(id&&seen.has(id))return false;if(id)seen.add(id);return true;}).sort((a,b)=>{
       const at=new Date(a?.isoTime||a?.time||0).getTime(),bt=new Date(b?.isoTime||b?.time||0).getTime();return (Number.isFinite(bt)?bt:0)-(Number.isFinite(at)?at:0);
     });
   }
@@ -9695,6 +9809,6 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
 </script>
   
 
-<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261016.16｜修訂日期 2026/10/16｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
+<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261019.17｜修訂日期 2026/10/19｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
 </body>
 </html>
