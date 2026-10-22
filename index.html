@@ -253,6 +253,21 @@
   /* 💡 預覽手冊相關樣式 */
   .pdf-preview-box { background:#f8fafc; border:2px dashed #94a3b8; border-radius:14px; height:500px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; position:relative; box-shadow:inset 0 2px 10px rgba(0,0,0,0.02)}
   .pdf-preview-box iframe { width:100%; height:100%; border:none; flex:1; background:#fff; z-index:2; }
+  .lottery-registration-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .lottery-registration-stat{min-width:0;padding:16px;border:1px solid var(--border,#e2e8f0);border-radius:var(--radius-card);background:#f8fafc}
+  .lottery-registration-stat strong{display:block;margin:8px 0;font-size:30px;line-height:1.3;font-variant-numeric:tabular-nums;font-weight:800}
+  .lottery-registration-stat strong small{font-size:14px;font-weight:500;margin-left:6px}
+  .lottery-registration-stat>small{display:block;color:var(--text-muted);line-height:1.6}
+  #registration-online-preview .registration-preview-dialog{display:flex;flex-direction:column;width:min(1000px,95vw);max-width:1000px;max-height:94vh;max-height:94dvh;overflow:auto}
+  .registration-preview-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 0;flex-shrink:0;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:2;background:white}
+  .registration-preview-toolbar .btn{min-height:44px;white-space:nowrap}
+  .registration-preview-page-label{font-variant-numeric:tabular-nums;min-width:110px;text-align:center}
+  .registration-preview-stage{height:60vh;height:60dvh;min-height:180px;overflow:auto;flex:1 1 auto;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:var(--radius-sm);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .registration-preview-stage iframe{display:block;width:100%;height:100%;min-height:180px;border:0;background:white}
+  .registration-preview-stage img{display:block;max-width:100%;height:auto;margin:auto}
+  .registration-preview-status{font-size:14px;line-height:1.5;margin:8px 0;color:var(--text-muted);flex-shrink:0}
+  #registration-online-preview .modal-footer{flex-shrink:0;margin-top:10px;position:sticky;bottom:0;background:white;padding:8px 0}
+  @media(max-width:640px){.lottery-registration-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lottery-registration-stat{padding:12px}.lottery-registration-stat strong{font-size:26px}#registration-online-preview .registration-preview-dialog{padding:16px;width:96vw}.registration-preview-toolbar{gap:6px}.registration-preview-toolbar .btn{padding:8px 10px;font-size:14px}.registration-preview-page-label{min-width:90px}}
   .pdf-placeholder { color:var(--text-muted); font-weight:800; font-size:17px; position:absolute; z-index:1; }
 
   /* 登入背景輪播專用 */
@@ -1049,6 +1064,7 @@
     <div class="lottery-step" data-step="4" role="button" tabindex="0" onclick="selectLotteryRound('候補')" onkeydown="if(event.key==='Enter'||event.key===' '){selectLotteryRound('候補')}">④ 候補<small>三輪完成後執行</small></div>
   </div>
   <div class="lottery-lock-note" id="lottery-lock-note"></div>
+  <section class="card" id="lottery-registration-summary" aria-label="各輪報名人數與合計" aria-live="polite"></section>
   <div class="lrs-grid">
     <div class="lrs-card active" data-round="第一輪" onclick="selectLotteryRound('第一輪')">
       <div class="flex-between">
@@ -5425,8 +5441,24 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     box.classList.toggle('risk',clearing.length>0); box.classList.toggle('safe',clearing.length===0);
     risk.textContent=`${priorExcluded.length?`本輪有 ${priorExcluded.length} 位去年資料待確認住戶，已排除抽籤；請先於住戶名單完成核對。　`:''}${clearing.length?`重抽將清除：${clearing.join('、')} 的既有結果。`:'本次不會清除後續輪次或候補結果。'}`;
   }
+  function getLotteryRegistrationSummary(){
+    const unique=new Set();let priorYearEntries=0;
+    const rounds=['第一輪','第二輪','第三輪'].map((round,index)=>{
+      const field='r'+(index+1),registered=residents.filter(r=>r[field]==='Y'&&!isPriorYearPlatePending(r));
+      priorYearEntries+=residents.filter(r=>r[field]==='Y'&&isPriorYearPlatePending(r)).length;
+      registered.forEach(r=>unique.add(Number(r.id)));
+      return {round,registered:registered.length,eligible:getFormalLotteryEligibleResidents(round).length};
+    });
+    return {rounds,totalEntries:rounds.reduce((sum,r)=>sum+r.registered,0),uniqueResidents:unique.size,priorYearEntries};
+  }
+  function renderLotteryRegistrationSummary(){
+    const host=document.getElementById('lottery-registration-summary');if(!host)return;
+    const summary=getLotteryRegistrationSummary();
+    host.innerHTML=`<div class="card-title">抽籤報名統計</div><div class="lottery-registration-grid">${summary.rounds.map(r=>`<div class="lottery-registration-stat"><span>${r.round}</span><strong>${r.registered}<small>人</small></strong><small>目前符合抽籤資格 ${r.eligible} 人</small></div>`).join('')}<div class="lottery-registration-stat"><span>三輪合計</span><strong>${summary.totalEntries}<small>人次</small></strong><small>不重複報名住戶 ${summary.uniqueResidents} 戶</small></div></div><p class="muted-note" style="margin-bottom:0">報名數計算已勾選參加、且非「去年資料待確認」的住戶；已排除去年待確認 ${summary.priorYearEntries} 人次。三輪合計不含候補，同一住戶報名多輪會重複計入人次；實際抽籤仍依車牌等共用資格規則覆核。</p>`;
+  }
   function updateLotteryCards() {
     normalizeSystemSettings();
+    renderLotteryRegistrationSummary();
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
     const baseAvailable = systemSettings.totalSeats - voidCount;
 
@@ -9593,9 +9625,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if(window.PDFLib)return window.PDFLib;
     if(!registrationPdfLibraryPromise)registrationPdfLibraryPromise=new Promise((resolve,reject)=>{
       const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
-      const timer=setTimeout(()=>{script.remove();reject(new Error('PDF 壓縮元件載入逾時'));},20000);
-      script.onload=()=>{clearTimeout(timer);window.PDFLib?resolve(window.PDFLib):reject(new Error('PDF 壓縮元件不可用'));};
-      script.onerror=()=>{clearTimeout(timer);script.remove();reject(new Error('PDF 壓縮元件載入失敗，請確認網路'));};document.head.appendChild(script);
+      const timer=setTimeout(()=>{script.remove();reject(new Error('PDF 處理元件載入逾時'));},20000);
+      script.onload=()=>{clearTimeout(timer);window.PDFLib?resolve(window.PDFLib):reject(new Error('PDF 處理元件不可用'));};
+      script.onerror=()=>{clearTimeout(timer);script.remove();reject(new Error('PDF 處理元件載入失敗，請確認網路'));};document.head.appendChild(script);
     }).catch(e=>{registrationPdfLibraryPromise=null;throw e;});
     return registrationPdfLibraryPromise;
   }
@@ -9631,6 +9663,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
         if(sequence!==registrationSelectionSequence||pendingRegistrationForm!==p)return;
         const host=document.getElementById('registration-form-preview'),message=document.createElement('div');
         message.innerHTML=`<small>原始容量：${registrationFileSize(source.size)}｜保存容量：${registrationFileSize(selected.size)}｜頁數：${p.pageCount||'無法讀取／不適用'}</small><small>${escapeHtml(p.compressionNote)}</small><small>雜湊：${p.sha256?'已計算，保存後再次驗證':'此環境無法計算，不能完成完整性驗證'}</small>`;
+        const fullPreview=document.createElement('button');fullPreview.type='button';fullPreview.className='btn btn-sm';fullPreview.textContent='開啟完整預覽／翻頁';fullPreview.onclick=()=>previewPendingRegistrationForm();message.appendChild(fullPreview);
         if(p.compressed){const label=document.createElement('label'),checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.style.width='auto';checkbox.onchange=()=>{p.previewConfirmed=checkbox.checked;document.getElementById('registration-form-confirm-upload').disabled=!checkbox.checked;};label.append(checkbox,document.createTextNode(' 已預覽壓縮後文件，頁面完整且清晰'));message.appendChild(label);document.getElementById('registration-form-confirm-upload').disabled=true;}
         if(!p.compressed)document.getElementById('registration-form-confirm-upload').disabled=false;
         host?.appendChild(message);registrationFormStatus('請核對容量、頁數與文件預覽後保存。');
@@ -9666,6 +9699,94 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       registrationFormStatus('保存失敗：'+String(e.message||e));showAppToast('檔案未完成保存，請確認儲存連線與權限。','warn');
     }finally{if(button)button.disabled=!pendingRegistrationForm;}
   }
+  let activeRegistrationPreview=null;
+  async function createRegistrationPdfPager(bytes,callbacks={}){
+    const lib=await loadRegistrationPdfLibrary();
+    const pdf=await lib.PDFDocument.load(bytes,{updateMetadata:false}),total=pdf.getPageCount();
+    if(!total)throw new Error('PDF 沒有可預覽的頁面');
+    let page=0,busy=false,closed=false,pageUrl='';
+    const state=()=>({page,total,busy,closed});
+    const notify=()=>{if(!closed)callbacks.onState?.(state());};
+    const pager={
+      getState:state,
+      async goTo(target){
+        if(closed||busy||!Number.isInteger(target)||target<1||target>total)return false;
+        busy=true;notify();
+        try{
+          // 平板即使只能顯示內嵌 PDF 的第一頁，也會看到使用者指定的原始頁面。
+          // 僅建立暫存的一頁預覽，不變更保存檔案、頁數、雜湊或上傳內容。
+          const single=await lib.PDFDocument.create(),copied=await single.copyPages(pdf,[target-1]);
+          single.addPage(copied[0]);
+          const data=await single.save({useObjectStreams:true,addDefaultPage:false});
+          if(closed)return false;
+          const nextUrl=URL.createObjectURL(new Blob([data],{type:'application/pdf'})),previous=pageUrl;
+          pageUrl=nextUrl;page=target;
+          callbacks.onPage?.({url:pageUrl,page,total});
+          if(previous)URL.revokeObjectURL(previous);
+          return true;
+        }finally{busy=false;notify();}
+      },
+      dispose(){if(closed)return;closed=true;if(pageUrl)URL.revokeObjectURL(pageUrl);pageUrl='';}
+    };
+    notify();return pager;
+  }
+  async function openRegistrationDocumentPreview(blob,name,options={}){
+    if(!['application/pdf','image/png','image/jpeg'].includes(blob.type))throw new Error('不支援的預覽格式');
+    activeRegistrationPreview?.close();
+    const originalUrl=URL.createObjectURL(blob),modal=document.createElement('div'),pdf=blob.type==='application/pdf';
+    const previousFocus=document.activeElement;
+    let closed=false,pager=null,zoom=1;
+    modal.id='registration-online-preview';modal.className='modal-overlay show';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','年度文件完整預覽');
+    modal.innerHTML=`<div class="modal-box registration-preview-dialog"><h2 style="margin:0 0 6px">年度文件預覽</h2><p style="margin:0;overflow-wrap:anywhere">${escapeHtml(name||'年度文件')}</p><div class="registration-preview-toolbar">${pdf?'<button class="btn btn-sm" data-prev disabled>上一頁</button><span class="registration-preview-page-label" data-page role="status" aria-live="polite">讀取頁數中…</span><button class="btn btn-sm" data-next disabled>下一頁</button><button class="btn btn-sm" data-zoom-out aria-label="縮小檢視" disabled>縮小</button><span data-zoom>100%</span><button class="btn btn-sm" data-zoom-in aria-label="放大檢視" disabled>放大</button>':'<span>圖片預覽</span>'}<a class="btn btn-sm" data-open target="_blank" rel="noopener noreferrer">另開完整文件</a><a class="btn btn-sm" data-download>下載原始完整檔</a></div><div class="registration-preview-status" data-status role="status" aria-live="polite">${pdf?'正在準備分頁預覽…':'圖片預覽'}</div><div class="registration-preview-stage">${pdf?'<iframe title="年度登記表分頁預覽" src="about:blank"></iframe>':'<img alt="年度登記表圖片預覽">'}</div><div class="modal-footer"><button class="btn" data-close>關閉預覽</button></div></div>`;
+    const q=selector=>modal.querySelector(selector),status=q('[data-status]');
+    q('[data-open]').href=originalUrl;q('[data-download]').href=originalUrl;q('[data-download]').download=String(name||'年度文件');
+    if(options.onDownload)q('[data-download]').onclick=async e=>{e.preventDefault();try{await options.onDownload();}catch(error){showAppToast('下載未完成，請確認同步與檔案狀態。','warn');}};
+    const close=()=>{
+      if(closed)return;closed=true;pager?.dispose();URL.revokeObjectURL(originalUrl);document.removeEventListener('keydown',key);modal.remove();
+      if(activeRegistrationPreview?.modal===modal)activeRegistrationPreview=null;
+      previousFocus?.focus?.();
+    };
+    const showPage=async target=>{
+      try{await pager?.goTo(target);}catch(e){if(!closed){status.textContent='此頁無法預覽：'+String(e.message||e)+'。請另開完整文件或下載。';showAppToast('PDF 分頁預覽失敗，原始檔案未變更。','warn');}}
+    };
+    const key=e=>{
+      if(e.key==='Escape'){e.preventDefault();close();return;}
+      if(!pdf||!pager||!modal.contains(e.target)||['input','textarea','select'].includes(String(e.target?.tagName||'').toLowerCase()))return;
+      if(e.key==='ArrowLeft'){e.preventDefault();void showPage(pager.getState().page-1);}
+      if(e.key==='ArrowRight'){e.preventDefault();void showPage(pager.getState().page+1);}
+    };
+    q('[data-close]').onclick=close;modal.onclick=e=>{if(e.target===modal)close();};document.addEventListener('keydown',key);document.body.appendChild(modal);activeRegistrationPreview={modal,close};q('[data-close]').focus();
+    if(!pdf){q('img').src=originalUrl;return true;}
+    const frame=q('iframe');
+    const resize=amount=>{zoom=Math.min(2,Math.max(.75,Math.round((zoom+amount)*100)/100));frame.style.width=(zoom*100)+'%';frame.style.height=(zoom*100)+'%';q('[data-zoom]').textContent=Math.round(zoom*100)+'%';};
+    q('[data-zoom-out]').onclick=()=>resize(-.25);q('[data-zoom-in]').onclick=()=>resize(.25);
+    try{
+      pager=await createRegistrationPdfPager(await blob.arrayBuffer(),{
+        onState:s=>{
+          if(closed)return;
+          q('[data-prev]').disabled=s.busy||s.page<=1;q('[data-next]').disabled=s.busy||!s.page||s.page>=s.total;
+          q('[data-zoom-out]').disabled=q('[data-zoom-in]').disabled=s.busy||!s.page;
+          q('[data-page]').textContent=`第 ${s.page||1}／共 ${s.total} 頁`;
+          status.textContent=s.busy?'正在準備頁面，請稍候…':s.page?'請用上方「上一頁／下一頁」翻頁；比例調整僅影響此預覽。':'正在準備第一頁…';
+        },
+        onPage:item=>{if(!closed){frame.src=item.url+'#view=Fit&toolbar=0&navpanes=0';frame.title=`年度登記表第 ${item.page}／共 ${item.total} 頁`;}}
+      });
+      if(closed){pager.dispose();return false;}
+      q('[data-prev]').onclick=()=>showPage(pager.getState().page-1);q('[data-next]').onclick=()=>showPage(pager.getState().page+1);
+      await pager.goTo(1);return !closed;
+    }catch(e){
+      if(!closed){status.textContent='無法建立分頁預覽：'+String(e.message||e)+'。原始檔未變更，可使用「另開完整文件」或下載。';q('[data-page]').textContent='無法讀取頁數';['[data-prev]','[data-next]','[data-zoom-out]','[data-zoom-in]'].forEach(selector=>{q(selector).disabled=true;});}
+      return false;
+    }
+  }
+  async function previewPendingRegistrationForm(){
+    const pending=pendingRegistrationForm;if(!pending||!canManageRegistrationForms())return;
+    try{
+      const type=pending.file.type||(/\.pdf$/i.test(pending.file.name)?'application/pdf':/\.png$/i.test(pending.file.name)?'image/png':'image/jpeg');
+      const bytes=await pending.file.arrayBuffer();if(pending!==pendingRegistrationForm)return;
+      await openRegistrationDocumentPreview(new Blob([bytes],{type}),pending.name||pending.file.name);
+    }catch(e){showAppToast('無法預覽待上傳文件：'+String(e.message||e),'warn');}
+  }
   async function previewRegistrationForm(year,id){
     if(!canManageRegistrationForms()||!validRegistrationArchiveYear(year))return;
     try{
@@ -9677,12 +9798,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       if(item.sha256&&await registrationSha256(await blob.arrayBuffer())!==item.sha256)throw new Error('完整性驗證失敗');
       if(!['application/pdf','image/png','image/jpeg'].includes(blob.type))throw new Error('不支援的預覽格式');
       await updateRegistrationFormPaths(registrationAuditPatch(year,'預覽',`${item.name||'年度文件'}（線上預覽）`,id));
-      document.getElementById('registration-online-preview')?.remove();
-      const url=URL.createObjectURL(blob),modal=document.createElement('div');modal.id='registration-online-preview';modal.className='modal-overlay show';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','年度文件線上預覽');
-      modal.innerHTML=`<div class="modal-box" style="width:min(1000px,95vw);max-width:1000px"><h2>年度文件預覽</h2><p>${escapeHtml(item.name||'年度文件')}</p>${blob.type==='application/pdf'?'<iframe title="年度登記表 PDF 預覽" style="width:100%;height:65vh;border:0"></iframe>':'<img alt="年度登記表圖片預覽" style="max-width:100%;max-height:65vh;object-fit:contain">'}<p class="muted-note">若瀏覽器不支援 PDF 預覽，請關閉此視窗並使用下載功能。</p><div class="modal-footer"><button class="btn">關閉預覽</button></div></div>`;
-      modal.querySelector(blob.type==='application/pdf'?'iframe':'img').src=url;
-      const close=()=>{URL.revokeObjectURL(url);document.removeEventListener('keydown',key);modal.remove();};
-      const key=e=>{if(e.key==='Escape')close();};modal.querySelector('button').onclick=close;modal.onclick=e=>{if(e.target===modal)close();};document.addEventListener('keydown',key);document.body.appendChild(modal);modal.querySelector('button').focus();registrationFormStatus('已開啟預覽。');
+      const ok=await openRegistrationDocumentPreview(blob,item.name||'年度文件',{onDownload:()=>downloadRegistrationForm(year,id)});
+      registrationFormStatus(ok?'已開啟完整預覽；PDF 請使用上一頁／下一頁。':'分頁預覽尚未完成；可另開完整文件或下載。');
     }catch(e){registrationFormStatus('預覽失敗：'+String(e.message||e));showAppToast('無法開啟文件預覽，請確認網路與檔案完整性。','warn');}
   }
   async function downloadRegistrationForm(year,id){
@@ -9809,6 +9926,6 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
 </script>
   
 
-<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261019.17｜修訂日期 2026/10/19｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
+<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261022.18｜修訂日期 2026/10/22｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
 </body>
 </html>
