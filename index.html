@@ -258,11 +258,11 @@
   .lottery-registration-stat strong{display:block;margin:8px 0;font-size:30px;line-height:1.3;font-variant-numeric:tabular-nums;font-weight:800}
   .lottery-registration-stat strong small{font-size:14px;font-weight:500;margin-left:6px}
   .lottery-registration-stat>small{display:block;color:var(--text-muted);line-height:1.6}
-  #registration-online-preview .registration-preview-dialog{display:flex;flex-direction:column;width:min(1000px,95vw);max-width:1000px;max-height:94vh;max-height:94dvh;overflow:auto}
+  #registration-online-preview .registration-preview-dialog{display:flex;flex-direction:column;width:min(1200px,98vw);max-width:1200px;height:96vh;height:96dvh;max-height:96dvh;overflow:auto;padding:20px}
   .registration-preview-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 0;flex-shrink:0;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:2;background:white}
   .registration-preview-toolbar .btn{min-height:44px;white-space:nowrap}
   .registration-preview-page-label{font-variant-numeric:tabular-nums;min-width:110px;text-align:center}
-  .registration-preview-stage{height:60vh;height:60dvh;min-height:180px;overflow:auto;flex:1 1 auto;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:var(--radius-sm);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .registration-preview-stage{height:72vh;height:72dvh;min-height:180px;overflow:auto;flex:1 1 auto;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:var(--radius-sm);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   .registration-preview-stage iframe{display:block;width:100%;height:100%;min-height:180px;border:0;background:white}
   .registration-preview-stage img{display:block;max-width:100%;height:auto;margin:auto}
   .registration-preview-status{font-size:14px;line-height:1.5;margin:8px 0;color:var(--text-muted);flex-shrink:0}
@@ -969,7 +969,7 @@
     <div class="registration-selection-bar"><span id="registration-selected-count">已選0份</span><button class="btn btn-sm" onclick="selectVisibleRegistrationDocuments()">選取目前列表</button><button class="btn btn-sm" onclick="clearRegistrationSelection()">清除選取</button><button class="btn btn-sm" onclick="createRegistrationBundleFromSelection()">建立文件包／合併</button></div>
     <div id="registration-form-list" class="registration-form-list"></div>
     <div id="registration-bundle-list" class="registration-bundle-list"></div>
-    <details id="registration-bundle-editor" class="registration-subpanel"><summary>文件包與合併預覽</summary><div class="registration-bundle-body"><label for="registration-bundle-title">文件包名稱</label><input id="registration-bundle-title" maxlength="120" placeholder="例：116年度_C棟_登記資料" oninput="invalidateRegistrationBundleOutput()"><div class="registration-bundle-options"><label><input id="registration-bundle-cover" type="checkbox" checked onchange="invalidateRegistrationBundleOutput()">封面</label><label><input id="registration-bundle-toc" type="checkbox" checked onchange="invalidateRegistrationBundleOutput()">來源目錄</label><label><input id="registration-bundle-page-numbers" type="checkbox" checked onchange="invalidateRegistrationBundleOutput()">連續頁碼</label></div><div id="registration-bundle-sources"></div><p id="registration-bundle-status" class="muted-note" role="status"></p><div class="registration-bundle-options"><button class="btn btn-primary" onclick="previewRegistrationBundle()">預覽合併</button><button class="btn" onclick="saveRegistrationBundle()">保存文件包索引</button><button class="btn" onclick="downloadRegistrationBundle()">合併下載</button><button class="btn" onclick="downloadRegistrationBundleVolumes()">分冊下載</button></div><label class="registration-bundle-confirm"><input id="registration-bundle-confirm" type="checkbox" onchange="updateRegistrationBundleSaveButton()">已核對合併頁序與清晰度</label><button class="btn" id="registration-bundle-save-output" onclick="saveRegistrationBundleOutput()" disabled>另存彙整文件（上限5 MB）</button><small class="field-helper">文件包僅保存來源版本與順序，不重複保存原檔；來源有新版時須手動確認替換。合併僅供查閱，不取代原檔簽章與完整性驗證。</small></div></details>
+    <details id="registration-bundle-editor" class="registration-subpanel"><summary>文件包與合併預覽</summary><div class="registration-bundle-body"><label for="registration-bundle-title">文件包名稱</label><input id="registration-bundle-title" maxlength="120" placeholder="例：116年度_C棟_登記資料" oninput="invalidateRegistrationBundleOutput()"><div class="registration-bundle-options"><label><input id="registration-bundle-cover" type="checkbox" checked onchange="invalidateRegistrationBundleOutput()">封面</label><label><input id="registration-bundle-toc" type="checkbox" checked onchange="invalidateRegistrationBundleOutput()">來源目錄</label><label><input id="registration-bundle-page-numbers" type="checkbox" checked onchange="invalidateRegistrationBundleOutput()">連續頁碼</label></div><div id="registration-bundle-sources"></div><p id="registration-bundle-status" class="muted-note" role="status"></p><div class="registration-bundle-options"><button class="btn btn-primary" onclick="previewRegistrationBundle()">預覽合併</button><button class="btn" onclick="saveRegistrationBundle()">保存文件包索引</button><button class="btn" onclick="downloadRegistrationBundle()">合併下載</button><button class="btn" onclick="downloadRegistrationBundleVolumes()">分冊下載</button></div><label class="registration-bundle-confirm"><input id="registration-bundle-confirm" type="checkbox" onchange="updateRegistrationBundleSaveButton()">已核對合併頁序與清晰度</label><button class="btn" id="registration-bundle-save-output" onclick="saveRegistrationBundleOutput()" disabled>另存彙整文件（上限50 MB）</button><small class="field-helper">文件包僅保存來源版本與順序，不重複保存原檔；來源有新版時須手動確認替換。超過5 MB自動無損壓縮，壓縮後仍超過5 MB亦可保存（上限50 MB）。合併僅供查閱，不取代原檔簽章與完整性驗證。</small></div></details>
   </section>
   
   <div class="card card-pad-lg">
@@ -9810,7 +9810,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const previousFocus=document.activeElement;
     let closed=false,pager=null,zoom=1;
     modal.id='registration-online-preview';modal.className='modal-overlay show';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','年度文件完整預覽');
-    modal.innerHTML=`<div class="modal-box registration-preview-dialog"><h2 style="margin:0 0 6px">年度文件預覽</h2><p style="margin:0;overflow-wrap:anywhere">${escapeHtml(name||'年度文件')}</p><div class="registration-preview-toolbar">${pdf?'<button class="btn btn-sm" data-prev disabled>上一頁</button><span class="registration-preview-page-label" data-page role="status" aria-live="polite">讀取頁數中…</span><button class="btn btn-sm" data-next disabled>下一頁</button><button class="btn btn-sm" data-zoom-out aria-label="縮小檢視" disabled>縮小</button><span data-zoom>100%</span><button class="btn btn-sm" data-zoom-in aria-label="放大檢視" disabled>放大</button>':'<span>圖片預覽</span>'}<a class="btn btn-sm" data-open target="_blank" rel="noopener noreferrer">另開完整文件</a><a class="btn btn-sm" data-download>下載原始完整檔</a></div><div class="registration-preview-status" data-status role="status" aria-live="polite">${pdf?'正在準備分頁預覽…':'圖片預覽'}</div><div class="registration-preview-stage">${pdf?'<iframe title="年度登記表分頁預覽" src="about:blank"></iframe>':'<img alt="年度登記表圖片預覽">'}</div><div class="modal-footer"><button class="btn" data-close>關閉預覽</button></div></div>`;
+    modal.innerHTML=`<div class="modal-box registration-preview-dialog"><h2 style="margin:0 0 6px">年度文件預覽</h2><p style="margin:0;overflow-wrap:anywhere">${escapeHtml(name||'年度文件')}</p><div class="registration-preview-toolbar">${pdf?'<button class="btn btn-sm" data-prev disabled>上一頁</button><span class="registration-preview-page-label" data-page role="status" aria-live="polite">讀取頁數中…</span><button class="btn btn-sm" data-next disabled>下一頁</button><button class="btn btn-sm" data-zoom-out aria-label="縮小檢視" disabled>縮小</button><span data-zoom>適應寬度</span><button class="btn btn-sm" data-fit-width>適應寬度</button><button class="btn btn-sm" data-zoom-in aria-label="放大檢視" disabled>放大</button>':'<span>圖片預覽</span>'}<a class="btn btn-sm" data-open target="_blank" rel="noopener noreferrer">另開完整文件</a><a class="btn btn-sm" data-download>下載原始完整檔</a></div><div class="registration-preview-status" data-status role="status" aria-live="polite">${pdf?'正在準備分頁預覽…':'圖片預覽'}</div><div class="registration-preview-stage">${pdf?'<iframe title="年度登記表分頁預覽" src="about:blank"></iframe>':'<img alt="年度登記表圖片預覽">'}</div><div class="modal-footer"><button class="btn" data-close>關閉預覽</button></div></div>`;
     const q=selector=>modal.querySelector(selector),status=q('[data-status]');
     q('[data-open]').href=originalUrl;q('[data-download]').href=originalUrl;q('[data-download]').download=String(name||'年度文件');
     if(options.onDownload)q('[data-download]').onclick=async e=>{e.preventDefault();try{await options.onDownload();}catch(error){showAppToast('下載未完成，請確認同步與檔案狀態。','warn');}};
@@ -9833,6 +9833,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const frame=q('iframe');
     const resize=amount=>{zoom=Math.min(2,Math.max(.75,Math.round((zoom+amount)*100)/100));frame.style.width=(zoom*100)+'%';frame.style.height=(zoom*100)+'%';q('[data-zoom]').textContent=Math.round(zoom*100)+'%';};
     q('[data-zoom-out]').onclick=()=>resize(-.25);q('[data-zoom-in]').onclick=()=>resize(.25);
+    q('[data-fit-width]').onclick=()=>{zoom=1;frame.style.width='100%';frame.style.height='100%';q('[data-zoom]').textContent='適應寬度';q('.registration-preview-stage').scrollTop=0;q('.registration-preview-stage').scrollLeft=0;};
     try{
       pager=await createRegistrationPdfPager(await blob.arrayBuffer(),{
         onState:s=>{
@@ -9840,9 +9841,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
           q('[data-prev]').disabled=s.busy||s.page<=1;q('[data-next]').disabled=s.busy||!s.page||s.page>=s.total;
           q('[data-zoom-out]').disabled=q('[data-zoom-in]').disabled=s.busy||!s.page;
           q('[data-page]').textContent=`第 ${s.page||1}／共 ${s.total} 頁`;
-          status.textContent=s.busy?'正在準備頁面，請稍候…':s.page?'請用上方「上一頁／下一頁」翻頁；比例調整僅影響此預覽。':'正在準備第一頁…';
+          status.textContent=s.busy?'正在準備頁面，請稍候…':s.page?'請用上方「上一頁／下一頁」翻頁；預設適應頁寬，可放大或恢復適應寬度。':'正在準備第一頁…';
         },
-        onPage:item=>{if(!closed){frame.src=item.url+'#view=Fit&toolbar=0&navpanes=0';frame.title=`年度登記表第 ${item.page}／共 ${item.total} 頁`;}}
+        onPage:item=>{if(!closed){frame.src=item.url+'#view=FitH&zoom=page-width&toolbar=0&navpanes=0';frame.title=`年度登記表第 ${item.page}／共 ${item.total} 頁`;}}
       });
       if(closed){pager.dispose();return false;}
       q('[data-prev]').onclick=()=>showPage(pager.getState().page-1);q('[data-next]').onclick=()=>showPage(pager.getState().page+1);
@@ -10063,7 +10064,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function registrationGroupFingerprint(rows,key){return JSON.stringify(rows.filter(r=>registrationDocumentKey(r)===key).map(r=>[r.id,Number(r.version)||1,r.sha256||'',r.isOfficial!==false]).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))));}
   async function persistRegistrationFile(p){
     const year=p.year;if(!registrationMayModify(year)||year!==registrationArchiveYear())throw new Error('年度已變更或封存');
-    if(p.file.size>registrationUploadLimit(p.file)||!String(p.data||'').startsWith('data:'))throw new Error('檔案容量或內容不符合限制');
+    const uploadLimit=p.bundleProvenance&&p.category==='彙整文件'&&p.file.type==='application/pdf'?50*1024*1024:registrationUploadLimit(p.file);
+    if(p.file.size>uploadLimit||!String(p.data||'').startsWith('data:'))throw new Error('檔案容量或內容不符合限制');
     if(p.compressed&&!p.previewConfirmed)throw new Error('請先預覽並確認壓縮後內容');
     const id=p.submittedId||(p.submittedId=registrationNewId('f'));
     if(p.hasAttempted){const res=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsIndex/${year}/${id}.json`,true),{cache:'no-store'});if(!res.ok)throw new Error('無法確認先前提交結果');const existing=await res.json();if(existing){if(existing.sha256!==p.sha256||existing.documentId!==p.documentId)throw new Error('先前提交識別碼與檔案不一致');const verify=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!verify.ok)throw new Error('無法確認先前檔案內容');const saved=await verify.json();if(saved?.data!==p.data||saved?.sha256!==p.sha256){syncRecoveryNeedsReview=true;throw new Error('先前提交的檔案內容與索引不一致，請勿重複上傳');}registrationFormsIndex[year]={...registrationFormsIndex[year],[id]:existing};return id;}}
@@ -10108,7 +10110,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function registrationBundleSignature(manifest){return JSON.stringify([manifest.year,manifest.title,manifest.sources,manifest.options]);}
   function currentRegistrationBundle(){if(!registrationBundleDraft||registrationBundleDraft.year!==registrationArchiveYear())throw new Error('請先建立或開啟本年度文件包');return normalizeRegistrationBundle({...registrationBundleDraft,title:document.getElementById('registration-bundle-title')?.value,options:registrationBundleOptions()});}
   function invalidateRegistrationBundleOutput(){registrationBundleOutput=null;const check=document.getElementById('registration-bundle-confirm');if(check)check.checked=false;updateRegistrationBundleSaveButton();}
-  function updateRegistrationBundleSaveButton(){const button=document.getElementById('registration-bundle-save-output');if(button)button.disabled=!registrationBundleOutput||registrationOperationRunning||!registrationMayModify(registrationBundleOutput?.manifest.year||registrationArchiveYear())||registrationBundleOutput.blob.size>5*1024*1024||!document.getElementById('registration-bundle-confirm')?.checked;}
+  function updateRegistrationBundleSaveButton(){const button=document.getElementById('registration-bundle-save-output');if(button)button.disabled=!registrationBundleOutput||registrationOperationRunning||!registrationMayModify(registrationBundleOutput?.manifest.year||registrationArchiveYear())||registrationBundleOutput.blob.size>50*1024*1024||!document.getElementById('registration-bundle-confirm')?.checked;}
   function renderRegistrationBundleList(){
     const host=document.getElementById('registration-bundle-list');if(!host||!canManageRegistrationForms())return;const year=registrationArchiveYear();
     if(registrationBundleErrors[year]){host.innerHTML=`<div class="settings-risk-note">${escapeHtml(registrationBundleErrors[year])}</div>`;return;}
@@ -10159,11 +10161,12 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const manifest=currentRegistrationBundle(),signature=registrationBundleSignature(manifest);
     if(registrationBundleOutput?.signature===signature)return registrationBundleOutput;
     const inputs=await readRegistrationBundleSources(manifest),verified={...manifest,sources:inputs.map(i=>i.source)};
-    const result=await buildRegistrationBundlePdf(verified,inputs);
+    let result=await buildRegistrationBundlePdf(verified,inputs);
+    result=await compressRegistrationBundleOutput(result);
     if(registrationBundleSignature(currentRegistrationBundle())!==signature)throw new Error('編輯內容已變更，請重新產生預覽');
     registrationBundleDraft.sources=verified.sources;
     registrationBundleOutput={...result,manifest:verified,signature:registrationBundleSignature(verified)};
-    const status=document.getElementById('registration-bundle-status');if(status)status.textContent=`合併 ${inputs.length} 份來源，共 ${result.pageCount} 頁、${registrationFileSize(result.blob.size)}。${result.blob.size>5*1024*1024?'超過5 MB：可下載或分冊，不會強制降低清晰度。':'可下載或確認後另存彙整文件。'}`;
+    const status=document.getElementById('registration-bundle-status');if(status)status.textContent=`合併 ${inputs.length} 份來源，共 ${result.pageCount} 頁。${result.compressionNote} 可預覽確認後保存，合併文件上限50 MB。`;
     updateRegistrationBundleSaveButton();return registrationBundleOutput;
   }
   async function previewRegistrationBundle(){return runRegistrationOperation('文件包合併預覽',async()=>{const output=await preparedRegistrationBundle();await updateRegistrationFormPaths(registrationAuditPatch(output.manifest.year,'合併預覽',`${output.manifest.title}｜${output.pageCount}頁｜來源${output.manifest.sources.map(s=>s.fileId+':v'+s.version).join(',')}`,output.manifest.id));return openRegistrationDocumentPreview(output.blob,output.manifest.title+'.pdf');});}
@@ -10178,14 +10181,15 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const output=await preparedRegistrationBundle(),volumes=await splitRegistrationPdfVolumes(new Uint8Array(await output.blob.arrayBuffer()),5*1024*1024);
     await updateRegistrationFormPaths(registrationAuditPatch(output.manifest.year,'分冊下載',`${output.manifest.title}｜${volumes.length}冊（發起下載）`,output.manifest.id));
     for(let i=0;i<volumes.length;i++)registrationDownloadBlob(new Blob([volumes[i].bytes],{type:'application/pdf'}),`${output.manifest.title}_第${i+1}冊.pdf`);
-    document.getElementById('registration-bundle-status').textContent=`已發起${volumes.length}冊下載；請允許瀏覽器多檔下載。${volumes.some(v=>v.oversized)?'部分單頁超過5 MB，仍完整下載但不能另存至檔案庫。':''}`;return true;
+    document.getElementById('registration-bundle-status').textContent=`已發起${volumes.length}冊下載；請允許瀏覽器多檔下載。${volumes.some(v=>v.oversized)?'部分單頁超過5 MB，仍完整下載；彙整文件可預覽確認後保存（上限50 MB）。':''}`;return true;
   });}
   async function saveRegistrationBundleOutput(){return runRegistrationOperation('另存彙整文件',async()=>{
     if(!document.getElementById('registration-bundle-confirm')?.checked)throw new Error('請先預覽並核對合併頁序');
-    const output=registrationBundleOutput;if(!output||output.signature!==registrationBundleSignature(currentRegistrationBundle()))throw new Error('請重新預覽目前內容');if(output.blob.size>5*1024*1024)throw new Error('超過5 MB，請改用分冊下載');
+    const output=registrationBundleOutput;if(!output||output.signature!==registrationBundleSignature(currentRegistrationBundle()))throw new Error('請重新預覽目前內容');if(output.blob.size>50*1024*1024)throw new Error('超過50 MB，請拆成較小文件包');
     const year=output.manifest.year,name=registrationSafeFileName(output.manifest.title+'.pdf'),file=new File([output.blob],name,{type:'application/pdf'}),documentId=output.savedDocumentId||(output.savedDocumentId=registrationNewId('d'));
     const p=output.pendingSave||(output.pendingSave={file,data:await readFileDataUrl(file),sha256:await registrationSha256(await file.arrayBuffer()),year,name,documentTitle:output.manifest.title,documentId,category:'彙整文件',building:'全社區',version:1,pageCount:output.pageCount,previewConfirmed:true,bundleProvenance:{bundleId:output.manifest.id,revision:output.manifest.revision,sources:output.manifest.sources},groupFingerprint:registrationGroupFingerprint(registrationRows(year),documentId)});
     if(output.savedFileId){showAppToast('本次彙整文件已保存，請勿重複新增。','info');return true;}
+    p.originalSize=output.originalSize;p.compressionNote=output.compressionNote;p.compressed=output.originalSize>output.blob.size;
     output.savedFileId=await persistRegistrationFile(p);showAppToast('彙整文件已另存，原檔保留。','success');return true;
   });}
   function registrationPdfHasInteractiveContent(pdf,lib){
@@ -10253,6 +10257,18 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     try{views[name]?.();}catch(e){console.warn('抽籤資料仍受保護，畫面更新失敗：'+name,e);}
   }
   async function deleteRegistrationBundle(id){return runRegistrationOperation('刪除文件包索引',async()=>{const year=registrationArchiveYear(),bundle=registrationDocumentBundles[year]?.[id];if(!bundle||!registrationMayModify(year))throw new Error('文件包不存在或年度已封存');if(!confirm(`刪除「${bundle.title}」文件包索引？將移除1份整理清單，不會刪除原檔或已保存的彙整PDF。`))return false;await updateRegistrationFormPaths({[`registrationFormsBundles/${year}/${id}`]:null,...registrationAuditPatch(year,'刪除文件包',bundle.title,id),__documentConditions:{year,bundleId:id,bundleRevision:bundle.revision}});delete registrationDocumentBundles[year][id];if(registrationBundleDraft?.id===id){registrationBundleDraft=null;invalidateRegistrationBundleOutput();document.getElementById('registration-bundle-editor').open=false;}return true;});}
+  async function compressRegistrationBundleOutput(result){
+    const originalSize=result.blob.size;
+    if(originalSize<=5*1024*1024)return {...result,originalSize,compressionNote:`容量 ${registrationFileSize(originalSize)}，無需壓縮。`};
+    const status=document.getElementById('registration-bundle-status');if(status)status.textContent='合併文件超過5 MB，正在自動壓縮…';
+    const lib=await loadRegistrationPdfLibrary(),pdf=await lib.PDFDocument.load(await result.blob.arrayBuffer(),{updateMetadata:false});
+    if(registrationPdfHasInteractiveContent(pdf,lib))throw new Error('文件含互動表單或簽章，不能自動壓縮');
+    const packed=await pdf.save({useObjectStreams:true,addDefaultPage:false,objectsPerTick:25});
+    const blob=packed.length<originalSize?new Blob([packed],{type:'application/pdf'}):result.blob;
+    const checked=await lib.PDFDocument.load(await blob.arrayBuffer(),{updateMetadata:false});if(checked.getPageCount()!==result.pageCount)throw new Error('壓縮後頁數不一致，未保存');
+    if(blob.size>50*1024*1024)throw new Error('壓縮後仍超過50 MB，請拆成較小文件包');
+    return {...result,blob,originalSize,compressionNote:blob.size<originalSize?`自動無損壓縮：${registrationFileSize(originalSize)} → ${registrationFileSize(blob.size)}。`:`已嘗試無損壓縮，無法再縮小，保留 ${registrationFileSize(originalSize)}；仍可保存。`};
+  }
 </script>
   
 
