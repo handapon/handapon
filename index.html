@@ -1665,7 +1665,7 @@
     <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem;font-weight:800">「立即完整備份」會把目前住戶、抽籤結果、系統設定與管理紀錄打包成一個檔案下載；帳號密碼／雜湊值不會寫入備份（與 CSV 匯出互補，CSV 只有住戶資料）。「年度封存」則是在不清空目前資料的前提下，把當下狀態存成一份唯讀快照留存，方便社區交屋潮、每年重新抽籤前，先保留好這次的完整紀錄。</p>
     <div class="btn-row">
       <button class="btn btn-success" onclick="downloadFullBackup()">完整備份下載</button>
-      <button class="btn btn-primary" onclick="createVersionedBackup()">建立雲端版本備份</button>
+      <button class="btn btn-primary" id="create-cloud-backup-button" onclick="createVersionedBackup()">建立雲端版本備份</button>
       <button class="btn" onclick="renderVersionedBackupList()">檢視版本化備份</button>
       <button class="btn btn-primary" onclick="createArchive()">📦 封存本年度資料</button>
       <button class="btn" onclick="showArchiveList()">📂 檢視歷史封存紀錄</button>
@@ -2342,6 +2342,8 @@
   let residentMutationRunning = false;
   let managedMutationContext = null;
   let cloudPullRunning = false;
+  let activeCloudPullPromise = null;
+  let manualBackupRequestRunning = false;
   function isLotteryDataFrozen(){ return lotteryDataFreeze.active || lotteryRunning || waitlistLotteryRunning || plateVerificationBatchRunning || lotteryBackupPending || backupRestoreRunning || bulkDeletionRunning || residentMutationRunning || registrationOperationRunning || cloudPullRunning || pendingPushCount > 0; }
   function blockFrozenMutation(action){
     const reason=getMutationBlockReason();
@@ -3025,11 +3027,12 @@
     if(isLotteryDataFrozen()){showAppToast('資料操作中，暫緩重新讀取。','info');return false;}
     const before=JSON.parse(JSON.stringify({residents,lotteryResults,originalLotteryResults,systemSettings,accountsList,pendingAudits,swapLogs,forfeitRecords,systemLogs,versionedBackups,lastKnownServerModified,lastKnownServerModifiedBy}));
     cloudPullRunning=true;
-    try{
+    activeCloudPullPromise=(async()=>{try{
       const ok=await cloudSyncPullCore(options);
       if(!ok){residents=before.residents;lotteryResults=before.lotteryResults;originalLotteryResults=before.originalLotteryResults;systemSettings=before.systemSettings;accountsList=before.accountsList;pendingAudits=before.pendingAudits;swapLogs=before.swapLogs;forfeitRecords=before.forfeitRecords;systemLogs=before.systemLogs;versionedBackups=before.versionedBackups;lastKnownServerModified=before.lastKnownServerModified;lastKnownServerModifiedBy=before.lastKnownServerModifiedBy;cloudSyncReady=false;}
       return ok;
-    }finally{cloudPullRunning=false;}
+    }finally{cloudPullRunning=false;activeCloudPullPromise=null;}})();
+    return await activeCloudPullPromise;
   }
   async function cloudSyncPullCore(options={}) {
     if(syncRecoveryNeedsReview&&arguments[0]?.recoveryReview!==true){updateSyncStatusUI(false,syncOutcome.state||'需重新確認');return false;}
@@ -4530,7 +4533,18 @@
   async function confirmClearAll(){return runResidentMutation('重置所有結果',()=>confirmClearAllCore());}
   async function clearSwapLogs(){return runResidentMutation('清除互換紀錄',()=>clearSwapLogsCore(),['admin']);}
   async function clearLogs(){return runResidentMutation('清除操作紀錄',()=>clearLogsCore(),['admin']);}
-  async function createVersionedBackup(){return runResidentMutation('版本化備份',()=>createVersionedBackupCore(),['admin']);}
+  async function createVersionedBackup(){
+    if(!currentUser||currentUser.role!=='admin'){showAppToast('版本化備份僅限系統管理員建立。','warn');return false;}
+    if(manualBackupRequestRunning)return false;
+    manualBackupRequestRunning=true;const button=document.getElementById('create-cloud-backup-button');
+    try{
+      if(button){button.disabled=true;button.textContent=cloudPullRunning?'等待雲端讀取完成…':'建立備份中…';button.setAttribute?.('aria-busy','true');}
+      if(!await waitForCloudPullForBackup())return false;
+      if(!currentUser||currentUser.role!=='admin'||!cloudSyncReady||syncRecoveryNeedsReview){showAppToast('請先完成同步與雲端版本確認，尚未建立備份。','warn');return false;}
+      if(button)button.textContent='建立備份中…';
+      return await runResidentMutation('版本化備份',()=>createVersionedBackupCore(),['admin']);
+    }finally{manualBackupRequestRunning=false;if(button){button.disabled=false;button.textContent='建立雲端版本備份';button.setAttribute?.('aria-busy','false');}}
+  }
   async function initializeNewYear(){return runResidentMutation('建立新年度',()=>initializeNewYearCore(),['admin']);}
   async function trimHistoryLogsNow(){return runResidentMutation('精簡歷史紀錄',()=>trimHistoryLogsNowCore(),['admin']);}
   async function deleteLoginBg(index){return runResidentMutation('刪除登入背景',()=>deleteLoginBgCore(index),['admin']);}
@@ -8512,8 +8526,13 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     return true;
   }
   async function createVersionedBackupCore(){
-    if(!currentUser||currentUser.role!=='admin'){showAppToast('版本化備份僅限系統管理員建立。','warn');return;}
-    versionedBackups.unshift(makeBackupSnapshot()); versionedBackups=versionedBackups.slice(0,6); const ok=await addLog('備份',`建立版本化備份（保留 ${versionedBackups.length} 份）`,{sync:false})&&await cloudSyncPush(); if(!ok){versionedBackups.shift();showAppToast(CLOUD_SYNC_FAIL_MSG,'warn');return;}renderVersionedBackupList();showAppToast('已建立雲端版本化備份。','success');
+    if(!currentUser||currentUser.role!=='admin')return false;
+    const previous=versionedBackups.slice(),previousLogs=systemLogs.slice();
+    versionedBackups=[makeBackupSnapshot(),...versionedBackups].slice(0,6);
+    let ok=false;try{ok=!!(await addLog('備份',`建立版本化備份（保留 ${versionedBackups.length} 份）`,{sync:false})&&await cloudSyncPush());}catch(error){console.warn('建立版本備份失敗：',error);}
+    if(!ok){versionedBackups=previous;systemLogs=previousLogs;return false;}
+    try{renderVersionedBackupList();renderBackupHealth();}catch(error){console.warn('備份已保存，畫面更新失敗：',error);}
+    showAppToast('已建立雲端版本化備份。','success');return true;
   }
   function backupDiffSummary(b){const currentWins=getValidWinnerCount('第一輪')+getValidWinnerCount('第二輪')+getValidWinnerCount('第三輪')+getValidWinnerCount('候補');const backupWins=Object.values(b.lotteryResults||{}).reduce((n,x)=>n+Object.keys(x||{}).length,0);return `住戶 ${residents.length-b.residents.length>=0?'+':''}${residents.length-b.residents.length}；分配 ${currentWins-backupWins>=0?'+':''}${currentWins-backupWins}`;}
   function renderVersionedBackupList(){const box=document.getElementById('versioned-backup-list-box');if(!box)return;box.style.display='block';if(!versionedBackups.length){box.innerHTML='<div class="empty">尚無版本化備份。建立備份後可在此比較並選擇性還原。</div>';return;}box.innerHTML=`<div class="card-title">版本化備份（最近 ${versionedBackups.length} 份）</div>${versionedBackups.map(b=>`<div class="management-item" style="margin-top:10px"><b>${new Date(b.backupTime).toLocaleString('zh-TW')}</b><span class="muted-note">${escapeHtml(b.reason||'手動建立')}｜建立者：${escapeHtml(b.createdBy||'—')}｜${escapeHtml(backupDiffSummary(b))}</span><div class="btn-row" style="margin-top:9px"><button class="btn btn-sm" onclick="restoreVersionedBackup('${b.id}','residents')">僅還原住戶</button><button class="btn btn-sm" onclick="restoreVersionedBackup('${b.id}','results')">僅還原抽籤結果</button><button class="btn btn-sm btn-danger" onclick="restoreVersionedBackup('${b.id}','all')">完整還原</button></div></div>`).join('')}`;}
@@ -10332,6 +10351,15 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const close=()=>{if(registrationOperationRunning)return;document.removeEventListener('keydown',key);modal.remove();focus?.focus?.();};const key=e=>{if(e.key==='Escape'){e.preventDefault();close();}};q('[data-cancel]').onclick=close;modal.onclick=e=>{if(e.target===modal)close();};
     q('[data-save]').onclick=async()=>{if(registrationOperationRunning)return;q('[data-save]').disabled=true;const ok=await saveRegistrationDocumentMetadata(year,id,{documentTitle:q('#registration-edit-title').value,building:q('#registration-edit-building').value,category:q('#registration-edit-category').value},expected);if(ok)close();else{q('[data-error]').textContent='尚未保存，請確認欄位、同步狀態或重新開啟編輯。';q('[data-save]').disabled=false;}};
     document.body.appendChild(modal);document.addEventListener('keydown',key);q('#registration-edit-title').focus();
+  }
+  async function waitForCloudPullForBackup(maxWaitMs=20000){
+    if(!cloudPullRunning)return true;
+    const pull=activeCloudPullPromise;if(!pull){showAppToast('雲端資料仍在讀取，尚未建立備份；請稍後再試。','warn');return false;}
+    let timer;try{
+      const ok=await Promise.race([pull,new Promise(resolve=>{timer=setTimeout(()=>resolve(false),maxWaitMs);})]);
+      if(!ok||cloudPullRunning){showAppToast('雲端資料尚未讀取完成或讀取失敗，未建立備份。請確認同步狀態後再試。','warn');return false;}
+      return true;
+    }catch(error){console.warn('等待備份前同步失敗：',error);showAppToast('雲端讀取失敗，未建立備份。','warn');return false;}finally{clearTimeout(timer);}
   }
 </script>
   
