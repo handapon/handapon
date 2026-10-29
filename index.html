@@ -3241,31 +3241,12 @@
     }
   }
 
-  function maskName(name) {
-    if (!name) return "";
-    // 共同持有人必須先拆分，再各自遮罩；否則「甲/乙」會被當成一個長姓名，
-    // 導致訪客看到「莊OOOOO慧」這類錯誤顯示。
-    const rawName = String(name).trim();
-    // 舊版曾把兩位共同持有人先串接後整串遮罩，若留下「首字 + 5 個 O + 尾字」的 7 字元舊產物，
-    // 依目前已知的共同持有人遮罩規則，還原成「首字O尾字／首字O尾字」的匿名顯示格式，避免看起來像一個人。
-    const legacyTwoOwnerMasked = rawName.match(/^(.)(O{5})(.)$/u);
-    if (legacyTwoOwnerMasked) return `${legacyTwoOwnerMasked[1]}O${legacyTwoOwnerMasked[3]}/${legacyTwoOwnerMasked[1]}O${legacyTwoOwnerMasked[3]}`;
-    const parts = rawName
-      .replace(/、|，|／|;|；|&|＆|\+/g, '/')
-      .split('/')
-      .map(x => x.trim().replace(/[\s　]/g, ''))
-      .filter(Boolean);
-    const maskOne = (str) => {
-      if (!str) return '';
-      if (str.length <= 1) return str;
-      const alreadyMasked = str.match(/^(.)(O+)(.)$/u);
-      if (alreadyMasked) return `${alreadyMasked[1]}O${alreadyMasked[3]}`;
-      if (str.length === 2) return str[0] + 'O';
-      if (str.length === 3) return str[0] + 'O' + str[2];
-      if (str.length === 4) return str[0] + 'OO' + str[3];
-      return str[0] + 'O'.repeat(str.length - 2) + str[str.length - 1];
-    };
-    return parts.map(maskOne).filter(Boolean).join('/');
+  function maskName(name){
+    return splitResidentOwnerNames(name).map(value=>{
+      const str=value.replace(/[Ｏoｏ]/g,'O'),chars=Array.from(str);if(chars.length<=1)return str;
+      const masked=str.match(/^(.)(O+)(.)$/u);if(masked)return `${masked[1]}O${masked[3]}`;
+      if(chars.length===2)return chars[0]+'O';return chars[0]+'O'.repeat(chars.length-2)+chars.at(-1);
+    }).join('/ ');
   }
 
   // 💡 HTML escape 工具：所有插入 innerHTML 的使用者可控文字欄位（住戶姓名、棟別、門牌、
@@ -3285,10 +3266,7 @@
     return (currentUser && currentUser.role === 'guest') ? maskName(name) : name;
   }
 
-  function repairKnownResidentNameArtifacts(){
-    // 舊版共同持有人遮罩曾把兩個姓名壓成「蕭OOOO文」。此為資料遷移，不再於顯示層猜測姓名。
-    residents.forEach(r=>{ if(String(r.name||'').trim()==='蕭OOOO文') r.name='蕭芳宜/蕭智文'; });
-  }
+  function repairKnownResidentNameArtifacts(){residents.forEach(resident=>{const raw=String(resident.name??'').trim(),fixed=normalizeConfirmedOwnerName(resident.name);if(fixed!==raw)resident.name=fixed;});}
 
   window.onload = async function() {
     const healthy=await checkLoginHealth();
@@ -9425,44 +9403,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   // 姓名去識別化：每位共同持有人個別遮罩；共同持有人統一以「/」分隔。
-  function maskRegistrationOwnerNames(name) {
-    const raw = String(name ?? '').trim();
-    if (!raw) return '';
-
-    // 明確相容舊版已經損壞的特定資料：歷史版本曾將「蕭宜/蕭文」錯誤壓成「蕭OOOO文」。
-    // 這是已知且可確認的舊資料，不再讓它進一步被重複遮罩。
-    const legacyExactFixes = new Map([
-      ['蕭OOOO文', '蕭芳宜/蕭智文'],
-      ['蕭OOＯＯ文', '蕭芳宜/蕭智文'],
-      ['蕭ＯＯＯＯ文', '蕭芳宜/蕭智文'],
-      ['蕭OOOO文/蕭OOOO文', '蕭芳宜/蕭智文']
-    ]);
-    if (legacyExactFixes.has(raw)) return legacyExactFixes.get(raw);
-
-    // 共同持有人一律依分隔符拆開，再個別遮罩；最後統一使用「/」。
-    const parts = raw
-      .replace(/、|，|／|;|；|&|＆|\+/g, '/')
-      .split('/')
-      .map(x => x.trim())
-      .filter(Boolean);
-
-    const maskOne = (value) => {
-      const compact = String(value ?? '')
-        .replace(/[\s　]/g, '')
-        .replace(/[ＯOoｏ]/g, 'O');
-      if (!compact) return '';
-      if (compact.length <= 1) return compact;
-
-      // 已是「首字 + O 遮罩 + 尾字」格式時，統一收斂為單一 O。
-      const masked = compact.match(/^(.)(O+)(.)$/u);
-      if (masked) return `${masked[1]}O${masked[3]}`;
-
-      if (compact.length === 2) return compact[0] + 'O' + compact[1];
-      return compact[0] + 'O'.repeat(compact.length - 2) + compact[compact.length - 1];
-    };
-
-    return parts.map(maskOne).filter(Boolean).join('/');
-  }
+  function maskRegistrationOwnerNames(name){return maskName(name);}
 
   function registrationBuildingKey(build) {
     const s = String(build ?? '').trim().toUpperCase();
@@ -10457,9 +10398,21 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     preparePrintHeader();const reset=()=>{document.body.classList.remove('printing-results');window.removeEventListener('afterprint',reset);};document.body.classList.add('printing-results');window.addEventListener('afterprint',reset);
     try{window.print();void addLog('匯出',action);return true;}catch(error){reset();reportOperationFailure('結果報表列印',error,'尚未列印');return false;}
   }
+  function normalizeConfirmedOwnerName(name){
+    const raw=String(name??'').trim(),key=raw.replace(/Ｏ/g,'O');
+    const known={'莊OOOO慧':'莊鑫磊/ 葉宗慧','蕭OOOO文':'蕭芳宜/ 蕭智文','蕭OOOO文/蕭OOOO文':'蕭芳宜/ 蕭智文'};
+    return known[key]||raw;
+  }
+  function splitResidentOwnerNames(name){
+    return normalizeConfirmedOwnerName(name).replace(/[、，,／;；&＆+]/g,'/').split('/').flatMap(part=>{
+      const words=part.trim().split(/[\s\u3000]+/u).filter(Boolean);
+      // 僅將多個完整中文姓名的空白視為共同持有人分隔，避免把單一姓名的字間空白誤拆。
+      return words.length>1&&words.every(word=>/^[\p{Script=Han}OＯoｏ]{2,4}$/u.test(word))?words:[part.trim()];
+    }).map(part=>part.replace(/[\s\u3000]/gu,'')).filter(Boolean);
+  }
 </script>
   
 
-<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261029.22｜修訂日期 2026/10/29｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
+<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261029.23｜修訂日期 2026/10/29｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
 </body>
 </html>
