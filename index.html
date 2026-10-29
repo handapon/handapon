@@ -10404,8 +10404,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if(expected&&typeof expected==='object'&&expected['.sv']==='timestamp')return typeof actual==='number'&&Number.isFinite(actual)&&actual>0;
     if(expected===undefined||expected===null)return actual===null||actual===undefined;
     if(expected&&typeof expected==='object'){
-      const keys=Object.keys(expected).filter(k=>expected[k]!==null&&expected[k]!==undefined);if(!keys.length)return actual==null||(typeof actual==='object'&&!Object.keys(actual).length);
-      if(!actual||typeof actual!=='object')return false;const actualKeys=Object.keys(actual).filter(k=>actual[k]!==null&&actual[k]!==undefined);return keys.length===actualKeys.length&&keys.every(k=>firebaseValueMatches(actual[k],expected[k]));
+      const keys=Object.keys(expected).filter(k=>firebaseHasStoredValue(expected[k]));if(!keys.length)return !firebaseHasStoredValue(actual);
+      if(!actual||typeof actual!=='object')return false;const actualKeys=Object.keys(actual).filter(k=>firebaseHasStoredValue(actual[k]));return keys.length===actualKeys.length&&keys.every(k=>firebaseValueMatches(actual[k],expected[k]));
     }return actual===expected;
   }
   async function verifyCloudWritePaths(paths,operationId){
@@ -10451,9 +10451,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   });}
   function renderRegistrationTrash(year){const host=document.getElementById('registration-form-list');if(!host)return;const rows=registrationRows(year,true).filter(v=>v.isDeleted);host.innerHTML=`<h3>回收筒｜${rows.length}份</h3><p>原檔仍占用容量，不會自動清空。管理員可還原；永久刪除前會檢查引用。</p>`+rows.map(item=>`<article class="registration-bundle-row"><div><strong>${escapeHtml(registrationTitle(item))}</strong><small>移除：${systemDateTime(item.deletedAt)}｜${escapeHtml(item.deletedBy||'未記錄')}｜${registrationFileSize(item.size)}</small></div><div><button class="btn" onclick="restoreRegistrationDocument(${registrationArg(year)},${registrationArg(item.id)})">還原</button><button class="btn btn-danger" onclick="purgeRegistrationDocument(${registrationArg(year)},${registrationArg(item.id)})">永久刪除</button></div></article>`).join('')+(rows.length?'':'<p>回收筒目前沒有文件。</p>');}
   function parseSystemDate(value){const match=typeof value==='string'&&value.match(/^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})(?::(\d{2}))?$/);return new Date(match?`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]||'00'}+08:00`:value);}
+  function firebaseHasStoredValue(value){if(value===null||value===undefined)return false;if(typeof value!=='object')return true;if(value['.sv']==='timestamp')return true;return Object.keys(value).some(key=>firebaseHasStoredValue(value[key]));}
 </script>
   
 
-<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261029.20｜修訂日期 2026/10/29｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
+<footer id="app-revision-footer" style="text-align:center;padding:14px;color:#64748b;font-size:12px">系統修訂版 v2.76-r20261029.21｜修訂日期 2026/10/29｜管理裝置請使用相同版本；更新後請重新載入頁面。</footer>
 </body>
 </html>
