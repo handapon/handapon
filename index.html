@@ -9542,9 +9542,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     return url.toString();
   }
   async function readDocumentBlob(item){
-    if(item.storagePath&&!item.data)throw new Error('此檔案屬於未啟用的 Storage 格式，請管理員以原檔重新上傳');
-    if(!String(item.data||'').startsWith('data:'))throw new Error('檔案內容不存在');
-    const encoded=String(item.data).split(',')[1]||'',bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));return new Blob([bytes],{type:item.mimeType||'application/octet-stream'});
+    const data=registrationStoredDataUrl(item);if(item?.storagePath&&!data)throw new Error('此檔案屬於未啟用的 Storage 格式，請管理員以原檔重新上傳');
+    if(!data.startsWith('data:'))throw new Error('檔案內容不存在');const comma=data.indexOf(',');if(comma<0)throw new Error('文件編碼標頭無效');
+    const bytes=Uint8Array.from(atob(data.slice(comma+1)),c=>c.charCodeAt(0));return new Blob([bytes],{type:item.mimeType||'application/octet-stream'});
   }
   function filterRegistrationDocuments(rows){
     const build=document.getElementById('document-filter-building')?.value||'',category=document.getElementById('document-filter-category')?.value||'',mode=document.getElementById('document-filter-official')?.value||'',query=(document.getElementById('document-search')?.value||'').trim().toLowerCase(),current=new Set(registrationDocumentGroups(rows).map(g=>g.current.id));
@@ -9694,7 +9694,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       if(activeCloudWriteLockToken?.lost)throw new Error('寫入鎖已失效，已中止文件異動');
       documentWriteAttempted=true;
       const res=await fetch(await documentDatabaseUrl('parkingData.json'),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      if(!res.ok)throw await firebaseHttpError(res);
       const verifiedDocument=await verifyCloudWritePaths(payload,operationId);
       for(const year of changedYears)registrationFormsYearMeta[year]={...registrationYearMeta(year),updatedAt:verifiedDocument[`registrationFormsYears/${year}/updatedAt`],updatedBy:currentUser.name||''};
       systemLogs=nextLogs;
@@ -9702,7 +9702,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       lastKnownServerModified=Number(verifiedDocument['_meta/lastModified']);
       if(currentUser?.role==='admin'&&document.getElementById('page-logs')?.classList.contains('active'))renderLogs();
       return true;
-    }catch(e){syncRecoveryNeedsReview=true;setSyncOutcome(documentWriteAttempted?'需重新確認':'尚未保存',documentWriteAttempted?'文件提交結果不確定，請先核對雲端，勿重複上傳。':'文件提交前失敗，未保存。');throw e;}finally{await releaseCloudWriteLock();}
+    }catch(e){if(e.definitiveRejection)documentWriteAttempted=false;syncRecoveryNeedsReview=!e.definitiveRejection;setSyncOutcome(documentWriteAttempted?'需重新確認':'尚未保存',`${documentWriteAttempted?'文件提交結果不確定，請先核對雲端，勿重複上傳。':'文件尚未保存。'}原因：${operationErrorText(e)}`);throw e;}finally{await releaseCloudWriteLock();}
   }
   function registrationUploadLimit(file){return /\.pdf$/i.test(file.name||'')||file.type==='application/pdf'?5*1024*1024:2*1024*1024;}
   let registrationSelectionSequence=0;
@@ -10077,17 +10077,17 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if(p.file.size>uploadLimit||!String(p.data||'').startsWith('data:'))throw new Error('檔案容量或內容不符合限制');
     if(p.compressed&&!p.previewConfirmed)throw new Error('請先預覽並確認壓縮後內容');
     const id=p.submittedId||(p.submittedId=registrationNewId('f'));
-    if(p.hasAttempted){const res=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsIndex/${year}/${id}.json`,true),{cache:'no-store'});if(!res.ok)throw new Error('無法確認先前提交結果');const existing=await res.json();if(existing){if(existing.sha256!==p.sha256||existing.documentId!==p.documentId)throw new Error('先前提交識別碼與檔案不一致');const verify=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!verify.ok)throw new Error('無法確認先前檔案內容');const saved=await verify.json();if(saved?.data!==p.data||saved?.sha256!==p.sha256){syncRecoveryNeedsReview=true;throw new Error('先前提交的檔案內容與索引不一致，請勿重複上傳');}registrationFormsIndex[year]={...registrationFormsIndex[year],[id]:existing};return id;}}
+    if(p.hasAttempted){const res=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsIndex/${year}/${id}.json`,true),{cache:'no-store'});if(!res.ok)throw new Error('無法確認先前提交結果');const existing=await res.json();if(existing){if(existing.sha256!==p.sha256||existing.documentId!==p.documentId)throw new Error('先前提交識別碼與檔案不一致');const verify=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!verify.ok)throw new Error('無法確認先前檔案內容');const saved=await verify.json();if(registrationStoredDataUrl(saved)!==p.data||saved?.sha256!==p.sha256){syncRecoveryNeedsReview=true;throw new Error('先前提交的檔案內容與索引不一致，請勿重複上傳');}registrationFormsIndex[year]={...registrationFormsIndex[year],[id]:existing};return id;}}
     const rows=registrationRows(year),siblings=rows.filter(v=>registrationDocumentKey(v)===p.documentId);
     if(p.groupFingerprint!==undefined&&p.groupFingerprint!==registrationGroupFingerprint(rows,p.documentId))throw new Error('原文件版本已變更，請重新選擇修正版');
     if(p.targetId&&!rows.some(v=>v.id===p.targetId))throw new Error('原文件已不存在，請重新載入');
     const now=new Date().toISOString(),meta={documentId:p.documentId,documentTitle:p.documentTitle||p.name,name:p.name,originalName:p.file.name,mimeType:p.file.type||'application/pdf',size:p.file.size,originalSize:p.originalSize||p.file.size,compressionNote:p.compressionNote||'未壓縮',pageCount:p.pageCount||null,integrityStatus:p.sha256?'保存後核對':'無法計算雜湊',category:p.category,building:p.building,version:p.version||1,isOfficial:true,sha256:p.sha256||'',uploadedBy:currentUser.name,uploadedAt:now,...(p.bundleProvenance?{bundleProvenance:p.bundleProvenance}:{})};
     const yearMeta={...registrationYearMeta(year),updatedAt:now,updatedBy:currentUser.name};
-    const paths={[`registrationFormsFiles/${year}/${id}`]:{...meta,data:p.data},[`registrationFormsIndex/${year}/${id}`]:meta,[`registrationFormsYears/${year}/updatedAt`]:now,[`registrationFormsYears/${year}/updatedBy`]:currentUser.name,...registrationAuditPatch(year,p.targetId?'更新版本':'上傳',`${meta.documentTitle}｜${p.building}｜v${meta.version}`,id),__documentConditions:{year,groupKey:p.documentId,groupFingerprint:registrationGroupFingerprint(rows,p.documentId),sources:p.bundleProvenance?.sources||[]}};
+    const paths={[`registrationFormsFiles/${year}/${id}`]:{...meta,...registrationContentFields(p.data)},[`registrationFormsIndex/${year}/${id}`]:meta,[`registrationFormsYears/${year}/updatedAt`]:now,[`registrationFormsYears/${year}/updatedBy`]:currentUser.name,...registrationAuditPatch(year,p.targetId?'更新版本':'上傳',`${meta.documentTitle}｜${p.building}｜v${meta.version}`,id),__documentConditions:{year,groupKey:p.documentId,groupFingerprint:registrationGroupFingerprint(rows,p.documentId),sources:p.bundleProvenance?.sources||[]}};
     siblings.forEach(v=>{paths[`registrationFormsIndex/${year}/${v.id}/isOfficial`]=false;paths[`registrationFormsFiles/${year}/${v.id}/isOfficial`]=false;});
     p.hasAttempted=true;await updateRegistrationFormPaths(paths);
     registrationFormsIndex[year]={...registrationFormsIndex[year],[id]:meta};siblings.forEach(v=>{registrationFormsIndex[year][v.id].isOfficial=false;});registrationFormsYearMeta[year]={...yearMeta,...(typeof registrationFormsYearMeta[year]?.updatedAt==='number'?{updatedAt:registrationFormsYearMeta[year].updatedAt}:{})};
-    try{const verify=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!verify.ok)throw new Error('版本讀取失敗');const saved=await verify.json();if(!saved||saved.data!==p.data||saved.sha256!==p.sha256)throw new Error('內容或雜湊不一致');}catch(e){syncRecoveryNeedsReview=true;setSyncOutcome('需重新確認','文件已提交，但保存後驗證未完成，請勿重複上傳。');throw new Error('文件已提交，須確認保存後內容：'+String(e.message||e));}
+    try{const verify=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!verify.ok)throw new Error('版本讀取失敗');const saved=await verify.json();if(!saved||registrationStoredDataUrl(saved)!==p.data||saved.sha256!==p.sha256)throw new Error('內容或雜湊不一致');}catch(e){syncRecoveryNeedsReview=true;setSyncOutcome('需重新確認','文件已提交，但保存後驗證未完成，請勿重複上傳。');throw new Error('文件已提交，須確認保存後內容：'+String(e.message||e));}
     return id;
   }
   async function verifyRegistrationWriteConditions(condition){
@@ -10302,7 +10302,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const item=registrationFormsIndex[year]?.[id];if(!item||item.isDeleted)throw new Error('文件不存在或已在回收筒，請先還原');if(registrationMetadataFingerprint(item)!==expected)throw new Error('文件已更新，請重新開啟編輯');
     const title=String(changes.documentTitle||'').trim(),building=String(changes.building||''),category=String(changes.category||'');
     if(!title||title.length>120)throw new Error('文件名稱須為1至120字');if(!['全社區','A棟','B棟','C棟','D棟','E棟'].includes(building)||!['空白表單','已填寫掃描檔','棟別彙整','簽核版','補件','彙整文件'].includes(category))throw new Error('請選擇有效棟別及類別');
-    const response=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!response.ok)throw new Error('無法確認原始檔案');const original=await response.json();if(!original?.data)throw new Error('原始檔案不存在，未修改索引');
+    const response=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!response.ok)throw new Error('無法確認原始檔案');const original=await response.json();if(!registrationStoredDataUrl(original))throw new Error('原始檔案不存在，未修改索引');
     const ext=item.mimeType==='image/png'?'png':item.mimeType==='image/jpeg'?'jpg':'pdf',next={documentTitle:title,building,category,name:registrationSafeFileName(`${year}年度_${building}_${title}_v${item.version||1}.${ext}`),metadataUpdatedAt:new Date().toISOString(),metadataUpdatedBy:currentUser.name};
     const paths={...registrationAuditPatch(year,'編輯文件',JSON.stringify({fileId:id,before:{documentTitle:registrationTitle(item),building:item.building,category:item.category},after:next}),id),__documentConditions:{year,editId:id,metadataFingerprint:expected,groupKey:registrationDocumentKey({...item,id}),groupFingerprint:registrationGroupFingerprint(registrationRows(year),registrationDocumentKey({...item,id}))}};
     for(const [key,value] of Object.entries(next)){paths[`registrationFormsIndex/${year}/${id}/${key}`]=value;paths[`registrationFormsFiles/${year}/${id}/${key}`]=value;}
@@ -10382,7 +10382,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function renderRegistrationDocumentTabs(){for(const tab of ['original','merged','trash']){const button=document.getElementById('registration-tab-'+tab);if(button){button.setAttribute?.('aria-selected',String(registrationDocumentTab===tab));button.classList?.toggle?.('active',registrationDocumentTab===tab);if(tab==='trash')button.hidden=!isRegistrationFormsAdmin();}}}
   async function restoreRegistrationDocument(year,id){return runRegistrationOperation('還原回收筒文件',async()=>{
     if(!isRegistrationFormsAdmin()||!registrationMayModify(year))throw new Error('需管理員權限且年度未封存');const item=registrationFormsIndex[year]?.[id];if(!item?.isDeleted)throw new Error('文件不在回收筒');
-    const response=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!response.ok||!(await response.json())?.data)throw new Error('原檔內容無法讀取，未還原');
+    const response=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!response.ok||!registrationStoredDataUrl(await response.json()))throw new Error('原檔內容無法讀取，未還原');
     const changes={isDeleted:false,deletedAt:null,deletedBy:null,restoredAt:new Date().toISOString(),restoredBy:currentUser.name},paths={...registrationAuditPatch(year,'還原文件',item.name,id),__documentConditions:{year,trashId:id,deletedAt:item.deletedAt}};for(const [key,value] of Object.entries(changes)){paths[`registrationFormsIndex/${year}/${id}/${key}`]=value;paths[`registrationFormsFiles/${year}/${id}/${key}`]=value;}
     await updateRegistrationFormPaths(paths);Object.assign(item,changes);showAppToast('文件已還原，來源引用可重新使用。','success');return true;
   });}
@@ -12746,6 +12746,19 @@ var qrcode = function() {
     const status=document.getElementById('registration-form-status');if(status)status.textContent='合併PDF已保存並顯示在「合併文件」清單，可預覽或下載。';
     const list=document.getElementById('registration-form-list');list?.scrollIntoView?.({behavior:'smooth',block:'nearest'});
   }
+  function registrationContentFields(data){
+    if(typeof data!=='string'||!data.startsWith('data:'))throw new Error('文件內容格式無效');
+    const size=1024*1024;if(data.length<=4*size)return {data};
+    if(data.length>72*size)throw new Error('文件編碼容量超過安全上限');const chunks={};for(let offset=0,index=0;offset<data.length;offset+=size,index++)chunks['c'+String(index).padStart(5,'0')]=data.slice(offset,offset+size);
+    return {storageEncoding:'data-url-chunks-v1',chunkCount:Object.keys(chunks).length,chunks};
+  }
+  function registrationStoredDataUrl(item){
+    if(typeof item?.data==='string')return item.data;
+    if(item?.storageEncoding!=='data-url-chunks-v1')return '';
+    const count=Number(item.chunkCount);if(!Number.isInteger(count)||count<1||count>72||!item.chunks||Object.keys(item.chunks).length!==count)throw new Error('文件分段數量不完整，請重新讀取雲端');
+    const parts=[];for(let index=0;index<count;index++){const chunk=item.chunks['c'+String(index).padStart(5,'0')];if(typeof chunk!=='string'||!chunk.length||chunk.length>1024*1024)throw new Error('文件分段缺少或容量異常');parts.push(chunk);}const data=parts.join('');if(!data.startsWith('data:'))throw new Error('文件分段標頭無效');return data;
+  }
+  async function firebaseHttpError(response){let detail='';try{const body=await response.json();detail=typeof body?.error==='string'?body.error:body?.error?.message||'';}catch(_){}const error=new Error(`HTTP ${response.status}${detail?'：'+operationErrorText(detail):''}`);error.definitiveRejection=[400,401,403,404,412,413,415,422].includes(response.status);return error;}
 </script>
   
 
