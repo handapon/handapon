@@ -10139,7 +10139,8 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
   function openRegistrationBundle(id){if(!canManageRegistrationForms()||registrationOperationRunning)return;const record=registrationDocumentBundles[registrationArchiveYear()]?.[id];if(!record){showAppToast('文件包不存在，請重新載入。','warn');return;}try{registrationBundleDraft=normalizeRegistrationBundle({...record,id});showRegistrationBundleEditor();}catch(e){showAppToast(String(e.message||e),'warn');}}
   function showRegistrationBundleEditor(){
-    registrationDocumentTab='merged';document.getElementById('registration-bundle-editor').hidden=false;renderRegistrationForms();
+    resetMergedDocumentFilters();document.getElementById('registration-bundle-editor').hidden=false;renderRegistrationForms();
+    const listOnlyButton=document.querySelector('#registration-bundle-editor button[onclick="saveRegistrationBundle()"]');if(listOnlyButton)listOnlyButton.textContent='保存合併清單（不含PDF）';
     invalidateRegistrationBundleOutput();document.getElementById('registration-bundle-editor').open=true;document.getElementById('registration-bundle-title').value=registrationBundleDraft.title;
     for(const [key,id] of [['cover','registration-bundle-cover'],['toc','registration-bundle-toc'],['pageNumbers','registration-bundle-page-numbers']])document.getElementById(id).checked=registrationBundleDraft.options[key];
     renderRegistrationBundleSources();document.getElementById('registration-bundle-editor').scrollIntoView?.({behavior:'smooth',block:'nearest'});
@@ -10189,7 +10190,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   async function saveRegistrationBundle(){return runRegistrationOperation('保存文件包索引',async()=>{
     const draft=currentRegistrationBundle();if(!registrationMayModify(draft.year))throw new Error('年度已封存');const inputs=await readRegistrationBundleSources(draft);if(registrationBundleSignature(currentRegistrationBundle())!==registrationBundleSignature(draft))throw new Error('編輯內容已變更，請重新保存');const record={...draft,sources:inputs.map(i=>i.source),revision:draft.revision+1,updatedAt:new Date().toISOString(),updatedBy:currentUser.name,createdBy:registrationDocumentBundles[draft.year]?.[draft.id]?.createdBy||currentUser.name};
     await updateRegistrationFormPaths({[`registrationFormsBundles/${draft.year}/${draft.id}`]:record,...registrationAuditPatch(draft.year,'保存文件包',`${draft.title}｜來源${record.sources.map(s=>s.fileId+':v'+s.version).join(',')}`,draft.id),__documentConditions:{year:draft.year,bundleId:draft.id,bundleRevision:draft.revision,sources:record.sources}});
-    registrationDocumentBundles[draft.year]={...registrationDocumentBundles[draft.year],[draft.id]:record};registrationBundleDraft=record;if(registrationBundleOutput)registrationBundleOutput.manifest=record;showAppToast('文件包索引已保存，未重複儲存原檔。','success');return true;
+    registrationDocumentBundles[draft.year]={...registrationDocumentBundles[draft.year],[draft.id]:record};registrationBundleDraft=record;if(registrationBundleOutput)registrationBundleOutput.manifest=record;showAppToast('本次只保存合併清單，未新增PDF；請按「合併、預覽並上傳」加入文件庫。','info');return true;
   });}
   function registrationDownloadBlob(blob,name){const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=registrationSafeFileName(name);document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
   async function downloadRegistrationBundle(){return runRegistrationOperation('合併下載',async()=>{const output=await preparedRegistrationBundle();await updateRegistrationFormPaths(registrationAuditPatch(output.manifest.year,'合併下載',`${output.manifest.title}｜${output.pageCount}頁｜${registrationFileSize(output.blob.size)}（發起下載）`,output.manifest.id));registrationDownloadBlob(output.blob,output.manifest.title+'.pdf');return true;});}
@@ -10204,9 +10205,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const output=registrationBundleOutput;if(!output||output.signature!==registrationBundleSignature(currentRegistrationBundle()))throw new Error('請重新預覽目前內容');if(output.blob.size>50*1024*1024)throw new Error('超過50 MB，請拆成較小文件包');
     const year=output.manifest.year,name=registrationSafeFileName(output.manifest.title+'.pdf'),file=new File([output.blob],name,{type:'application/pdf'}),documentId=output.savedDocumentId||(output.savedDocumentId=registrationNewId('d'));
     const p=output.pendingSave||(output.pendingSave={file,data:await readFileDataUrl(file),sha256:await registrationSha256(await file.arrayBuffer()),year,name,documentTitle:output.manifest.title,documentId,category:'彙整文件',building:'全社區',version:1,pageCount:output.pageCount,previewConfirmed:true,bundleProvenance:{bundleId:output.manifest.id,revision:output.manifest.revision,sources:output.manifest.sources},groupFingerprint:registrationGroupFingerprint(registrationRows(year),documentId)});
-    if(output.savedFileId){showAppToast('本次彙整文件已保存，請勿重複新增。','info');return true;}
+    if(output.savedFileId){const saved=registrationFormsIndex[year]?.[output.savedFileId];if(saved&&!saved.isDeleted){revealSavedMergedDocument(year,output.savedFileId);showAppToast('本次合併PDF已保存，已顯示於合併文件清單。','info');return true;}throw new Error('先前保存的文件已移除或索引未載入，請重新載入年度文件後確認，勿重複上傳');}
     p.originalSize=output.originalSize;p.compressionNote=output.compressionNote;p.compressed=output.originalSize>output.blob.size;
-    output.savedFileId=await persistRegistrationFile(p);showAppToast('彙整文件已另存，原檔保留。','success');return true;
+    output.savedFileId=await persistRegistrationFile(p);revealSavedMergedDocument(year,output.savedFileId);showAppToast('合併PDF已保存於「合併文件」，原檔保留。','success');return true;
   });}
   function registrationPdfHasInteractiveContent(pdf,lib){
     if(pdf.getForm().getFields().length)return true;
@@ -12737,6 +12738,14 @@ var qrcode = function() {
 }));
 
 // END BUNDLED qrcode-generator 1.4.4
+  function resetMergedDocumentFilters(){
+    registrationDocumentTab='merged';for(const id of ['document-search','document-filter-building','document-filter-category']){const input=document.getElementById(id);if(input)input.value='';}const mode=document.getElementById('document-filter-official');if(mode)mode.value='yes';
+  }
+  function revealSavedMergedDocument(year,id){
+    if(registrationArchiveYear()!==String(year))return;resetMergedDocumentFilters();renderRegistrationForms();
+    const status=document.getElementById('registration-form-status');if(status)status.textContent='合併PDF已保存並顯示在「合併文件」清單，可預覽或下載。';
+    const list=document.getElementById('registration-form-list');list?.scrollIntoView?.({behavior:'smooth',block:'nearest'});
+  }
 </script>
   
 
