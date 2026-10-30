@@ -266,6 +266,13 @@
   .registration-preview-stage iframe{display:block;width:100%;height:100%;min-height:180px;border:0;background:white}
   .registration-preview-stage img{display:block;max-width:100%;height:auto;margin:auto}
   .registration-preview-status{font-size:14px;line-height:1.5;margin:8px 0;color:var(--text-muted);flex-shrink:0}
+  .registration-summary-more{font-size:12px;color:#64748b}.registration-summary-more>summary{cursor:pointer;padding:5px 8px;min-height:30px}.registration-summary-more[open]{flex-basis:100%}.registration-summary-more>div{padding:8px 12px;line-height:1.8;background:#fff;border:1px solid #e2e8f0;border-radius:var(--radius-sm);margin:4px 0}
+  .registration-advanced-filters>summary{cursor:pointer;min-height:42px;display:flex;align-items:center;padding:8px}.registration-advanced-filters>div{display:flex;flex-wrap:wrap;gap:8px;padding:8px 0}.registration-operation-status{flex-basis:100%;width:100%;margin:0!important;overflow-wrap:anywhere}.registration-operation-status[hidden]{display:none!important}
+  .registration-year-danger{border-top:1px solid #fecaca;margin:4px 12px 12px;padding:12px 0 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.registration-year-danger small{color:#64748b}.registration-selection-bar[hidden]{display:none!important}.registration-subpanel>.field-helper{display:block;padding:8px 16px}.registration-list-caption>div{display:flex;gap:8px;flex-wrap:wrap}
+  @media(max-width:700px){.registration-advanced-filters,.registration-advanced-filters>div,.registration-advanced-filters select{width:100%}.registration-list-caption>div>.btn{flex:1 1 100px}.registration-selection-bar{flex-wrap:wrap;gap:8px}}
+  #registration-archive-card .registration-archive-disclosure{margin:12px 20px 16px;min-height:44px}#registration-archive-content>.field-helper,#registration-archive-content>.registration-form-list{margin-left:20px;margin-right:20px}#registration-archive-content>.registration-form-list{padding-bottom:16px}
+  #registration-archive-card .registration-building-group{margin-bottom:6px}#registration-archive-card .registration-building-group>summary{padding:8px 12px;min-height:44px;background:#fafbfc}#registration-archive-card .registration-form-list{gap:6px}
+  @media(max-width:700px){#registration-archive-card .registration-archive-disclosure{margin:12px 16px}#registration-archive-content>.field-helper,#registration-archive-content>.registration-form-list{margin-left:16px;margin-right:16px}}
   .registration-building-group{border:1px solid #e2e8f0;border-radius:var(--radius-card);background:#fff;margin:0 0 12px;overflow:hidden}.registration-building-group>summary{display:flex;align-items:center;gap:12px;cursor:pointer;padding:16px;background:#f8fafc;min-height:52px}.registration-building-group>summary::before{content:'›';font-size:20px;color:#64748b}.registration-building-group[open]>summary::before{transform:rotate(90deg)}.registration-building-group>summary span{font-size:13px;color:#64748b}.registration-list-caption{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.registration-row-summary{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 0}.registration-row-summary small{color:#64748b}.registration-building-group summary:focus-visible{outline:3px solid #2563eb;outline-offset:-3px}.registration-history-row{padding:10px 0;border-top:1px solid #e2e8f0}.registration-document-table{width:100%;table-layout:auto}.registration-document-table th:first-child{width:56px}
   #registration-bundle-dialog .registration-bundle-dialog-box{display:flex;flex-direction:column;width:min(1000px,96vw);max-width:1000px;max-height:94dvh;padding:24px;overflow:hidden}#registration-bundle-dialog header{flex-shrink:0}#registration-bundle-dialog header h2{margin:0 0 6px}#registration-bundle-dialog header p{margin:0 0 12px;color:#64748b;font-size:14px}#registration-bundle-dialog .registration-bundle-dialog-content{overflow:auto;min-height:0;flex:1;padding:0 4px}#registration-bundle-dialog #registration-bundle-editor{display:block!important;border:0;margin:0}#registration-bundle-dialog #registration-bundle-editor>summary{display:none}#registration-bundle-dialog .modal-footer{flex-shrink:0;background:#fff;border-top:1px solid #e2e8f0;padding-top:14px}#registration-bundle-dialog .registration-bundle-body{padding:8px 0}
   @media(max-width:700px){#registration-bundle-dialog .registration-bundle-dialog-box{padding:16px;max-height:94dvh}#registration-bundle-dialog .registration-source-row{display:flex;flex-wrap:wrap;gap:8px}#registration-bundle-dialog .registration-source-row>span{flex-basis:100%;overflow-wrap:anywhere}.registration-building-group>summary{padding:12px}.registration-list-caption>div{display:flex;gap:8px;width:100%}.registration-list-caption>div>.btn{flex:1}}
@@ -956,15 +963,17 @@
   <section class="card registration-archive-card" id="registration-archive-card" aria-labelledby="registration-archive-title">
     <div class="registration-archive-head"><div class="card-title" id="registration-archive-title">年度紙本登記表<span class="card-meta">年度檔案庫</span></div>
     <p class="muted-note">集中保存每年度的掃描檔與簽核版本。</p><div class="registration-archive-summary" id="registration-archive-summary" aria-live="polite"><span>讀取年度資料中</span></div></div>
+    <button class="btn registration-archive-disclosure" type="button" id="registration-archive-disclosure" aria-expanded="false" aria-controls="registration-archive-content" onclick="toggleRegistrationArchive()">展開年度文件</button>
+    <div id="registration-archive-content" hidden>
+
     <div class="registration-document-tabs" role="tablist" aria-label="年度文件分類"><button class="btn" id="registration-tab-original" role="tab" aria-selected="true" onclick="setRegistrationDocumentTab('original')">原始登記表</button><button class="btn" id="registration-tab-merged" role="tab" aria-selected="false" onclick="setRegistrationDocumentTab('merged')">合併文件</button><button class="btn" id="registration-tab-trash" role="tab" aria-selected="false" onclick="setRegistrationDocumentTab('trash')">回收筒</button></div>
     <div class="registration-archive-toolbar" aria-label="年度文件查詢">
       <div><label for="registration-form-year">年度</label><input id="registration-form-year" inputmode="numeric" maxlength="6" placeholder="例：115 或 2026" onchange="loadRegistrationFormsIndex()"></div>
       <div><label for="document-search">搜尋文件</label><input id="document-search" type="search" placeholder="名稱、檔名或上傳人" oninput="registrationFiltersChanged()"></div>
       <select id="document-filter-building" aria-label="檔案棟別篩選" onchange="registrationFiltersChanged()"><option value="">全部棟別</option><option>A棟</option><option>B棟</option><option>C棟</option><option>D棟</option><option>E棟</option><option>全社區</option></select>
-      <select id="document-filter-category" aria-label="檔案類別篩選" onchange="registrationFiltersChanged()"><option value="">全部類別</option><option>空白表單</option><option>已填寫掃描檔</option><option>棟別彙整</option><option>簽核版</option><option>補件</option><option>彙整文件</option></select>
-      <details><summary>更多篩選</summary><select id="document-filter-official" aria-label="檔案版次篩選" onchange="registrationFiltersChanged()"><option value="yes" selected>目前文件</option><option value="">全部文件與版本</option><option value="no">僅歷史版本</option></select></details>
-      <button class="btn btn-sm" onclick="clearRegistrationFilters()">清除篩選</button><button class="btn btn-primary" id="registration-add-document" type="button" aria-controls="registration-upload-panel" onclick="openRegistrationUpload()">新增文件</button>
-      <span id="registration-form-status" class="muted-note" aria-live="polite">載入年度檔案中…</span>
+      <details class="registration-advanced-filters"><summary>更多篩選</summary><div><select id="document-filter-category" aria-label="檔案類別篩選" onchange="registrationFiltersChanged()"><option value="">全部類別</option><option>空白表單</option><option>已填寫掃描檔</option><option>棟別彙整</option><option>簽核版</option><option>補件</option><option>彙整文件</option></select><select id="document-filter-official" aria-label="檔案版次篩選" onchange="registrationFiltersChanged()"><option value="yes" selected>目前文件</option><option value="">全部文件與版本</option><option value="no">僅歷史版本</option></select></div></details>
+      <button class="btn btn-sm" id="registration-clear-filters" hidden onclick="clearRegistrationFilters()">清除篩選</button><button class="btn btn-primary" id="registration-add-document" type="button" aria-controls="registration-upload-panel" onclick="openRegistrationUpload()">新增文件</button>
+      <div id="registration-form-status" class="muted-note registration-operation-status" aria-live="polite">載入年度檔案中…</div>
     </div>
     <details id="registration-upload-panel" class="registration-subpanel"><summary>上傳與版本更新</summary><div class="registration-archive-toolbar">
       <div><label for="registration-upload-mode">保存方式</label><select id="registration-upload-mode" onchange="registrationUploadModeChanged()"><option value="new">新增獨立文件</option><option value="update">更新既有文件</option></select></div>
@@ -975,15 +984,15 @@
       <label class="btn registration-upload-label">選擇文件<input id="registration-form-upload" type="file" accept="application/pdf,image/png,image/jpeg" multiple onchange="selectRegistrationFormFile(this)"></label>
       <button class="btn" id="registration-form-confirm-upload" type="button" onclick="uploadRegistrationForm()" disabled>確認保存</button>
       <span id="registration-upload-queue" class="muted-note" aria-live="polite"></span>
-    </div><p class="muted-note">不同住戶、批次或頁次請選「新增獨立文件」；同一文件修正版才選「更新既有文件」。多檔將逐份預覽、確認保存。</p>
+    </div><small class="field-helper">PDF 上限5 MB，超過3 MB自動嘗試壓縮；JPG、PNG上限2 MB。原檔與歷史版本分開保留。</small><p class="muted-note">不同住戶、批次或頁次請選「新增獨立文件」；同一文件修正版才選「更新既有文件」。多檔將逐份預覽、確認保存。</p>
     <div id="registration-form-preview" class="registration-form-preview" style="display:none" aria-live="polite"></div>
-    <button class="btn btn-sm" onclick="cancelRegistrationUploadQueue()">取消本次上傳</button></details>
-    <details class="registration-subpanel"><summary>年度管理</summary><div class="registration-archive-controls"><span id="registration-archive-status" class="badge badge-gray">年度資料可編輯</span><label for="registration-retention-until">建議保留至</label><input id="registration-retention-until" type="date" onchange="saveRegistrationRetention()"><button class="btn btn-sm" onclick="exportRegistrationFormsManifest()">匯出檔案清冊</button><button class="btn btn-sm btn-danger" id="registration-archive-toggle" onclick="toggleRegistrationYearArchive()">封存本年度</button></div></details>
-    <small class="field-helper">PDF 上限5 MB，超過3 MB自動嘗試壓縮；JPG、PNG上限2 MB。原檔與歷史版本分開保留。</small>
-    <div class="registration-selection-bar"><span id="registration-selected-count">已選0份</span><button class="btn btn-sm" onclick="selectVisibleRegistrationDocuments()">選取目前列表</button><button class="btn btn-sm" onclick="clearRegistrationSelection()">清除選取</button><button class="btn btn-sm" onclick="createRegistrationBundleFromSelection()">建立文件包／合併</button></div>
+    <button class="btn btn-sm" onclick="cancelRegistrationUpload()">取消本次上傳</button></details>
+    <details class="registration-subpanel"><summary>年度管理與清冊</summary><div class="registration-archive-controls"><span id="registration-archive-status" class="badge badge-gray">年度資料可編輯</span><label for="registration-retention-until">建議保留至</label><input id="registration-retention-until" type="date" onchange="saveRegistrationRetention()"><button class="btn btn-sm" onclick="exportRegistrationFormsManifest()">匯出檔案清冊</button></div><div class="registration-year-danger"><small>封存後限制本年度新增與修改；解封後可再管理文件。</small><button class="btn btn-sm btn-danger" id="registration-archive-toggle" onclick="toggleRegistrationYearArchive()">封存本年度</button></div></details>
+    <div class="registration-selection-bar" id="registration-selection-bar" hidden><span id="registration-selected-count">已選0份</span><button class="btn btn-sm" onclick="clearRegistrationSelection()">取消選取</button><button class="btn btn-sm" onclick="createRegistrationBundleFromSelection()">合併選取文件</button></div>
     <div id="registration-form-list" class="registration-form-list"></div>
     <div id="registration-bundle-list" class="registration-bundle-list"></div>
     <details id="registration-bundle-editor" class="registration-subpanel"><summary>文件包與合併預覽</summary><div class="registration-bundle-body"><label for="registration-bundle-title">文件包名稱</label><input id="registration-bundle-title" maxlength="120" placeholder="例：116年度_C棟_登記資料" oninput="invalidateRegistrationBundleOutput()"><div class="registration-bundle-options"><label><input id="registration-bundle-cover" type="checkbox" checked onchange="invalidateRegistrationBundleOutput()">封面</label><label><input id="registration-bundle-toc" type="checkbox" checked onchange="invalidateRegistrationBundleOutput()">來源目錄</label><label><input id="registration-bundle-page-numbers" type="checkbox" checked onchange="invalidateRegistrationBundleOutput()">連續頁碼</label></div><div id="registration-bundle-sources"></div><p id="registration-bundle-status" class="muted-note" role="status"></p><div class="registration-bundle-options"><button class="btn btn-primary" onclick="previewRegistrationBundle()">預覽合併</button><button class="btn" onclick="saveRegistrationBundle()">保存文件包索引</button><button class="btn" onclick="downloadRegistrationBundle()">合併下載</button><button class="btn" onclick="downloadRegistrationBundleVolumes()">分冊下載</button></div><label class="registration-bundle-confirm"><input id="registration-bundle-confirm" type="checkbox" onchange="updateRegistrationBundleSaveButton()">已核對合併頁序與清晰度</label><button class="btn" id="registration-bundle-save-output" onclick="confirmRegistrationBundleUpload()">合併、預覽並上傳</button><small class="field-helper">文件包僅保存來源版本與順序，不重複保存原檔；來源有新版時須手動確認替換。超過5 MB自動無損壓縮，壓縮後仍超過5 MB亦可保存（上限50 MB）。合併僅供查閱，不取代原檔簽章與完整性驗證。</small></div></details>
+    </div>
   </section>
   
   <div class="card card-pad-lg">
@@ -9539,7 +9548,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function isRegistrationFormsAdmin(){return currentUser?.role==='admin';}
   function registrationArchiveYear(){const input=document.getElementById('registration-form-year');if(!input)return String(new Date().getFullYear());if(!input.value.trim())input.value=String(new Date().getFullYear());return input.value.trim();}
   function validRegistrationArchiveYear(year){return /^\d{2,6}$/.test(String(year||''));}
-  function registrationFormStatus(text){const el=document.getElementById('registration-form-status');if(el)el.textContent=text;}
+  function registrationFormStatus(text){const host=document.getElementById('registration-form-status');if(host){host.textContent=String(text||'');host.hidden=!text;}}
   async function documentDatabaseUrl(path,refresh=false){
     const url=new URL(`${FIREBASE_DB_URL}${path}`);if(refresh)url.searchParams.set('_t',Date.now());
     return url.toString();
@@ -9595,7 +9604,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function registrationArg(value){return escapeHtml(JSON.stringify(String(value)));}
   function registrationDisplayTime(value){const d=new Date(value);return Number.isFinite(d.getTime())?new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d).replace(/-/g,'/'):String(value||'未記錄');}
   function registrationTitle(item){return String(item.documentTitle||item.originalName||item.name||'未命名文件').replace(/\.(pdf|png|jpe?g)$/i,'');}
-  function registrationFiltersChanged(){registrationSelectedFiles.clear();renderRegistrationForms();}
+  function registrationFiltersChanged(){renderRegistrationForms();}
   function clearRegistrationFilters(){['document-search','document-filter-building','document-filter-category'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('document-filter-official').value='yes';registrationFiltersChanged();}
   function registrationVisibleRows(year){
     const all=registrationRows(year),filtered=filterRegistrationDocuments(all),mode=document.getElementById('document-filter-official')?.value||'';
@@ -9603,7 +9612,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const visible=new Set(filtered.map(v=>v.id));return registrationDocumentGroups(all).map(g=>visible.has(g.current.id)?g.current:g.versions.find(v=>visible.has(v.id))).filter(Boolean);
   }
   function toggleRegistrationSelection(id,checked){if(!canManageRegistrationForms())return;if(checked)registrationSelectedFiles.add(String(id));else registrationSelectedFiles.delete(String(id));renderRegistrationSelection();}
-  function renderRegistrationSelection(){const counter=document.getElementById('registration-selected-count');if(counter)counter.textContent=`已選 ${registrationSelectedFiles.size} 份`;}
+  function renderRegistrationSelection(){
+    const count=registrationSelectedFiles.size,visible=new Set(registrationVisibleRows(registrationArchiveYear()).map(row=>row.id)),outside=[...registrationSelectedFiles].filter(id=>!visible.has(id)).length,counter=document.getElementById('registration-selected-count');if(counter)counter.textContent=`已選 ${count}份${outside?`（${outside}份不在目前列表）`:''}`;
+    const bar=document.getElementById('registration-selection-bar');if(bar)bar.hidden=!count||registrationDocumentTab==='trash';
+  }
   function clearRegistrationSelection(){registrationSelectedFiles.clear();renderRegistrationForms();}
   function selectVisibleRegistrationDocuments(){registrationVisibleRows(registrationArchiveYear()).forEach(v=>registrationSelectedFiles.add(v.id));renderRegistrationForms();}
   function registrationRowActions(year,item,canEdit){
@@ -9616,9 +9628,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const groupMap=new Map(groups.map(g=>[g.key,g])),buildings=new Map();for(const item of visible){const building=item.building||'全社區';if(!buildings.has(building))buildings.set(building,[]);buildings.get(building).push(item);}
     const order=['全社區','A棟','B棟','C棟','D棟','E棟'],entries=[...buildings.entries()].sort((a,b)=>(order.includes(a[0])?order.indexOf(a[0]):99)-(order.includes(b[0])?order.indexOf(b[0]):99)||a[0].localeCompare(b[0]));
     const searching=!!document.getElementById('document-search')?.value.trim()||!!document.getElementById('document-filter-building')?.value;
-    host.innerHTML=`<div class="registration-list-caption"><span>顯示${visible.length}份文件 · ${entries.length}個棟別群組；舊版本與詳細資料可展開。</span><div><button class="btn btn-sm" onclick="toggleAllRegistrationBuildings(true)">展開全部</button><button class="btn btn-sm" onclick="toggleAllRegistrationBuildings(false)">收合全部</button></div></div>`+entries.map(([building,rows],index)=>{
+    host.innerHTML=`<div class="registration-list-caption"><span>顯示${visible.length}份文件 · ${entries.length}個棟別群組；舊版本與詳細資料可展開。</span><div><button class="btn btn-sm" onclick="selectVisibleRegistrationDocuments()">選取目前列表</button><button class="btn btn-sm" onclick="toggleAllRegistrationBuildings(true)">展開全部</button><button class="btn btn-sm" onclick="toggleAllRegistrationBuildings(false)">收合全部</button></div></div>`+entries.map(([building,rows],index)=>{
       rows.sort((a,b)=>Number(b.isOfficial===true)-Number(a.isOfficial===true)||String(b.metadataUpdatedAt||b.uploadedAt||'').localeCompare(String(a.metadataUpdatedAt||a.uploadedAt||'')));
-      const key=registrationBuildingStateKey(year,building),open=searching||(registrationBuildingState().has(key)?registrationBuildingState().get(key):visible.length<=12),history=rows.reduce((n,row)=>n+(row.id===groupMap.get(registrationDocumentKey(row)).current.id?groupMap.get(registrationDocumentKey(row)).versions.length-1:0),0);
+      const key=registrationBuildingStateKey(year,building),open=searching||(registrationBuildingState().has(key)?registrationBuildingState().get(key):false),history=rows.reduce((n,row)=>n+(row.id===groupMap.get(registrationDocumentKey(row)).current.id?groupMap.get(registrationDocumentKey(row)).versions.length-1:0),0);
       return `<details class="registration-building-group" data-building="${escapeHtml(building)}" ${open?'open':''} ontoggle="rememberRegistrationBuilding(${registrationArg(year)},${registrationArg(building)},this.open)"><summary><strong>${escapeHtml(building)}</strong><span>${rows.length}份${history?` · 歷史版本${history}份`:''}</span></summary><div class="registration-table-wrap"><table class="registration-document-table" id="registration-document-table${index?'-'+index:''}"><thead><tr><th>選取</th><th>文件／版本</th><th>類別</th><th>更新時間</th><th>操作</th></tr></thead><tbody>${rows.map(row=>registrationDocumentRow(year,row,groupMap.get(registrationDocumentKey(row)),canEdit)).join('')}</tbody></table></div></details>`;
     }).join('');
   }
@@ -9645,14 +9657,14 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if(registrationIndexErrors[year]){list.innerHTML=`<div class="settings-risk-note" role="alert">${escapeHtml(registrationIndexErrors[year])}<button class="btn" onclick="loadRegistrationFormsIndex()">重新載入</button></div>`;return;}
     if(registrationSelectedYear!==year){registrationSelectedFiles.clear();registrationSelectedYear=year;}
     const all=registrationRows(year),groups=registrationDocumentGroups(all),meta=registrationYearMeta(year),edit=registrationMayModify(year),admin=isRegistrationFormsAdmin();
-    document.getElementById('registration-archive-summary').innerHTML=`<span>${escapeHtml(year)}年度 · ${groups.length}份文件</span><span>歷史版本 ${all.length-groups.length}份</span><span>回收筒 ${registrationRows(year,true).filter(v=>v.isDeleted).length}份</span><span>${registrationFileSize(registrationRows(year,true).reduce((sum,r)=>sum+Number(r.size||0),0))}</span><span>${meta.updatedAt?'最近更新 '+escapeHtml(registrationDisplayTime(meta.updatedAt)):'尚未上傳'}</span>`;
+    renderRegistrationArchiveSummary(year,groups,all,meta);
     for(const id of ['registration-form-category','registration-form-building','registration-form-upload','registration-upload-mode','registration-document-title']){const el=document.getElementById(id);if(el)el.disabled=!edit||registrationOperationRunning;}
     const save=document.getElementById('registration-form-confirm-upload');if(save){save.disabled=!edit||registrationOperationRunning||!pendingRegistrationForm||(pendingRegistrationForm.compressed&&!pendingRegistrationForm.previewConfirmed);save.textContent=registrationUploadQueue.length?`保存此份（另有${registrationUploadQueue.length}份）`:'確認保存';}
     const state=document.getElementById('registration-archive-status');if(state){state.textContent=meta.archived?'本年度已封存':'本年度可編輯';state.className='badge '+(meta.archived?'badge-gray':'badge-green');}
     const until=document.getElementById('registration-retention-until');if(until){until.value=meta.retentionUntil||suggestedRegistrationRetention(year);until.disabled=!admin||registrationOperationRunning;}
     const archive=document.getElementById('registration-archive-toggle');if(archive){archive.style.display=admin?'':'none';archive.textContent=meta.archived?'解封本年度':'封存本年度';archive.disabled=registrationOperationRunning;}
     const target=document.getElementById('registration-upload-target');if(target){const selected=target.value;target.innerHTML='<option value="">請選擇原文件</option>'+groups.map(g=>`<option value="${escapeHtml(g.current.id)}">${escapeHtml(registrationTitle(g.current))} · ${escapeHtml(g.current.building||'全社區')} · v${Number(g.current.version)||1}</option>`).join('');target.value=selected;target.disabled=!edit||registrationOperationRunning||document.getElementById('registration-upload-mode')?.value!=='update';}
-    for(const id of [...registrationSelectedFiles])if(!registrationFormsIndex[year]?.[id])registrationSelectedFiles.delete(id);
+    for(const id of [...registrationSelectedFiles])if(!registrationFormsIndex[year]?.[id]||registrationFormsIndex[year][id].isDeleted)registrationSelectedFiles.delete(id);
     renderRegistrationDocumentTabs();renderRegistrationSelection();renderRegistrationDocumentList(year,edit);renderRegistrationBundleList();
     const bundleList=document.getElementById('registration-bundle-list'),editor=document.getElementById('registration-bundle-editor');if(bundleList)bundleList.hidden=registrationDocumentTab!=='merged';if(editor)editor.hidden=!document.getElementById('registration-bundle-dialog');
     const queue=document.getElementById('registration-upload-queue');if(queue)queue.textContent=registrationUploadQueue.length?`尚有 ${registrationUploadQueue.length} 份待確認`:'';
@@ -9814,7 +9826,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if(!['application/pdf','image/png','image/jpeg'].includes(blob.type))throw new Error('不支援的預覽格式');
     activeRegistrationPreview?.close();
     const originalUrl=URL.createObjectURL(blob),modal=document.createElement('div'),pdf=blob.type==='application/pdf';
-    const previousFocus=document.activeElement;
+    const previousFocus=document.activeElement,previousPosition=captureRegistrationPreviewPosition();
     let closed=false,pager=null,zoom=1;
     modal.id='registration-online-preview';modal.className='modal-overlay show';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','年度文件完整預覽');
     modal.innerHTML=`<div class="modal-box registration-preview-dialog"><h2 style="margin:0 0 6px">年度文件預覽</h2><p style="margin:0;overflow-wrap:anywhere">${escapeHtml(name||'年度文件')}</p><div class="registration-preview-toolbar">${pdf?'<button class="btn btn-sm" data-prev disabled>上一頁</button><span class="registration-preview-page-label" data-page role="status" aria-live="polite">讀取頁數中…</span><button class="btn btn-sm" data-next disabled>下一頁</button><button class="btn btn-sm" data-zoom-out aria-label="縮小檢視" disabled>縮小</button><span data-zoom>適應寬度</span><button class="btn btn-sm" data-fit-width>適應寬度</button><button class="btn btn-sm" data-zoom-in aria-label="放大檢視" disabled>放大</button>':'<span>圖片預覽</span>'}<a class="btn btn-sm" data-open target="_blank" rel="noopener noreferrer">另開完整文件</a><a class="btn btn-sm" data-download>下載原始完整檔</a></div><div class="registration-preview-status" data-status role="status" aria-live="polite">${pdf?'正在準備分頁預覽…':'圖片預覽'}</div><div class="registration-preview-stage">${pdf?'<iframe title="年度登記表分頁預覽" src="about:blank"></iframe>':'<img alt="年度登記表圖片預覽">'}</div><div class="modal-footer"><button class="btn" data-close>關閉預覽</button>${options.onConfirm?'<button class="btn btn-primary" data-confirm-upload disabled>已確認，合併並上傳</button>':String()}</div></div>`;
@@ -9824,7 +9836,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const close=()=>{
       if(closed)return;closed=true;pager?.dispose();URL.revokeObjectURL(originalUrl);document.removeEventListener('keydown',key);modal.remove();
       if(activeRegistrationPreview?.modal===modal)activeRegistrationPreview=null;
-      previousFocus?.focus?.();
+      previousFocus?.focus?.({preventScroll:true});restoreRegistrationPreviewPosition(previousPosition);
     };
     const showPage=async target=>{
       try{await pager?.goTo(target);}catch(e){if(!closed){status.textContent='此頁無法預覽：'+String(e.message||e)+'。請另開完整文件或下載。';showAppToast('PDF 分頁預覽失敗，原始檔案未變更。','warn');}}
@@ -10046,6 +10058,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const year=registrationArchiveYear();if(!validRegistrationArchiveYear(year)){registrationFormStatus('請先填寫有效年度，再新增文件。');showAppToast('請先填寫有效年度。','warn');return false;}
     if(!registrationMayModify(year)){showAppToast('本年度已封存，請由管理員解封後新增文件。','warn');return false;}
     if(registrationIndexErrors[year]){showAppToast('年度文件讀取失敗，請先重新載入年度文件，再新增。','warn');return false;}
+    toggleRegistrationArchive(true);
     const panel=document.getElementById('registration-upload-panel'),mode=document.getElementById('registration-upload-mode'),input=document.getElementById('registration-form-upload');if(!panel||!mode||!input){reportOperationFailure('新增文件','上傳區未載入，請重新載入頁面');return false;}
     if((pendingRegistrationForm||registrationUploadQueue.length)&&!confirm('目前有尚未保存的文件。重新選檔會取消本次待上傳內容，是否繼續？'))return false;
     let target=null;if(id){const item=registrationFormsIndex[year]?.[id];if(!item||item.isDeleted){showAppToast('原文件不存在或已在回收筒，請重新載入。','warn');return false;}const group=registrationDocumentGroups(registrationRows(year)).find(g=>g.key===registrationDocumentKey({...item,id}));target=group?.current||{...item,id};}
@@ -10154,6 +10167,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
   function openRegistrationBundle(id){if(!canManageRegistrationForms()||registrationOperationRunning)return;const record=registrationDocumentBundles[registrationArchiveYear()]?.[id];if(!record){showAppToast('文件包不存在，請重新載入。','warn');return;}try{registrationBundleDraft=normalizeRegistrationBundle({...record,id});showRegistrationBundleEditor();}catch(e){showAppToast(String(e.message||e),'warn');}}
   function showRegistrationBundleEditor(){
+    toggleRegistrationArchive(true);
     resetMergedDocumentFilters();invalidateRegistrationBundleOutput();const editor=document.getElementById('registration-bundle-editor');editor.open=true;document.getElementById('registration-bundle-title').value=registrationBundleDraft.title;
     for(const [key,id] of [['cover','registration-bundle-cover'],['toc','registration-bundle-toc'],['pageNumbers','registration-bundle-page-numbers']])document.getElementById(id).checked=registrationBundleDraft.options[key];
     const button=document.querySelector('#registration-bundle-editor button[onclick="saveRegistrationBundle()"]');if(button)button.textContent='保存合併清單（不含PDF）';renderRegistrationForms();renderRegistrationBundleSources();return mountRegistrationBundleDialog();
@@ -10392,7 +10406,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const report=buildLotteryHealthCheck(),host=document.getElementById('lottery-health-report');if(host){host.hidden=false;host.innerHTML=`<h3>${escapeHtml(report.round)}健檢｜${report.ok?'可進入覆核':'需先處理'}</h3><p>${systemDateTime(report.at)}｜資料版本 ${escapeHtml(report.version)}</p><ul>${report.items.map(x=>`<li class="${x.ok?'status-complete':x.blocking?'status-danger':'status-caution'}">${escapeHtml(x.label)}：${escapeHtml(x.detail)}</li>`).join('')}</ul><details><summary>資格排除與差異（${report.differences.length}項）</summary>${report.differences.map(x=>`<p>${escapeHtml(x.name)}｜${escapeHtml(x.kind)}｜${escapeHtml(x.effect)}</p>`).join('')||'<p>無資格差異</p>'}</details><p>資格採正式抽籤共用規則；健檢不分配車位，也不取代覆核。不顯示完整姓名、門牌或車牌。</p>`;}return report;
   }
   function setRegistrationDocumentTab(tab){if(!canManageRegistrationForms()||registrationOperationRunning)return;if(!['original','merged','trash'].includes(tab)||tab==='trash'&&!isRegistrationFormsAdmin())return;registrationDocumentTab=tab;registrationSelectedFiles.clear();clearRegistrationFilters();renderRegistrationForms();}
-  function renderRegistrationDocumentTabs(){for(const tab of ['original','merged','trash']){const button=document.getElementById('registration-tab-'+tab);if(button){button.setAttribute?.('aria-selected',String(registrationDocumentTab===tab));button.classList?.toggle?.('active',registrationDocumentTab===tab);if(tab==='trash')button.hidden=!isRegistrationFormsAdmin();}}}
+  function renderRegistrationDocumentTabs(){
+    const year=registrationArchiveYear(),groups=registrationDocumentGroups(registrationRows(year)),merged=row=>!!row.bundleProvenance||row.category==='彙整文件';const counts={original:groups.filter(group=>!merged(group.current)).length,merged:groups.filter(group=>merged(group.current)).length,trash:registrationRows(year,true).filter(row=>row.isDeleted).length};const labels={original:'原始登記表',merged:'合併文件',trash:'回收筒'};
+    for(const tab of ['original','merged','trash']){const button=document.getElementById('registration-tab-'+tab);if(button){button.textContent=`${labels[tab]} ${counts[tab]}`;button.setAttribute?.('aria-selected',String(registrationDocumentTab===tab));button.classList?.toggle?.('active',registrationDocumentTab===tab);if(tab==='trash')button.hidden=!isRegistrationFormsAdmin();}}
+  }
   async function restoreRegistrationDocument(year,id){return runRegistrationOperation('還原回收筒文件',async()=>{
     if(!isRegistrationFormsAdmin()||!registrationMayModify(year))throw new Error('需管理員權限且年度未封存');const item=registrationFormsIndex[year]?.[id];if(!item?.isDeleted)throw new Error('文件不在回收筒');
     const response=await fetch(await documentDatabaseUrl(`parkingData/registrationFormsFiles/${year}/${id}.json`,true),{cache:'no-store'});if(!response.ok||!registrationStoredDataUrl(await response.json()))throw new Error('原檔內容無法讀取，未還原');
@@ -12797,6 +12814,20 @@ var qrcode = function() {
   }
   function registrationDraftResumeHtml(year){return registrationBundleDraft?.year===String(year)&&!document.getElementById('registration-bundle-dialog')?'<button class="btn" onclick="resumeRegistrationBundleEditor()">繼續本次合併編輯</button>':'';}
   function resumeRegistrationBundleEditor(){if(!registrationBundleDraft||registrationOperationRunning||!canManageRegistrationForms())return false;registrationDocumentTab='merged';renderRegistrationForms();return mountRegistrationBundleDialog();}
+  function toggleRegistrationArchive(expand){
+    if(!canManageRegistrationForms())return false;const content=document.getElementById('registration-archive-content'),button=document.getElementById('registration-archive-disclosure');if(!content||!button)return false;
+    const open=typeof expand==='boolean'?expand:content.hidden;if(!open&&registrationOperationRunning){showAppToast('文件處理中，完成後可收起。','info');return false;}
+    content.hidden=!open;button.setAttribute?.('aria-expanded',String(open));button.textContent=open?'收起年度文件':'展開年度文件';return open;
+  }
+  function renderRegistrationArchiveSummary(year,groups,all,meta){
+    const host=document.getElementById('registration-archive-summary');if(!host)return;const stored=registrationRows(year,true);
+    host.innerHTML=`<span>${escapeHtml(year)}年度</span><span>文件 ${groups.length}份</span><span>${meta.updatedAt?'最近更新 '+registrationDisplayTime(meta.updatedAt):'尚未上傳'}</span><details class="registration-summary-more"><summary>更多資訊</summary><div>歷史版本 ${all.length-groups.length}份<br>回收筒 ${stored.filter(v=>v.isDeleted).length}份<br>總容量 ${registrationFileSize(stored.reduce((sum,row)=>sum+Number(row.size||0),0))}（含回收筒）</div></details>`;
+    const clear=document.getElementById('registration-clear-filters');if(clear)clear.hidden=!registrationHasActiveFilters();
+  }
+  function registrationHasActiveFilters(){const mode=document.getElementById('document-filter-official');return ['document-search','document-filter-building','document-filter-category'].some(id=>!!document.getElementById(id)?.value.trim())||!!mode&&mode.value!=='yes';}
+  function captureRegistrationPreviewPosition(){return {x:Number(window.scrollX)||0,y:Number(window.scrollY)||0,areas:[...document.querySelectorAll('.page,.table-wrap,.registration-table-wrap,.registration-bundle-dialog-content')].filter(node=>Number(node.scrollTop)>0||Number(node.scrollLeft)>0).map(node=>({node,top:node.scrollTop,left:node.scrollLeft}))};}
+  function restoreRegistrationPreviewPosition(position){for(const item of position.areas)if(item.node.isConnected!==false){item.node.scrollTop=item.top;item.node.scrollLeft=item.left;}try{window.scrollTo?.({left:position.x,top:position.y,behavior:'instant'});}catch(_){}const status=document.getElementById('registration-form-status');if(status&&/已開啟完整預覽|正在載入線上預覽/.test(status.textContent||''))registrationFormStatus('');}
+  function cancelRegistrationUpload(){if(registrationOperationRunning){showAppToast('文件保存中，完成後可關閉上傳區。','info');return false;}cancelRegistrationUploadQueue();const panel=document.getElementById('registration-upload-panel');if(panel)panel.open=false;registrationFormStatus('');return true;}
 </script>
   
 
