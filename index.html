@@ -960,7 +960,7 @@
       <select id="document-filter-building" aria-label="檔案棟別篩選" onchange="registrationFiltersChanged()"><option value="">全部棟別</option><option>A棟</option><option>B棟</option><option>C棟</option><option>D棟</option><option>E棟</option><option>全社區</option></select>
       <select id="document-filter-category" aria-label="檔案類別篩選" onchange="registrationFiltersChanged()"><option value="">全部類別</option><option>空白表單</option><option>已填寫掃描檔</option><option>棟別彙整</option><option>簽核版</option><option>補件</option><option>彙整文件</option></select>
       <details><summary>更多篩選</summary><select id="document-filter-official" aria-label="檔案版次篩選" onchange="registrationFiltersChanged()"><option value="yes" selected>目前文件</option><option value="">全部文件與版本</option><option value="no">僅歷史版本</option></select></details>
-      <button class="btn btn-sm" onclick="clearRegistrationFilters()">清除篩選</button><button class="btn btn-primary" onclick="openRegistrationUpload()">新增文件</button>
+      <button class="btn btn-sm" onclick="clearRegistrationFilters()">清除篩選</button><button class="btn btn-primary" id="registration-add-document" type="button" aria-controls="registration-upload-panel" onclick="openRegistrationUpload()">新增文件</button>
       <span id="registration-form-status" class="muted-note" aria-live="polite">載入年度檔案中…</span>
     </div>
     <details id="registration-upload-panel" class="registration-subpanel"><summary>上傳與版本更新</summary><div class="registration-archive-toolbar">
@@ -10038,11 +10038,23 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function cancelRegistrationUploadQueue(){registrationSelectionSequence++;registrationUploadQueue=[];registrationUploadContext=null;clearRegistrationFormPreview();const queue=document.getElementById('registration-upload-queue');if(queue)queue.textContent='';}
   function registrationUploadModeChanged(){if(registrationOperationRunning)return;cancelRegistrationUploadQueue();renderRegistrationForms();}
   function openRegistrationUpload(id=''){
-    if(!registrationMayModify(registrationArchiveYear())){showAppToast('本年度已封存，請由管理員解封。','warn');return;}
-    cancelRegistrationUploadQueue();document.getElementById('registration-upload-panel').open=true;
-    document.getElementById('registration-upload-mode').value=id?'update':'new';renderRegistrationForms();
-    if(id){const item=registrationFormsIndex[registrationArchiveYear()]?.[id],group=item?registrationDocumentGroups(registrationRows(registrationArchiveYear())).find(g=>g.key===registrationDocumentKey({...item,id})):null;document.getElementById('registration-upload-target').value=group?.current.id||id;if(item)document.getElementById('registration-document-title').value=registrationTitle(item);}
-    document.getElementById('registration-upload-panel').scrollIntoView?.({behavior:'smooth',block:'nearest'});
+    if(!canManageRegistrationForms()){showAppToast('僅管理員與社區主任可新增文件。','warn');return false;}
+    if(registrationOperationRunning||isLotteryDataFrozen()){showAppToast(`暫時無法新增文件：${getMutationBlockReason()||'資料處理中'}。請完成後再試。`,'warn');return false;}
+    const year=registrationArchiveYear();if(!validRegistrationArchiveYear(year)){registrationFormStatus('請先填寫有效年度，再新增文件。');showAppToast('請先填寫有效年度。','warn');return false;}
+    if(!registrationMayModify(year)){showAppToast('本年度已封存，請由管理員解封後新增文件。','warn');return false;}
+    if(registrationIndexErrors[year]){showAppToast('年度文件讀取失敗，請先重新載入年度文件，再新增。','warn');return false;}
+    const panel=document.getElementById('registration-upload-panel'),mode=document.getElementById('registration-upload-mode'),input=document.getElementById('registration-form-upload');if(!panel||!mode||!input){reportOperationFailure('新增文件','上傳區未載入，請重新載入頁面');return false;}
+    if((pendingRegistrationForm||registrationUploadQueue.length)&&!confirm('目前有尚未保存的文件。重新選檔會取消本次待上傳內容，是否繼續？'))return false;
+    let target=null;if(id){const item=registrationFormsIndex[year]?.[id];if(!item||item.isDeleted){showAppToast('原文件不存在或已在回收筒，請重新載入。','warn');return false;}const group=registrationDocumentGroups(registrationRows(year)).find(g=>g.key===registrationDocumentKey({...item,id}));target=group?.current||{...item,id};}
+    cancelRegistrationUploadQueue();registrationDocumentTab=target&&(target.bundleProvenance||target.category==='彙整文件')?'merged':'original';
+    for(const key of ['document-search','document-filter-building','document-filter-category']){const field=document.getElementById(key);if(field)field.value='';}const official=document.getElementById('document-filter-official');if(official)official.value='yes';
+    panel.hidden=false;panel.style.display='';panel.open=true;for(let parent=panel.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;
+    mode.value=target?'update':'new';const title=document.getElementById('registration-document-title');if(title)title.value=target?registrationTitle(target):'';
+    renderRegistrationForms();const selector=document.getElementById('registration-upload-target');if(selector)selector.value=target?.id||'';
+    registrationFormStatus(target?'請選擇修正版；舊版本會保留。':'請選擇文件；選檔後預覽，再按「確認保存」上傳。');panel.scrollIntoView?.({behavior:'smooth',block:'nearest'});
+    if(input.disabled){showAppToast('選檔暫不可用，請確認年度與操作狀態。','warn');return false;}
+    // 保持在按鈕原始點擊事件內開啟，避免手機瀏覽器因失去使用者手勢而阻擋選檔。
+    try{input.click();}catch(error){registrationFormStatus('已展開上傳區；請點「選擇文件」開啟選檔。');showAppToast('瀏覽器未允許自動選檔，請點上傳區的「選擇文件」。','info');}return true;
   }
   async function selectRegistrationFormFile(input){
     if(registrationOperationRunning||!canManageRegistrationForms())return;const files=Array.from(input?.files||[]);if(!files.length)return;if(files.length>200){showAppToast('一次最多選取200份文件，請分批上傳。','warn');return;}
