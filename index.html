@@ -670,6 +670,19 @@
     body.guest-mode #mobile-bottom-nav .guest-only-nav,body:not(.guest-mode) #mobile-bottom-nav .admin-only-nav,#mobile-bottom-nav #mobile-more-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
     #mobile-bottom-nav [hidden],#nav-menu-mobile [hidden]{display:none!important}
   }
+/* Output layout is independent of screen zoom, sticky headers and reading preferences. */
+  @media print {
+    body.printing-announcement #announcement-sheet,body.printing-results #results-table-wrap{width:100%!important;max-width:100%!important;overflow:visible!important;height:auto!important;max-height:none!important;transform:none!important;zoom:1!important}
+    #announcement-sheet table,#results-table{width:100%!important;min-width:0!important;table-layout:auto!important;border-collapse:collapse!important;font-size:10pt!important}
+    #announcement-sheet thead,#results-table thead{display:table-header-group!important;position:static!important;transform:none!important}
+    #announcement-sheet th,#results-table th{position:static!important;top:auto!important;font-size:10pt!important}
+    #announcement-sheet th,#announcement-sheet td,#results-table th,#results-table td{padding:2mm!important;white-space:normal!important;overflow-wrap:anywhere;line-height:1.4!important;color:#000!important;background:#fff!important}
+    #announcement-sheet tr,#results-table tr{break-inside:avoid;page-break-inside:avoid}
+    #announcement-sheet .announcement-verify{display:flex!important;break-inside:avoid}
+    body.printing-announcement #announcement-sheet .announcement-verify svg{width:32mm!important;height:32mm!important;min-width:32mm!important;flex:0 0 32mm!important}
+    #announcement-sheet .announcement-verify>div{min-width:0}
+    body.printing-results #page-results .page-hero,body.printing-results #results-summary-strip,body.printing-results #results-view-banner,body.printing-results #results-log-filter-hint,body.printing-results .quick-filter-tabs{display:none!important}
+  }
 </style>
 </head>
 <body>
@@ -7005,15 +7018,23 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function getOriginalUserSeat(round,id){const bucket=originalLotteryResults?.[round]||{};return Number(bucket[`p_${id}`]??bucket[id]??'')||'';}
   function resultCardDetailsOpen(){return Number(window?.innerWidth||1024)>700?' open':'';}
 
+  function getResidentRoundStatus(round,resident){
+    if(getUserSeat(round,resident.id))return '中籤';
+    const field=({'第一輪':'r1','第二輪':'r2','第三輪':'r3','候補':'waitlist'})[round];
+    if(!field||resident[field]!=='Y')return round==='候補'?'未登記':'未參加';
+    if(round==='候補')return '候補中';
+    return hasLotteryRoundBeenExecuted(round)?'未中籤':'未執行';
+  }
+
   function renderResultCardsSingle(rows){
     const host=document.getElementById('results-card-list'); if(!host) return;
     let html='';
     rows.forEach(({r,seat})=>{
-      const isExecuted=getValidWinnerCount(currentResultRound)>0;
+      const isExecuted=hasLotteryRoundBeenExecuted(currentResultRound);
       const roundNumber = ({'第一輪':1,'第二輪':2,'第三輪':3})[currentResultRound] || null;
       const isParticipating = currentResultRound==='候補' ? r.waitlist==='Y' : !!roundNumber && r['r'+roundNumber] === 'Y';
       const plateValue = currentResultRound==='候補' ? r.plateWaitlist : (roundNumber ? r['plate'+roundNumber] : '');
-      const status=seat ? '<span class="badge status-complete">中籤</span>' : (isExecuted ? (isParticipating?'<span class="badge status-pending">未中籤</span>':'<span class="badge status-pending">未參加</span>') : '<span class="badge status-pending">未執行</span>');
+      const status='<span class="badge '+(seat?'status-complete':'status-pending')+'">'+escapeHtml(getResidentRoundStatus(currentResultRound,r))+'</span>';
       const original=getOriginalUserSeat(currentResultRound,r.id); const changed=original&&Number(original)!==Number(seat);
       const guestResultsView=!!(currentUser&&currentUser.role==='guest');
       const details=`${changed?`<div class="data-card-item"><span class="data-card-label">原抽中車位</span><span class="data-card-value"><b class="seat-number">${original}號</b></span></div>`:''}${guestResultsView?'':`<div class="data-card-item"><span class="data-card-label">車牌</span><span class="data-card-value">${escapeHtml(renderPlateText(plateValue))}</span></div>`}`;
@@ -7027,8 +7048,10 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const host=document.getElementById('results-card-list'); if(!host) return;
     let html='';
     rows.forEach(({r,seat1,seat2,seat3,seatW})=>{
-      const roundData=[['第一輪',seat1,r.r1==='Y'?'未中籤':'未參加'],['第二輪',seat2,r.r2==='Y'?'未中籤':'未參加'],['第三輪',seat3,r.r3==='Y'?'未中籤':'未參加'],['候補',seatW,r.waitlist==='Y'?'候補中':'未登記']],primary=roundData.find(x=>x[1])||roundData[0],roundHtml=roundData.map(([label,seat,fallback])=>`<div class="data-card-item"><span class="data-card-label">${label}</span><span class="data-card-value">${seat?`<b class="seat-number">${seat}號</b>`:fallback}</span></div>`).join(''),primaryHtml=`<div class="data-card-item"><span class="data-card-label">${primary[0]}</span><span class="data-card-value">${primary[1]?`<b class="seat-number">${primary[1]}號</b>`:primary[2]}</span></div>`,plate=(currentUser&&currentUser.role==='guest')?'':`<div class="data-card-item full"><span class="data-card-label">車牌</span><span class="data-card-value">${escapeHtml([r.plate1,r.plate2,r.plate3,r.plateWaitlist].map(renderPlateText).join(' / '))}</span></div>`;
-      html+=`<article class="data-card"><div class="data-card-head"><div><div class="data-card-title">${escapeHtml(r.build)} 棟 ${escapeHtml(r.room)} · ${escapeHtml(getDisplayName(r.name))}</div><div class="data-card-sub">${r.reserve==='Y'?'保留戶':'一般戶'}</div></div></div><div class="data-card-grid">${primaryHtml}</div><details class="mobile-card-details"${resultCardDetailsOpen()}><summary>展開各輪結果</summary><div class="data-card-grid">${roundHtml}${plate}</div></details>${resultCardActions(r)}</article>`;
+      const roundData=[['第一輪',seat1],['第二輪',seat2],['第三輪',seat3],['候補',seatW]];
+      const roundHtml=roundData.map(([label,seat])=>`<div class="data-card-item" data-result-round="${label}"><span class="data-card-label">${label}</span><span class="data-card-value">${seat?`<b class="seat-number">${seat}號</b>`:escapeHtml(getResidentRoundStatus(label,r))}</span></div>`).join('');
+      const plate=(currentUser&&currentUser.role==='guest')?'':`<details class="mobile-card-details"${resultCardDetailsOpen()}><summary>展開車牌資料</summary><div class="data-card-grid"><div class="data-card-item full"><span class="data-card-label">車牌</span><span class="data-card-value">${escapeHtml([r.plate1,r.plate2,r.plate3,r.plateWaitlist].map(renderPlateText).join(' / '))}</span></div></div></details>`;
+      html+=`<article class="data-card"><div class="data-card-head"><div><div class="data-card-title">${escapeHtml(r.build)} 棟 ${escapeHtml(r.room)} · ${escapeHtml(getDisplayName(r.name))}</div><div class="data-card-sub">${r.reserve==='Y'?'保留戶':'一般戶'}</div></div></div><div class="data-card-grid">${roundHtml}</div>${plate}${resultCardActions(r)}</article>`;
     });
     host.innerHTML=html || '<div class="empty"><strong>尚無符合條件的抽籤結果</strong><small>可調整篩選條件，或等待管理員完成抽籤。</small></div>';
     decorateEmptyStates(host);
@@ -7111,9 +7134,9 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       }
 
       rowsData.forEach(({r, seat1, seat2, seat3, seatW}) => {
-        let s1 = seat1 ? `<b style="color:var(--primary)">${seat1}號</b>` : (getValidWinnerCount("第一輪") > 0 ? (r.r1 === 'Y' ? "未中籤" : "未參加") : "未執行");
-        let s2 = seat2 ? `<b style="color:var(--primary)">${seat2}號</b>` : (getValidWinnerCount("第二輪") > 0 ? (r.r2 === 'Y' ? "未中籤" : "未參加") : "未執行");
-        let s3 = seat3 ? `<b style="color:var(--primary)">${seat3}號</b>` : (getValidWinnerCount("第三輪") > 0 ? (r.r3 === 'Y' ? "未中籤" : "未參加") : "未執行");
+        let s1 = seat1 ? `<b style="color:var(--primary)">${seat1}號</b>` : escapeHtml(getResidentRoundStatus('第一輪',r));
+        let s2 = seat2 ? `<b style="color:var(--primary)">${seat2}號</b>` : escapeHtml(getResidentRoundStatus('第二輪',r));
+        let s3 = seat3 ? `<b style="color:var(--primary)">${seat3}號</b>` : escapeHtml(getResidentRoundStatus('第三輪',r));
         let sW = seatW ? `<b style="color:#d97706">${seatW}號</b>` : (r.waitlist === 'Y' ? '候補中' : '-');
         
         html += `<tr>
@@ -7146,7 +7169,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
 
       let seat = getUserSeat(currentResultRound, r.id);
       let hasSeat = (seat !== null);
-      let isExecuted = getValidWinnerCount(currentResultRound) > 0;
+      let isExecuted = hasLotteryRoundBeenExecuted(currentResultRound);
       
       let isParticipating = false;
       if (currentResultRound === "第一輪") isParticipating = (r.r1 === 'Y');
@@ -7159,7 +7182,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
       if(type === 'waitlist' && r.waitlist!=='Y') return;
       if(type === 'skip' && isParticipating) return;
 
-      let statusStr = hasSeat ? '<span class="badge status-complete">中籤</span>' : (isExecuted ? (isParticipating ? '<span class="badge status-pending">未中籤</span>' : '<span class="badge status-pending">未參加</span>') : '<span class="badge status-pending">未執行</span>');
+      let statusStr = '<span class="badge '+(hasSeat?'status-complete':'status-pending')+'">'+escapeHtml(getResidentRoundStatus(currentResultRound,r))+'</span>';
 
       count++;
       html += `<tr>
@@ -7268,13 +7291,13 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const title=systemSettings.appTitle||'社區機車位抽籤系統';
     const sheet=document.getElementById('announcement-sheet');
     const printedAt=systemDateTime(new Date());
-    const eligible=rounds.reduce((n,r)=>n+(r==='候補'?residents.filter(x=>x.waitlist==='Y').length:residents.filter(x=>x['r'+({'第一輪':1,'第二輪':2,'第三輪':3}[r])]==='Y').length),0);
+    const winningHouseholds=new Set(rows.map(x=>Number(x.r.id))).size;
     const auditVersion=lastKnownServerModified?systemDateTime(lastKnownServerModified):'本機資料版本';
     const queryUrl=/^https?:$/i.test(location.protocol)?`${location.origin}${location.pathname}#resident-query`:'';
     let qrSvg='';try{if(queryUrl)qrSvg=createAnnouncementQrSvg(queryUrl);}catch(error){reportOperationFailure('公告QR Code產生',error,'尚未列印');return false;}
     const qrHtml=queryUrl?`<div class="announcement-verify">${qrSvg}<div><b>線上查詢與公告驗證</b><small>掃描後進入住戶查詢入口；QR Code 僅包含公開查詢網址，不含住戶或抽籤個資。</small><small>${escapeHtml(queryUrl)}</small></div></div>`:'<div class="announcement-verify"><div><b>線上查詢與公告驗證</b><small>目前為本機檔案預覽；部署至網站後，公告版會自動加入住戶查詢入口 QR Code。</small></div></div>';
-    sheet.innerHTML=`<section style="padding:8mm"><div class="announcement-sheet-brand"><span class="brand-mark" aria-hidden="true">稙</span><strong>${escapeHtml(title)}</strong></div><h1 style="text-align:center;font-size:22pt;margin:0 0 4mm">機車位抽籤結果公告</h1><p style="text-align:center;margin:0 0 4mm">公告範圍：第一輪、第二輪、第三輪及候補</p><p style="text-align:center;margin:0 0 7mm">合格 ${eligible} 位｜中籤 ${rows.length} 位｜作廢 ${(systemSettings.voidSeats||[]).length} 位</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>輪次</th><th>棟別</th><th>門牌</th><th>中籤住戶</th><th>車位</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${escapeHtml(x.round)}</td><td>${escapeHtml(x.r.build)}</td><td>${escapeHtml(x.r.room)}</td><td>${escapeHtml(maskName(x.r.name))}</td><td style="font-size:14pt;font-weight:900">${x.seat} 號</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:12mm">目前尚無中籤結果。</td></tr>'}</tbody></table><p style="margin-top:8mm;font-size:10pt">本公告為查閱用途；如有疑義，請洽社區管理委員會。公告版已隱藏車牌與管理操作資訊。</p>${qrHtml}<div class="announcement-sheet-signatures"><div>社區主任簽核</div><div>管理委員簽核</div><div>承辦人簽核</div></div><div class="announcement-page-footer"><span>列印時間：${escapeHtml(printedAt)}｜資料版本：${escapeHtml(auditVersion)}</span><span class="page-no"></span></div></section>`;
-    const reset=()=>{document.body.classList.remove('printing-announcement');window.removeEventListener('afterprint',reset);};document.body.classList.add('printing-announcement');window.addEventListener('afterprint',reset);try{window.print();}catch(error){reset();reportOperationFailure('公告列印',error,'尚未列印');return false;}addLog('設定',`列印抽籤結果公告版：${currentResultRound}`);
+    sheet.innerHTML=`<section style="padding:8mm"><div class="announcement-sheet-brand"><span class="brand-mark" aria-hidden="true">稙</span><strong>${escapeHtml(title)}</strong></div><h1 style="text-align:center;font-size:22pt;margin:0 0 4mm">機車位抽籤結果公告</h1><p style="text-align:center;margin:0 0 4mm">公告範圍：第一輪、第二輪、第三輪及候補</p><p style="text-align:center;margin:0 0 7mm">中籤 ${winningHouseholds} 戶｜已分配 ${rows.length} 個車位｜作廢 ${(systemSettings.voidSeats||[]).length} 位</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>輪次</th><th>棟別</th><th>門牌</th><th>中籤住戶</th><th>車位</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${escapeHtml(x.round)}</td><td>${escapeHtml(x.r.build)}</td><td>${escapeHtml(x.r.room)}</td><td>${escapeHtml(maskName(x.r.name))}</td><td style="font-size:14pt;font-weight:900">${x.seat} 號</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:12mm">目前尚無中籤結果。</td></tr>'}</tbody></table><p style="margin-top:8mm;font-size:10pt">本公告為查閱用途；如有疑義，請洽社區管理委員會。公告版已隱藏車牌與管理操作資訊。</p>${qrHtml}<div class="announcement-sheet-signatures"><div>社區主任簽核</div><div>管理委員簽核</div><div>承辦人簽核</div></div><div class="announcement-page-footer"><span>列印時間：${escapeHtml(printedAt)}｜資料版本：${escapeHtml(auditVersion)}</span><span class="page-no"></span></div></section>`;
+    const reset=()=>{document.body.classList.remove('printing-announcement');window.removeEventListener('afterprint',reset);};document.body.classList.add('printing-announcement');window.addEventListener('afterprint',reset);try{window.print();}catch(error){reset();reportOperationFailure('公告列印',error,'尚未列印');return false;}addLog('設定',`列印抽籤結果公告版：全部輪次（${rows.length} 個車位）`);
   }
   function renderSummary() { renderResults(); }
   function exportSummary() {
