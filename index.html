@@ -684,6 +684,16 @@
     body.printing-results #page-results .page-hero,body.printing-results #results-summary-strip,body.printing-results #results-view-banner,body.printing-results #results-log-filter-hint,body.printing-results .quick-filter-tabs{display:none!important}
   }
   .signoff-toolbar,.signoff-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}.signoff-toolbar input{flex:1 1 180px;min-width:0}.signoff-toolbar select{max-width:100%}.signoff-record{border:1px solid #e2e8f0;border-radius:var(--radius-card);padding:20px;margin:12px 0;background:#fff}.signoff-record small{display:block;color:#64748b;margin-top:6px}.signoff-record .badge{margin-left:8px}.signoff-snapshot{margin:12px 0}.signoff-snapshot .table-wrap{max-height:260px}.signoff-file{padding:12px 0;border-bottom:1px solid #e2e8f0}#signoff-editor{padding:20px;border:1px solid #cbd5e1;border-radius:var(--radius-card);background:#f8fafc}#signoff-editor>label{display:block;margin:12px 0 6px}#signoff-editor>input,#signoff-editor>select,#signoff-editor>textarea{width:100%;box-sizing:border-box}#signoff-editor input[type=checkbox]{width:auto}.signoff-error{color:#b91c1c}.signoff-upload-snapshot{grid-column:1/-1}.signoff-upload-snapshot label{display:block;padding:12px 0}@media(max-width:700px){.signoff-record,#signoff-editor{padding:16px}.signoff-toolbar>*{flex:1 1 140px;max-width:100%}.signoff-actions .btn{flex:1 1 140px}}
+  /* Floorplan interaction styles are scoped to preserve the desktop layouts on other pages. */
+  #page-floorplan .floorplan-workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}#page-floorplan .floorplan-workspace.has-selection{grid-template-columns:minmax(0,1fr) minmax(280px,340px)}.floorplan-main{min-width:0}
+  #page-floorplan #fp-map-viewport{padding:12px;height:min(68vh,760px);height:min(68dvh,760px);min-height:320px;overflow:auto;position:relative;text-align:left;overscroll-behavior:contain;cursor:grab;touch-action:pan-x pan-y;border:1px solid #cbd5e1;margin:0}
+  #page-floorplan #fp-map-viewport.is-panning,#page-floorplan #fp-map-viewport.is-panning *{cursor:grabbing!important;user-select:none}#fp-pan-stage{position:relative;min-width:1px;min-height:1px}#page-floorplan #fp-img-wrap{position:absolute;left:0;top:0;display:block;box-sizing:border-box;transform-origin:top left!important;transition:none!important}#page-floorplan #fp-img-wrap>.legend-box{display:none}
+  #page-floorplan .seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}#page-floorplan .seat{position:relative;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;align-items:center;width:100%;min-height:82px;min-width:0;padding:10px 6px;border-radius:var(--radius-sm);font-family:inherit;cursor:pointer;line-height:1.3;transition:box-shadow .15s,border-color .15s;background-clip:padding-box}#page-floorplan .fp-seat-number{font-size:26px;line-height:1.3;font-variant-numeric:tabular-nums;letter-spacing:.01em;color:#0f172a}#page-floorplan .fp-seat-number small{font-size:12px;font-weight:500;margin-left:3px}.fp-seat-status{font-size:12px;color:#475569;margin-top:4px}#page-floorplan .seat:hover{box-shadow:0 3px 10px #0f172a22;border-color:#64748b}#page-floorplan .seat:focus-visible{outline:3px solid #2563eb;outline-offset:2px}#page-floorplan .seat.seat-selected{outline:3px solid #1d4ed8;outline-offset:2px;box-shadow:0 0 0 5px #dbeafe}#page-floorplan .fp-inner-box{padding:16px!important}#page-floorplan .fp-inner-box h4{font-size:18px!important;margin:0 0 16px!important}
+  #page-floorplan .floorplan-side-panel{position:sticky;top:12px;right:auto;width:auto;max-height:75vh;max-height:75dvh;z-index:10;box-shadow:0 6px 20px #0f172a10}#page-floorplan .floorplan-side-panel.show{display:block!important}#page-floorplan .floorplan-side-head strong{font-size:22px}#page-floorplan .seat-detail-number{font-size:44px;font-variant-numeric:tabular-nums;line-height:1.3}#page-floorplan .seat-detail-number small{font-size:14px;margin-left:6px;color:#64748b}.fp-detail-navigation{display:flex;gap:8px;margin:16px 0}.fp-detail-navigation .btn{flex:1;min-width:0}.fp-control-bar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:8px 0}.fp-control-bar>div{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.fp-zoom-controls output{min-width:100px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px}.fp-interaction-hint{font-size:12px;font-weight:400;color:#64748b;margin:8px 0}.fp-search-navigation span{font-size:13px}#floorplan-hover{position:fixed;z-index:2000;max-width:min(300px,calc(100vw - 16px));padding:10px 14px;background:#0f172a;color:white;border-radius:var(--radius-sm);box-shadow:0 5px 18px #0f172a33;font-size:13px;pointer-events:none}#floorplan-hover[hidden]{display:none!important}.floorplan-list-table{min-width:0!important;width:100%;font-size:16px}.floorplan-list-table small{display:block;font-size:13px;color:#64748b}.fp-list-number{font-size:26px;font-variant-numeric:tabular-nums}.floorplan-list-table tr.fp-list-selected td{background:#eff6ff!important}.floorplan-list-table td{white-space:normal;overflow-wrap:anywhere}#page-floorplan [hidden]{display:none!important}
+  @media(min-width:701px){#page-floorplan .floorplan-toolkit{position:sticky;top:8px;z-index:20}}@media(max-width:900px){#page-floorplan .floorplan-workspace.has-selection{grid-template-columns:minmax(0,1fr)}#page-floorplan .floorplan-side-panel{position:relative;top:auto;max-height:none}#page-floorplan #fp-map-viewport{height:55vh;height:55dvh;min-height:280px}.fp-control-bar{align-items:flex-start}}@media(max-width:700px){#page-floorplan .floorplan-toolkit{position:relative;top:auto}#page-floorplan .seat-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}#page-floorplan .floorplan-toolbar{grid-template-columns:minmax(0,1fr)}#page-floorplan .floorplan-toolbar>*{grid-column:auto;min-width:0}.fp-control-bar>div{width:100%}.floorplan-list-table{font-size:14px}.floorplan-list-table th,.floorplan-list-table td{padding:8px 5px!important}.fp-search-navigation .btn{flex:1}}
+  @media(prefers-reduced-motion:reduce){#page-floorplan .seat{transition:none}}
+  #page-floorplan .floorplan-toolkit{top:var(--fp-nav-offset,72px)}#page-floorplan .floorplan-side-panel{top:calc(var(--fp-nav-offset,72px) + var(--fp-toolbar-height,240px) + 8px);max-height:calc(100dvh - var(--fp-nav-offset,72px) - var(--fp-toolbar-height,240px) - 24px)}
+  @media(max-width:900px){#page-floorplan .floorplan-side-panel{position:relative;top:auto;max-height:none}}@media(max-width:700px){#page-floorplan .floorplan-toolkit{position:sticky;top:var(--fp-nav-offset,8px);max-height:40vh;max-height:40dvh;overflow:auto;overscroll-behavior:contain}}
 </style>
 </head>
 <body>
@@ -1449,9 +1459,7 @@
       <label class="btn btn-primary btn-sm" id="admin-floorplan-upload" style="margin:0;cursor:pointer;display:none">
         📤 上傳自訂平面圖 <input type="file" accept="image/*" style="display:none" onchange="uploadCustomFloorplan(this)">
       </label>
-      <button class="btn btn-sm" onclick="zoomFloorplan(0.1)">放大 (+)</button>
-      <button class="btn btn-sm" onclick="zoomFloorplan(-0.1)">縮小 (-)</button>
-      <button class="btn btn-sm" onclick="resetFloorplanZoom()">重置 (100%)</button>
+
     </div>
   </div>
 
@@ -1463,9 +1471,10 @@
         <option value="all">全部車位狀態</option><option value="free">空車位</option><option value="used">已分配</option><option value="waitlist">候補分配</option><option value="void">作廢車位</option><option value="round1">第一輪取得</option><option value="round2">第二輪取得</option><option value="round3">第三輪取得</option><option value="roundWaitlist">候補取得</option>
       </select>
       <button class="btn btn-sm" onclick="clearFloorplanFilter()">清除篩選</button>
-      <span id="floorplan-zoom-label" style="align-self:center;font-size:13px;font-weight:900;color:var(--text-muted)">縮放：100%</span>
+
       <button class="btn btn-sm" id="floorplan-return-highlight" style="display:none" onclick="returnToHighlightedSeat()">回到高亮車位</button>
     </div>
+    <div class="fp-control-bar"><div role="group" aria-label="平面圖檢視方式"><button class="btn btn-sm active" id="floorplan-view-map" aria-pressed="true" onclick="setFloorplanView('map')">平面圖</button><button class="btn btn-sm" id="floorplan-view-list" aria-pressed="false" onclick="setFloorplanView('list')">車位列表</button></div><div class="fp-zoom-controls" role="group" aria-label="平面圖縮放"><button class="btn btn-sm" onclick="zoomFloorplan(-0.2)" aria-label="縮小平面圖">−</button><output id="floorplan-zoom-label" aria-live="polite">縮放：100%</output><button class="btn btn-sm" onclick="zoomFloorplan(0.2)" aria-label="放大平面圖">＋</button><button class="btn btn-sm" onclick="fitFloorplanToView()">符合畫面</button><button class="btn btn-sm" onclick="resetFloorplanZoom()">100%</button></div><div class="fp-search-navigation" aria-label="搜尋結果切換"><span id="floorplan-search-position" aria-live="polite"></span><button class="btn btn-sm" id="floorplan-search-prev" disabled onclick="stepFloorplanSearch(-1)">上一筆</button><button class="btn btn-sm" id="floorplan-search-next" disabled onclick="stepFloorplanSearch(1)">下一筆</button></div></div><p class="fp-interaction-hint">滑過查看摘要，點擊固定查看。拖曳移動圖面；Ctrl＋滾輪以滑鼠位置縮放。一般滾輪維持捲動。</p>
     <div class="floorplan-quick-filters" aria-label="平面圖快速篩選"><button class="btn active" data-floorplan-quick="all" onclick="setFloorplanQuickFilter('all')">全部車位</button><button class="btn" data-floorplan-quick="free" onclick="setFloorplanQuickFilter('free')">僅顯示空位</button><button class="btn" data-floorplan-quick="used" onclick="setFloorplanQuickFilter('used')">僅顯示已分配</button><button class="btn" data-floorplan-quick="void" onclick="setFloorplanQuickFilter('void')">僅顯示作廢</button><button class="btn" data-floorplan-quick="waitlist" onclick="setFloorplanQuickFilter('waitlist')">僅顯示候補</button></div>
     <div id="floorplan-status-cards" class="floorplan-status-cards" aria-label="車位狀態統計"></div>
     <div class="floorplan-context">
@@ -1479,13 +1488,11 @@
     <div id="floorplan-side-content" class="floorplan-side-content"></div>
   </aside>
 
-  <div class="round-tabs">
-    <div class="round-tab active" id="fp-tab-1" onclick="switchFloorplan(1)">B1 區車位圖</div>
-    <div class="round-tab" id="fp-tab-2" onclick="switchFloorplan(2)">B2 區車位圖</div>
-  </div>
+  <div class="round-tabs" id="fp-floor-tabs" role="group" aria-label="車位區域"><button type="button" class="round-tab active" id="fp-tab-1" onclick="switchFloorplan(1)">B1 區車位圖</button><button type="button" class="round-tab" id="fp-tab-2" onclick="switchFloorplan(2)">B2 區車位圖</button></div>
 
-  <div class="card fp-outer-card" style="overflow:auto;text-align:center">
-    <div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center; max-width:100%">
+  <div id="floorplan-workspace" class="floorplan-workspace"><div class="floorplan-main">
+  <div class="card fp-outer-card" id="fp-map-viewport" tabindex="0" role="region" aria-label="可縮放及拖曳的車位平面圖">
+    <div id="fp-pan-stage"><div id="fp-img-wrap" style="display:inline-block; transition: transform 0.2s ease; transform-origin: top center; max-width:100%">
       
       <div class="legend-box" style="margin-bottom:2.5rem;font-size:15px;color:#0f172a">
         <div class="legend-item"><div class="legend-color" style="background:#f0fdf4;border:1px solid #86efac"></div>空車位</div>
@@ -1509,7 +1516,9 @@
         </div>
       </div>
     </div>
-  </div>
+  </div></div>
+  <div id="floorplan-list" hidden></div></div></div>
+  <div id="floorplan-hover" role="tooltip" hidden></div>
 </div>
 
 <!-- ===== 10. 操作手冊 (整合 PDF 預覽) ===== -->
@@ -3994,6 +4003,8 @@
       alert("權限不足！重機車牌統計僅限管理人員檢視。");
       return;
     }
+    cancelFloorplanTransientUi();
+    if(pageId!=='floorplan'){document.getElementById('floorplan-side-panel')?.classList.remove('show');document.getElementById('floorplan-workspace')?.classList.remove('has-selection');document.getElementById('seat-detail-modal')?.classList.remove('show');floorplanUiState().selected=null;activeSeatDetail=null;}
     const targetPage=document.getElementById('page-' + pageId);
     if(!targetPage){console.error('找不到頁面：',pageId);showAppToast('無法開啟指定頁面，請重新整理後再試。','warn');return;}
     // 切頁時明確重設每個頁面的顯示狀態；避免列印預覽或舊瀏覽器快取樣式後，總覽內容殘留在其他頁面。
@@ -7942,31 +7953,16 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   // ================= 8. 平面圖功能 =================
   function buildSeatHistory(seat){const n=Number(seat),items=[];const original=originalLotteryResults||{};['第一輪','第二輪','第三輪','候補'].forEach(round=>{Object.entries(original[round]||{}).forEach(([id,s])=>{if(Number(s)===n){const r=residents.find(x=>Number(x.id)===normalizeResId(id));items.push({type:'result',text:`原始抽籤：${round}｜${r?`${r.build}-${r.room} ${getDisplayName(r.name)}`:`住戶 ID ${id}`}`});}});});(swapLogs||[]).forEach(log=>{if(String(log.desc||'').includes(`${n}號`)||Number(log.seatA)===n||Number(log.seatB)===n)items.push({type:'swap',text:`互換：${systemDateTime(log.confirmedAt||log.time)}｜${log.desc||'已完成車位互換'}`});});(forfeitRecords||[]).forEach(rec=>{if(Number(rec.seat)===n)items.push({type:'forfeit',text:`棄權釋出：${rec.round||'未知輪次'}｜${systemDateTime(rec.createdAt||rec.time)}`});});const holder=getSeatOccupant(n);if(holder)items.push({type:isSeatFromWaitlist(n)?'wait':'result',text:`目前使用權：${holder.build}-${holder.room} ${getDisplayName(holder.name)}${isSeatFromWaitlist(n)?'｜候補遞補':'｜正式分配'}`});return items;}
   function openSeatDetail(seatNum){
-    const seat=Number(seatNum);
-    activeSeatDetail = seat; if(!Number.isInteger(seat) || seat<1) return;
-    const modal=document.getElementById('seat-detail-modal'); const content=document.getElementById('seat-detail-content'); const title=document.getElementById('seat-detail-title');
-    if(!modal||!content) return;
-    const isVoid=(systemSettings.voidSeats||[]).map(Number).includes(seat);
-    const occupant=getSeatOccupant(seat);
-    let status = isVoid ? '作廢車位' : (occupant ? (isSeatFromWaitlist(seat)?'候補分配':'正式分配') : '空車位');
-    title.innerText=`車位 ${seat} 號詳細資料`;
-    if(!occupant){
-      content.innerHTML=`<div class="seat-detail-hero"><div class="seat-detail-number">${seat}號</div><span class="badge ${isVoid?'badge-gray':'badge-green'}">${status}</span></div><div class="data-card-item full" style="margin-bottom:14px"><span class="data-card-label">狀態說明</span><span class="data-card-value">${isVoid?'此車位已設定為作廢，不可分配。':'目前尚無住戶持有此車位。'}</span></div><div class="mobile-secondary-actions"><button class="btn btn-sm" onclick="closeSeatDetailModal();showPage('results')">前往抽籤結果</button></div>`;
-      presentFloorplanSeatDetail(title.innerText,content.innerHTML); return;
-    }
-    const guestFloorplanView=!!(currentUser&&currentUser.role==='guest');
-    const seatRows=[['第一輪',occupant.assign1,occupant.plate1],['第二輪',occupant.assign2,occupant.plate2],['第三輪',occupant.assign3,occupant.plate3],['候補',occupant.assignWaitlist,occupant.plateWaitlist]];
-    const detailRows=seatRows.filter(([,s])=>Number(s)>0).map(([round,s,plate])=>`<div class="seat-detail-item"><span class="seat-detail-label">${round}</span><span class="seat-detail-value">${Number(s)}號${guestFloorplanView?'':` · ${escapeHtml(plate||'未填寫')}`}</span></div>`).join('');
-    const history=guestFloorplanView?[]:buildSeatHistory(seat);const historyHtml=guestFloorplanView?'':`<details class="seat-history"><summary>車位使用權歷程（${history.length} 筆）</summary><div class="seat-history-list">${history.map(x=>`<div class="seat-history-item ${x.type==='forfeit'?'forfeit':x.type==='swap'?'swap':''}">${escapeHtml(x.text)}</div>`).join('')||'<div class="seat-history-item">尚無可追溯歷程；新操作會自動累積於此。</div>'}</div></details>`;
-    content.innerHTML=`<div class="seat-detail-hero"><div><div class="seat-detail-number">${seat}號</div><div class="seat-detail-status">${escapeHtml(status)}</div></div><span class="badge ${isSeatFromWaitlist(seat)?'badge-orange':'badge-blue'}">${isSeatFromWaitlist(seat)?'候補':'已分配'}</span></div><div class="seat-detail-grid"><div class="seat-detail-item"><span class="seat-detail-label">棟別</span><span class="seat-detail-value">${escapeHtml(occupant.build)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">門牌</span><span class="seat-detail-value">${escapeHtml(occupant.room)}</span></div><div class="seat-detail-item"><span class="seat-detail-label">住戶姓名</span><span class="seat-detail-value">${escapeHtml(getDisplayName(occupant.name))}</span></div><div class="seat-detail-item"><span class="seat-detail-label">身分</span><span class="seat-detail-value">${occupant.reserve==='Y'?'保留戶':'一般戶'}</span></div><div class="seat-detail-item" style="grid-column:1/-1"><span class="seat-detail-label">${guestFloorplanView?'持有車位':'持有車位與車牌'}</span><div class="seat-detail-grid" style="margin-top:6px">${detailRows || '<div class="seat-detail-item">目前沒有其他輪次車位資料</div>'}</div></div></div>${historyHtml}<div class="mobile-secondary-actions"><button class="btn btn-sm btn-primary" onclick="closeSeatDetailModal();showPage('results');selectResultRound('全部輪次')">前往全部抽籤結果</button>${guestFloorplanView?'':`<button class="btn btn-sm" onclick="closeSeatDetailModal();openSwapFromSeat(${Number(occupant.id)})">前往車位互換</button>`}</div>`;
-    presentFloorplanSeatDetail(title.innerText,content.innerHTML);
-  }
+ const data=floorplanSeatData(seatNum);if(!data||!currentUser)return false;activeSeatDetail=data.seat;floorplanUiState().selected=data.seat;hideFloorplanHover();
+ document.querySelectorAll('#page-floorplan [data-seat]').forEach(el=>{const selected=Number(el.dataset.seat)===data.seat;el.classList.toggle('seat-selected',selected);el.setAttribute('aria-pressed',String(selected));});
+ const title=`${data.seat} 號車位`,html=floorplanDetailHtml(data);const modalTitle=document.getElementById('seat-detail-title'),modalContent=document.getElementById('seat-detail-content');if(modalTitle)modalTitle.textContent=title;if(modalContent)modalContent.innerHTML=html;presentFloorplanSeatDetail(title,html);renderFloorplanList();return true;
+}
   function presentFloorplanSeatDetail(title,html){
-    const panel=document.getElementById('floorplan-side-panel'),panelTitle=document.getElementById('floorplan-side-title'),panelContent=document.getElementById('floorplan-side-content'),modal=document.getElementById('seat-detail-modal');
-    if(window.innerWidth>=1050&&panel&&panelTitle&&panelContent){panelTitle.textContent=title;panelContent.innerHTML=html;panel.classList.add('show');modal?.classList.remove('show');return;}
-    modal?.classList.add('show');
-  }
-  function closeSeatDetailModal(){ const modal=document.getElementById('seat-detail-modal'),panel=document.getElementById('floorplan-side-panel'); if(modal) modal.classList.remove('show');if(panel)panel.classList.remove('show'); activeSeatDetail=null; }
+ const panel=document.getElementById('floorplan-side-panel'),page=document.getElementById('page-floorplan'),workspace=document.getElementById('floorplan-workspace'),modal=document.getElementById('seat-detail-modal');
+ if(page?.classList.contains('active')&&panel){document.getElementById('floorplan-side-title').textContent=title;document.getElementById('floorplan-side-content').innerHTML=html;panel.classList.add('show');workspace?.classList.add('has-selection');modal?.classList.remove('show');applyFloorplanZoom(fpZoomLevel);return;}
+ modal?.classList.add('show');
+}
+  function closeSeatDetailModal(){document.getElementById('seat-detail-modal')?.classList.remove('show');document.getElementById('floorplan-side-panel')?.classList.remove('show');document.getElementById('floorplan-workspace')?.classList.remove('has-selection');activeSeatDetail=null;floorplanUiState().selected=null;hideFloorplanHover();document.querySelectorAll('#page-floorplan [data-seat]').forEach(el=>{el.classList.remove('seat-selected');el.setAttribute('aria-pressed','false');});applyFloorplanZoom(fpZoomLevel);renderFloorplanList();}
   function openSwapFromSeat(residentId){
     if(!currentUser || !['admin','director'].includes(currentUser.role)){ alert('權限不足！車位互換僅限管理人員操作。'); return; }
     showPage('swap');
@@ -7975,36 +7971,14 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     if(box) box.innerText='已將平面圖選取的住戶帶入「住戶 A」，請再選擇住戶 B 即可進行互換預覽。';
   }
 
-  function switchFloorplan(floorNum) {
-    currentFloorplan = floorNum;
-    if(floorNum === 1) {
-      document.getElementById("fp-tab-1").classList.add("active");
-      document.getElementById("fp-tab-2").classList.remove("active");
-      document.getElementById("fp-content-1").style.display = "block";
-      document.getElementById("fp-content-2").style.display = "none";
-    } else {
-      document.getElementById("fp-tab-2").classList.add("active");
-      document.getElementById("fp-tab-1").classList.remove("active");
-      document.getElementById("fp-content-2").style.display = "block";
-      document.getElementById("fp-content-1").style.display = "none";
-    }
-    resetFloorplanZoom();
-  }
+  function switchFloorplan(floorNum){
+ currentFloorplan=Number(floorNum)===2?2:1;hideFloorplanHover();for(const floor of [1,2]){document.getElementById('fp-tab-'+floor)?.classList.toggle('active',currentFloorplan===floor);const content=document.getElementById('fp-content-'+floor);if(content)content.style.display=currentFloorplan===floor?'block':'none';}applyFloorplanZoom(fpZoomLevel);
+}
 
-  function zoomFloorplan(delta) {
-    fpZoomLevel += delta;
-    if(fpZoomLevel < 0.5) fpZoomLevel = 0.5;
-    if(fpZoomLevel > 3.0) fpZoomLevel = 3.0;
-    document.getElementById("fp-img-wrap").style.transform = `scale(${fpZoomLevel})`;
-    const label=document.getElementById('floorplan-zoom-label'); if(label) label.innerText=`縮放：${Math.round(fpZoomLevel*100)}%`;
-  }
+  function zoomFloorplan(delta){applyFloorplanZoom((Number(fpZoomLevel)||1)+Number(delta));}
 
-  function resetFloorplanZoom() {
-    fpZoomLevel = 1.0;
-    document.getElementById("fp-img-wrap").style.transform = `scale(1.0)`;
-    const label=document.getElementById('floorplan-zoom-label'); if(label) label.innerText='縮放：100%';
-  }
-  function returnToHighlightedSeat(){ if(highlightedSeat) highlightFloorplanSeat(highlightedSeat); }
+  function resetFloorplanZoom(){applyFloorplanZoom(1);const viewport=document.getElementById('fp-map-viewport');if(viewport){viewport.scrollTop=0;viewport.scrollLeft=0;}}
+  function returnToHighlightedSeat(){if(!highlightedSeat)return;const data=floorplanSeatData(highlightedSeat);if(data&&!floorplanSeatVisible(data.seat,data.status==='void',data.occupant))clearFloorplanFilter();highlightFloorplanSeat(highlightedSeat,true,true);}
 
   function readFileDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=e=>resolve(String(e.target.result||''));reader.onerror=()=>reject(new Error('檔案讀取失敗'));reader.onabort=()=>reject(new Error('檔案讀取已取消'));reader.readAsDataURL(file);});}
   async function uploadCustomFloorplan(inputElem) {
@@ -8023,112 +7997,41 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   }
 
   function filterFloorplanView(){
-    floorplanSearchText=String(document.getElementById('floorplan-search')?.value||'').trim().toLowerCase();
-    floorplanStatusFilter=document.getElementById('floorplan-status-filter')?.value||'all';
-    document.querySelectorAll('[data-floorplan-quick]').forEach(el=>el.classList.toggle('active',el.dataset.floorplanQuick===floorplanStatusFilter));
-    initFloorplanSeats();
-    const match=String(floorplanSearchText||'').match(/\d+/); if(match) setTimeout(()=>highlightFloorplanSeat(Number(match[0]),false),0);
-  }
-  function clearFloorplanFilter(){
-    floorplanSearchText=''; floorplanStatusFilter='all';
-    const q=document.getElementById('floorplan-search'); const f=document.getElementById('floorplan-status-filter');
-    if(q) q.value=''; if(f) f.value='all'; document.querySelectorAll('[data-floorplan-quick]').forEach(el=>el.classList.toggle('active',el.dataset.floorplanQuick==='all')); initFloorplanSeats();
-  }
+ floorplanSearchText=String(document.getElementById('floorplan-search')?.value||'').trim().toLowerCase();floorplanStatusFilter=document.getElementById('floorplan-status-filter')?.value||'all';document.querySelectorAll('[data-floorplan-quick]').forEach(el=>el.classList.toggle('active',el.dataset.floorplanQuick===floorplanStatusFilter));hideFloorplanHover();clearTimeout(floorplanUiState().searchTimer);initFloorplanSeats();
+ if(floorplanSearchText&&floorplanUiState().matches.length)floorplanUiState().searchTimer=setTimeout(()=>{const ids=floorplanUiState().matches;if(ids.length)highlightFloorplanSeat(ids[0],true,true);},250);
+}
+  function clearFloorplanFilter(){clearTimeout(floorplanUiState().searchTimer);floorplanSearchText='';floorplanStatusFilter='all';for(const [id,value] of [['floorplan-search',''],['floorplan-status-filter','all']]){const input=document.getElementById(id);if(input)input.value=value;}document.querySelectorAll('[data-floorplan-quick]').forEach(el=>el.classList.toggle('active',el.dataset.floorplanQuick==='all'));initFloorplanSeats();}
   function focusFloorplanSearch(){const input=document.getElementById('floorplan-search');if(!input)return;input.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>input.focus(),180);}
-  function showMyFloorplanSeat(){let room=String(document.getElementById('my-result-room')?.value||'').trim();if(!room){room=String(window.prompt('請輸入門牌、棟別或樓層以定位車位：')||'').trim();}if(!room)return;const found=findResidentByAddressQuery(room),resident=found.resident;if(!resident){showAppToast(found.matches.length>1?'符合多戶資料，請補上棟別或完整門牌後再搜尋。':'找不到相符門牌，請確認棟別、門牌或樓層。','warn');return;}const seat=[resident.assign1,resident.assign2,resident.assign3,resident.assignWaitlist].map(Number).find(n=>n>0);if(!seat){showAppToast('此門牌目前沒有已分配車位。','info');return;}highlightFloorplanSeat(seat);}
-  function setFloorplanQuickFilter(filter){
-    floorplanStatusFilter=['all','free','used','void','waitlist'].includes(filter)?filter:'all';
-    const select=document.getElementById('floorplan-status-filter'); if(select)select.value=floorplanStatusFilter;
-    document.querySelectorAll('[data-floorplan-quick]').forEach(el=>el.classList.toggle('active',el.dataset.floorplanQuick===floorplanStatusFilter));
-    initFloorplanSeats();
-  }
-  function floorplanSeatVisible(i, isVoid, occupant){
-    let status=isVoid?'void':(occupant ? (isSeatFromWaitlist(i)?'waitlist':'used') : 'free');
-    if(floorplanStatusFilter.startsWith('round')){
-      const key={round1:'assign1',round2:'assign2',round3:'assign3',roundWaitlist:'assignWaitlist'}[floorplanStatusFilter];
-      if(!occupant || Number(occupant[key])!==Number(i)) return false;
-    } else if(floorplanStatusFilter!=='all' && floorplanStatusFilter!==status) return false;
-    if(!floorplanSearchText) return true;
-    const hay=[String(i), occupant?.build||'', occupant?.room||'', getDisplayName(occupant?.name||''), occupant?.plate1||'', occupant?.plate2||'', occupant?.plate3||'', occupant?.plateWaitlist||''].join(' ').toLowerCase();
-    return hay.includes(floorplanSearchText);
-  }
+  function showMyFloorplanSeat(){let query=String(document.getElementById('my-result-room')?.value||'').trim();if(!query)query=String(window.prompt('請輸入門牌，例如 A棟40號1樓、40號1樓、A1-40-1：')||'').trim();if(!query)return;const found=findResidentByAddressQuery(query),resident=found.resident;if(!resident){showAppToast(found.matches.length>1?'符合多戶，請補上棟別或完整門牌。':'找不到相符門牌。','warn');return;}const seats=['第一輪','第二輪','第三輪','候補'].map(round=>getUserSeat(round,resident.id)).filter(Boolean);if(!seats.length){showAppToast('此門牌目前沒有已分配車位。','info');return;}const search=document.getElementById('floorplan-search'),status=document.getElementById('floorplan-status-filter');if(search)search.value=String(resident.build)+' '+String(resident.room);if(status)status.value='all';filterFloorplanView();clearTimeout(floorplanUiState().searchTimer);highlightFloorplanSeat(seats[0],true,true);}
+  function setFloorplanQuickFilter(filter){const select=document.getElementById('floorplan-status-filter');if(select)select.value=['all','free','used','void','waitlist'].includes(filter)?filter:'all';filterFloorplanView();}
+  function floorplanSeatVisible(i,isVoid,occupant){
+ const data=floorplanSeatData(i);if(!data)return false;
+ const round={round1:'第一輪',round2:'第二輪',round3:'第三輪',roundWaitlist:'候補'}[floorplanStatusFilter];
+ if(round){if(!data.rounds.includes(round))return false;}else if(floorplanStatusFilter!=='all'&&data.status!==floorplanStatusFilter)return false;
+ const query=String(floorplanSearchText||'').trim().toLowerCase();if(!query)return true;
+ const exact=query.match(/^(\d+)\s*(?:號(?:車位)?)?$/);if(exact)return Number(exact[1])===Number(i);
+ const addressMatches=findResidentByAddressQuery(query).matches;if(occupant&&addressMatches.some(r=>Number(r.id)===Number(occupant.id)))return true;
+ const plate=floorplanPrivateView()?data.rounds.map(name=>occupant?.[{'第一輪':'plate1','第二輪':'plate2','第三輪':'plate3','候補':'plateWaitlist'}[name]]):[];
+ return [occupant?.build,occupant?.room,currentUser?getDisplayName(occupant?.name||''):'',...plate].filter(Boolean).join(' ').toLowerCase().includes(query);
+}
 
-  function initFloorplanSeats() {
-    let b1Html = "";
-    let b2Html = "";
-    let visibleSeatCount = 0;
-    const vSeats = systemSettings.voidSeats || [];
-    const total = systemSettings.totalSeats || 122;
-    const b1Limit = systemSettings.b1Limit || Math.floor(total / 2);
+  function initFloorplanSeats(){
+ const total=Number(systemSettings.totalSeats)||122,parts={1:[],2:[]},counts={free:0,used:0,waitlist:0,void:0},visible=[];
+ for(let i=1;i<=total;i++){const data=floorplanSeatData(i);counts[data.status]++;if(floorplanSeatVisible(i,data.status==='void',data.occupant)){visible.push(i);parts[data.floor].push(floorplanSeatButton(data));}}
+ for(const floor of [1,2]){const grid=document.getElementById('fp-b'+floor+'-grid');if(grid)grid.innerHTML=parts[floor].join('')||'<div class="empty" style="grid-column:1/-1"><strong>沒有符合條件的車位</strong><small>請切換區域或清除篩選。</small><button class="btn" onclick="clearFloorplanFilter()">清除篩選</button></div>';}
+ const cards=document.getElementById('floorplan-status-cards');if(cards)cards.innerHTML=[['free','空位'],['used','已分配'],['waitlist','候補'],['void','作廢']].map(([key,label])=>`<div class="floorplan-status-card ${key==='waitlist'?'wait':key}">${label}<b>${counts[key]} <small>位</small></b></div>`).join('');
+ floorplanUiState().matches=visible;const status=document.getElementById('floorplan-search-status');if(status)status.textContent=`${floorplanSearchText||floorplanStatusFilter!=='all'?'搜尋／篩選結果':'全部車位'}：${visible.length} / ${total} 個車位`;
+ const search=document.getElementById('floorplan-search');if(search)search.placeholder=floorplanPrivateView()?'搜尋車位、姓名、門牌或車牌':'搜尋車位、匿名姓名或門牌';
+ renderFloorplanList();updateFloorplanSearchNavigation();initFloorplanInteractions();updateFloorplanStickyOffset();applyFloorplanZoom(fpZoomLevel);
+ if(floorplanUiState().selected&&currentUser&&document.getElementById('page-floorplan')?.classList.contains('active'))openSeatDetail(floorplanUiState().selected);
+}
 
-    for(let i = 1; i <= b1Limit; i++) {
-      let isVoid = vSeats.includes(i);
-      let occupant = getSeatOccupant(i);
-      if(!floorplanSeatVisible(i, isVoid, occupant)) { continue; }
-      visibleSeatCount++;
-      let cls = "seat seat-free";
-      let label = `${i}號`;
-      let hoverTitle = `車位 ${i}號 (空位)`;
-      
-      if(isVoid) {
-        cls = "seat seat-void";
-        label = `${i}號<br><span style="font-size:11px;font-weight:600;opacity:0.8">(作廢)</span>`;
-        hoverTitle = `車位 ${i}號 (作廢)`;
-      } else if(occupant) {
-        let isWL = isSeatFromWaitlist(i);
-        cls = isWL ? "seat seat-waitlist" : "seat seat-used";
-        label = `${i}號<br><b style="font-size:15px;color:${isWL ? '#c2410c' : '#1e3a8a'}">${occupant.build} ${occupant.room}</b>${isWL ? '<br><span style="font-size:10.5px;font-weight:800">🎟️候補</span>' : ''}`;
-        hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}${isWL ? '（候補分配）' : ''}`;
-      }
-      b1Html += `<div id="floorplan-seat-${i}" class="${cls}" role="button" tabindex="0" onclick="openSeatDetail(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){openSeatDetail(${i})}" title="點擊查看車位 ${i}號詳細資料：${escapeHtml(hoverTitle)}">${label}</div>`;
-    }
-
-    for(let i = b1Limit + 1; i <= total; i++) {
-      let isVoid = vSeats.includes(i);
-      let occupant = getSeatOccupant(i);
-      if(!floorplanSeatVisible(i, isVoid, occupant)) { continue; }
-      visibleSeatCount++;
-      let cls = "seat seat-free";
-      let label = `${i}號`;
-      let hoverTitle = `車位 ${i}號 (空位)`;
-      
-      if(isVoid) {
-        cls = "seat seat-void";
-        label = `${i}號<br><span style="font-size:11px;font-weight:600;opacity:0.8">(作廢)</span>`;
-        hoverTitle = `車位 ${i}號 (作廢)`;
-      } else if(occupant) {
-        let isWL = isSeatFromWaitlist(i);
-        cls = isWL ? "seat seat-waitlist" : "seat seat-used";
-        label = `${i}號<br><b style="font-size:15px;color:${isWL ? '#c2410c' : '#1e3a8a'}">${occupant.build} ${occupant.room}</b>${isWL ? '<br><span style="font-size:10.5px;font-weight:800">🎟️候補</span>' : ''}`;
-        hoverTitle = `車位 ${i}號 - ${occupant.build} ${occupant.room} ${getDisplayName(occupant.name)}${isWL ? '（候補分配）' : ''}`;
-      }
-      b2Html += `<div id="floorplan-seat-${i}" class="${cls}" role="button" tabindex="0" onclick="openSeatDetail(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){openSeatDetail(${i})}" title="點擊查看車位 ${i}號詳細資料：${escapeHtml(hoverTitle)}">${label}</div>`;
-    }
-
-    if (b1Html === '') b1Html = '<div class="empty" style="grid-column:1/-1;padding:2rem"><strong>沒有符合篩選條件的車位</strong><small>請清除搜尋文字或改選其他狀態。</small></div>';
-    if (b2Html === '') b2Html = '<div class="empty" style="grid-column:1/-1;padding:2rem"><strong>沒有符合篩選條件的車位</strong><small>請清除搜尋文字或改選其他狀態。</small></div>';
-    const b1Grid = document.getElementById("fp-b1-grid");
-    const b2Grid = document.getElementById("fp-b2-grid");
-    if(b1Grid) b1Grid.innerHTML = b1Html;
-    if(b2Grid) b2Grid.innerHTML = b2Html;
-    const statCards=document.getElementById('floorplan-status-cards');
-    if(statCards){let free=0,used=0,wait=0,voided=0;for(let seat=1;seat<=total;seat++){const isVoid=vSeats.includes(seat),occupant=getSeatOccupant(seat);if(isVoid)voided++;else if(!occupant)free++;else if(isSeatFromWaitlist(seat))wait++;else used++;}statCards.innerHTML=`<div class="floorplan-status-card free">空位<b>${free} 位</b></div><div class="floorplan-status-card used">已分配<b>${used} 位</b></div><div class="floorplan-status-card wait">候補<b>${wait} 位</b></div><div class="floorplan-status-card void">作廢<b>${voided} 位</b></div>`;}
-    const statusBox=document.getElementById('floorplan-search-status');
-    if(statusBox){
-      const hasFilter=!!floorplanSearchText || floorplanStatusFilter!=='all';
-      statusBox.textContent=hasFilter ? `搜尋／篩選結果：${visibleSeatCount} / ${total} 個車位` : `顯示全部：${total} 個車位`;
-    }
-  }
-
-  function highlightFloorplanSeat(seat, switchTab=true){
-    const target=Number(seat); if(!Number.isInteger(target)||target<1) return;
-    highlightedSeat=target;
-    const b1Limit=systemSettings.b1Limit||Math.floor((systemSettings.totalSeats||122)/2);
-    if(switchTab) switchFloorplan(target<=b1Limit?1:2);
-    const note=document.getElementById('floorplan-highlight-note'); if(note){note.style.display='block';note.innerText=`目前高亮：${target} 號車位`;} 
-    const returnBtn=document.getElementById('floorplan-return-highlight'); if(returnBtn) returnBtn.style.display='inline-block';
-    setTimeout(()=>{const el=document.getElementById(`floorplan-seat-${target}`); if(!el) return; el.classList.remove('seat-highlight'); void el.offsetWidth; el.classList.add('seat-highlight'); el.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});},50);
-  }
+  function highlightFloorplanSeat(seat,switchTab=true,enlarge=true){
+ const data=floorplanSeatData(seat);if(!data)return false;
+ highlightedSeat=data.seat;floorplanUiState().selected=data.seat;if(switchTab)switchFloorplan(data.floor);
+ const note=document.getElementById('floorplan-highlight-note');if(note){note.style.display='block';note.textContent=`目前選取：${data.seat} 號車位 · ${data.label}`;}const btn=document.getElementById('floorplan-return-highlight');if(btn)btn.style.display='inline-block';
+ if(enlarge&&floorplanUiState().mode==='map')applyFloorplanZoom(Math.max(1.25,fpZoomLevel));openSeatDetail(data.seat);scrollFloorplanToSeat(data.seat);updateFloorplanSearchNavigation();return true;
+}
 
   // ================= 9. 系統設定與帳號管理邏輯 =================
   async function saveTitleVersionSettingsCore() {
@@ -12962,6 +12865,75 @@ var qrcode = function() {
  const year=registrationArchiveYear(),rows=signoffRecords(year).map(r=>[year,r.title,r.type,signoffEffectiveStatus(year,r),(r.snapshot?.residents||[]).map(x=>x.build+' '+x.room+' '+x.name).join('／'),signoffFiles(year,r.id).length,systemDateTime(r.updatedAt)]);for(const r of signoffMissingResidents(year))rows.push([year,'未建簽認','車位使用簽認','未建簽認',r.build+' '+r.room+' '+r.name,0,'']);
  return runRegistrationOperation('匯出簽認清冊',async()=>{await updateRegistrationFormPaths(registrationAuditPatch(year,'匯出簽認清冊',rows.length+'筆'));const csv=[['年度','簽認名稱','類別','狀態','關聯住戶','文件數','最後更新'],...rows].map(row=>row.map(csvEscape).join(',')).join('\r\n');registrationDownloadBlob(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),year+'年度_抽籤後簽認清冊.csv');return true;});
 }
+  function floorplanUiState(){return floorplanUiState.value||(floorplanUiState.value={mode:'map',matches:[],searchIndex:-1,hoverTimer:null,searchTimer:null,selected:null,drag:null,suppressClickUntil:0,baseWidth:0});}
+  function floorplanPrivateView(){return !!currentUser&&['admin','director'].includes(currentUser.role);}
+  function floorplanSeatData(value){
+ const seat=Number(value),total=Number(systemSettings.totalSeats)||122;if(!Number.isInteger(seat)||seat<1||seat>total)return null;
+ const occupant=getSeatOccupant(seat),isVoid=(systemSettings.voidSeats||[]).map(Number).includes(seat),wait=!!occupant&&isSeatFromWaitlist(seat);
+ const status=isVoid?'void':!occupant?'free':wait?'waitlist':'used',label=({void:'作廢',free:'空位',waitlist:'候補分配',used:'已分配'})[status];
+ const rounds=occupant?['第一輪','第二輪','第三輪','候補'].filter(round=>Number(getUserSeat(round,occupant.id))===seat):[];
+ return {seat,occupant,status,label,rounds,floor:seat<=(Number(systemSettings.b1Limit)||Math.floor(total/2))?1:2};
+}
+  function floorplanSeatButton(data){
+ const active=Number(floorplanUiState().selected)===data.seat,round=data.rounds.join('／');
+ return `<button type="button" id="floorplan-seat-${data.seat}" class="seat seat-${data.status==='used'?'used':data.status==='waitlist'?'waitlist':data.status} ${active?'seat-selected':''}" data-seat="${data.seat}" aria-pressed="${active}" aria-label="${data.seat} 號車位，${escapeHtml(data.label)}${round?'，'+escapeHtml(round):''}" onclick="selectFloorplanSeat(${data.seat})" onpointerenter="queueFloorplanHover(${data.seat},event)" onpointerleave="hideFloorplanHover()" onfocus="queueFloorplanHover(${data.seat},event)" onblur="hideFloorplanHover()"><strong class="fp-seat-number">${data.seat}<small>號</small></strong><span class="fp-seat-status">${escapeHtml(data.label)}</span></button>`;
+}
+  function renderFloorplanList(){
+ const host=document.getElementById('floorplan-list');if(!host)return;
+ const privateView=floorplanPrivateView();host.innerHTML=`<div class="table-wrap"><table class="floorplan-list-table"><thead><tr><th>車位</th><th>區域</th><th>狀態／輪次</th><th>門牌／住戶</th>${privateView?'<th>對應車牌</th>':''}<th>查看</th></tr></thead><tbody>${floorplanUiState().matches.map(seat=>{const d=floorplanSeatData(seat),r=d.occupant,plates=r?d.rounds.map(round=>r[{'第一輪':'plate1','第二輪':'plate2','第三輪':'plate3','候補':'plateWaitlist'}[round]]).filter(Boolean):[];return `<tr data-list-seat="${seat}" class="${Number(floorplanUiState().selected)===seat?'fp-list-selected':''}"><td><b class="fp-list-number">${seat}</b> 號</td><td>B${d.floor}</td><td>${escapeHtml(d.label)}<small>${escapeHtml(d.rounds.join('／')||'—')}</small></td><td>${r&&currentUser?escapeHtml(r.build+' '+r.room)+'<small>'+escapeHtml(getDisplayName(r.name))+'</small>':'—'}</td>${privateView?'<td>'+escapeHtml(plates.join('／')||'—')+'</td>':''}<td><button type="button" class="btn btn-sm" onclick="selectFloorplanSeat(${seat})">查看車位</button></td></tr>`;}).join('')||`<tr><td colspan="${privateView?6:5}">沒有符合條件的車位，請清除篩選或改用其他條件。</td></tr>`}</tbody></table></div>`;
+}
+  function setFloorplanView(mode){
+ const state=floorplanUiState();state.mode=mode==='list'?'list':'map';hideFloorplanHover();const viewport=document.getElementById('fp-map-viewport'),list=document.getElementById('floorplan-list'),tabs=document.getElementById('fp-floor-tabs');if(viewport)viewport.hidden=state.mode!=='map';if(list)list.hidden=state.mode!=='list';if(tabs)tabs.hidden=state.mode!=='map';
+ for(const key of ['map','list']){const btn=document.getElementById('floorplan-view-'+key);btn?.setAttribute?.('aria-pressed',String(state.mode===key));btn?.classList?.toggle?.('active',state.mode===key);}
+ if(state.mode==='map')applyFloorplanZoom(fpZoomLevel);else renderFloorplanList();
+}
+  function queueFloorplanHover(seat,event){
+ if(event?.pointerType==='touch'||floorplanUiState().drag)return;hideFloorplanHover();const rect=event?.currentTarget?.getBoundingClientRect?.(),x=Number(event?.clientX)||rect?.left||16,y=Number(event?.clientY)||rect?.bottom||16;
+ floorplanUiState().hoverTimer=setTimeout(()=>{const d=floorplanSeatData(seat),tooltip=document.getElementById('floorplan-hover');if(!d||!tooltip)return;tooltip.textContent=`${seat} 號車位 · ${d.label}${d.rounds.length?' · '+d.rounds.join('／'):''}｜點擊固定查看`;tooltip.hidden=false;const width=tooltip.offsetWidth||260,height=tooltip.offsetHeight||60;tooltip.style.left=Math.max(8,Math.min(x+14,(window.innerWidth||1024)-width-8))+'px';tooltip.style.top=Math.max(8,Math.min(y+14,(window.innerHeight||768)-height-8))+'px';},200);
+}
+  function hideFloorplanHover(){const state=floorplanUiState();clearTimeout(state.hoverTimer);state.hoverTimer=null;const tooltip=document.getElementById('floorplan-hover');if(tooltip)tooltip.hidden=true;}
+  function selectFloorplanSeat(seat){if(Date.now()<floorplanUiState().suppressClickUntil)return false;const result=highlightFloorplanSeat(seat,true,false);if(result&&(window.innerWidth||1024)<=900)document.getElementById('floorplan-side-panel')?.scrollIntoView?.({behavior:'smooth',block:'nearest'});return result;}
+  function floorplanDetailHtml(data){
+ const {seat,occupant:r,label,status,rounds}=data,privateView=floorplanPrivateView(),badge=status==='void'?'badge-gray':status==='free'?'badge-green':status==='waitlist'?'badge-orange':'badge-blue';
+ const position=floorplanUiState().matches.indexOf(seat),last=floorplanUiState().matches.length-1;
+ const navigation=`<div class="fp-detail-navigation"><button class="btn" ${position<=0?'disabled':''} onclick="stepFloorplanSeat(-1)">上一個車位</button><button class="btn" ${position<0||position>=last?'disabled':''} onclick="stepFloorplanSeat(1)">下一個車位</button></div>`;
+ const related=r?`<div class="seat-detail-grid"><div class="seat-detail-item"><span class="seat-detail-label">門牌</span><b>${escapeHtml(r.build)} ${escapeHtml(r.room)}</b></div><div class="seat-detail-item"><span class="seat-detail-label">住戶</span><b>${escapeHtml(getDisplayName(r.name))}</b></div>${rounds.map(round=>`<div class="seat-detail-item"><span class="seat-detail-label">${round} · 原抽中／目前使用</span><span>${getOriginalUserSeat(round,r.id)?escapeHtml(getOriginalUserSeat(round,r.id))+' 號':'未記錄'} ／ ${seat} 號</span>${privateView?'<small>車牌：'+escapeHtml(r[{'第一輪':'plate1','第二輪':'plate2','第三輪':'plate3','候補':'plateWaitlist'}[round]]||'未填寫')+'</small>':''}</div>`).join('')}</div>`:`<p>${status==='void'?'此車位已作廢，不可分配。':'目前尚無住戶持有此車位。'}</p>`;
+ const history=privateView?buildSeatHistory(seat):[];
+ return `<div class="seat-detail-hero"><div class="seat-detail-number">${seat}<small>號車位</small></div><span class="badge ${badge}">${escapeHtml(label)}</span></div><p class="muted-note">B${data.floor} 區 · ${escapeHtml(rounds.join('／')||'尚無分配輪次')}</p>${related}${privateView?`<details class="seat-history"><summary>車位使用權歷程（${history.length}筆）</summary>${history.map(row=>'<p>'+escapeHtml(row.text)+'</p>').join('')||'<p>尚無可追溯歷程。</p>'}</details>`:''}${navigation}<div class="mobile-secondary-actions"><button class="btn btn-sm" onclick="closeSeatDetailModal();showPage('results');selectResultRound('全部輪次')">查看抽籤結果</button>${privateView&&r?`<button class="btn btn-sm" onclick="closeSeatDetailModal();openSwapFromSeat(${Number(r.id)})">前往車位互換</button>`:''}</div>`;
+}
+  function stepFloorplanSeat(direction){const ids=floorplanUiState().matches,index=ids.indexOf(Number(floorplanUiState().selected)),next=index+(direction>0?1:-1);if(index<0||next<0||next>=ids.length)return false;return highlightFloorplanSeat(ids[next],true,false);}
+  function applyFloorplanZoom(value,anchor){
+ const viewport=document.getElementById('fp-map-viewport'),canvas=document.getElementById('fp-img-wrap'),stage=document.getElementById('fp-pan-stage');if(!viewport||!canvas||!stage||!Number.isFinite(Number(value)))return;
+ const before=Number(fpZoomLevel)||1,next=Math.max(.5,Math.min(4,Number(value))),oldLeft=Number(viewport.scrollLeft)||0,oldTop=Number(viewport.scrollTop)||0,rect=viewport.getBoundingClientRect?.()||{left:0,top:0},x=anchor?anchor.x-rect.left:(viewport.clientWidth||600)/2,y=anchor?anchor.y-rect.top:(viewport.clientHeight||400)/2;
+ const base=Math.max(360,(viewport.clientWidth||900)-24);canvas.style.width=base+'px';canvas.style.maxWidth='none';canvas.style.transformOrigin='top left';canvas.style.transform=`scale(${next})`;canvas.style.transition='none';
+ stage.style.width=Math.ceil(base*next)+'px';stage.style.height=Math.ceil((canvas.offsetHeight||500)*next)+'px';fpZoomLevel=next;floorplanUiState().baseWidth=base;
+ viewport.scrollLeft=Math.max(0,(oldLeft+x)*next/before-x);viewport.scrollTop=Math.max(0,(oldTop+y)*next/before-y);const label=document.getElementById('floorplan-zoom-label');if(label)label.textContent=`縮放：${Math.round(next*100)}%`;
+}
+  function fitFloorplanToView(){const viewport=document.getElementById('fp-map-viewport'),canvas=document.getElementById('fp-img-wrap');if(!viewport||!canvas)return;applyFloorplanZoom(1);const width=Number(canvas.offsetWidth)||floorplanUiState().baseWidth,height=Number(canvas.offsetHeight)||500;applyFloorplanZoom(Math.min(1,((viewport.clientWidth||900)-24)/width,((viewport.clientHeight||600)-24)/height));viewport.scrollLeft=0;viewport.scrollTop=0;}
+  function scrollFloorplanToSeat(seat){
+ const button=document.getElementById('floorplan-seat-'+seat),viewport=document.getElementById('fp-map-viewport');if(floorplanUiState().mode==='list'){const row=document.querySelector('[data-list-seat="'+seat+'"]');row?.scrollIntoView?.({behavior:'smooth',block:'nearest'});return;}if(!button||!viewport)return;
+ const rect=button.getBoundingClientRect?.(),view=viewport.getBoundingClientRect?.();if(rect&&view){viewport.scrollLeft+=rect.left-view.left-(viewport.clientWidth-rect.width)/2;viewport.scrollTop+=rect.top-view.top-(viewport.clientHeight-rect.height)/2;}
+}
+  function updateFloorplanSearchNavigation(){
+ const state=floorplanUiState(),count=state.matches.length,index=state.matches.indexOf(Number(highlightedSeat));const label=document.getElementById('floorplan-search-position');if(label)label.textContent=floorplanSearchText?(count?(index>=0?index+1:0)+' / '+count+' 筆符合':'找不到符合車位'):'';
+ for(const key of ['prev','next']){const button=document.getElementById('floorplan-search-'+key);if(button)button.disabled=!floorplanSearchText||!count;}
+}
+  function stepFloorplanSearch(direction){const state=floorplanUiState(),ids=state.matches;if(!ids.length)return false;let index=ids.indexOf(Number(highlightedSeat));index=index<0?(direction>0?0:ids.length-1):(index+(direction>0?1:-1)+ids.length)%ids.length;state.searchIndex=index;return highlightFloorplanSeat(ids[index],true,true);}
+  function initFloorplanInteractions(){
+ const viewport=document.getElementById('fp-map-viewport');if(!viewport?.addEventListener||viewport.dataset.interactionsReady==='1')return;viewport.dataset.interactionsReady='1';
+ const panel=document.getElementById('floorplan-side-panel'),workspace=document.getElementById('floorplan-workspace');if(panel&&workspace&&panel.parentElement!==workspace)workspace.appendChild(panel);
+ viewport.addEventListener('wheel',event=>{if(!event.ctrlKey)return;event.preventDefault();hideFloorplanHover();applyFloorplanZoom(fpZoomLevel*Math.exp(-event.deltaY*.002),{x:event.clientX,y:event.clientY});},{passive:false});
+ viewport.addEventListener('pointerdown',event=>{if(event.button!==0||event.pointerType==='touch'||event.target.closest?.('input,select,a'))return;floorplanUiState().drag={id:event.pointerId,x:event.clientX,y:event.clientY,left:viewport.scrollLeft,top:viewport.scrollTop,moved:false};});
+ viewport.addEventListener('pointermove',event=>{const drag=floorplanUiState().drag;if(!drag||drag.id!==event.pointerId)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<6)return;drag.moved=true;hideFloorplanHover();viewport.classList.add('is-panning');try{viewport.setPointerCapture(event.pointerId);}catch(_){}viewport.scrollLeft=drag.left-dx;viewport.scrollTop=drag.top-dy;event.preventDefault();});
+ const finish=event=>{const drag=floorplanUiState().drag;if(!drag||event.pointerId!==drag.id)return;if(drag.moved)floorplanUiState().suppressClickUntil=Date.now()+350;floorplanUiState().drag=null;viewport.classList.remove('is-panning');try{viewport.releasePointerCapture(event.pointerId);}catch(_){};};
+ viewport.addEventListener('pointerup',finish);viewport.addEventListener('pointercancel',finish);viewport.addEventListener('lostpointercapture',finish);viewport.addEventListener('pointerleave',()=>{if(floorplanUiState().drag&&!floorplanUiState().drag.moved)floorplanUiState().drag=null;hideFloorplanHover();});viewport.addEventListener('click',event=>{if(Date.now()<floorplanUiState().suppressClickUntil){event.preventDefault();event.stopImmediatePropagation();}},true);viewport.addEventListener('scroll',hideFloorplanHover,{passive:true});
+ viewport.addEventListener('keydown',event=>{if(event.key==='Escape'){hideFloorplanHover();closeSeatDetailModal();}if(['ArrowLeft','ArrowRight'].includes(event.key)&&event.target.closest?.('[data-seat]')){event.preventDefault();stepFloorplanSeat(event.key==='ArrowLeft'?-1:1);document.getElementById('floorplan-seat-'+floorplanUiState().selected)?.focus?.({preventScroll:true});}});
+ document.getElementById('page-floorplan')?.addEventListener?.('keydown',event=>{if(event.key==='Escape'){hideFloorplanHover();closeSeatDetailModal();}});
+ window.addEventListener('resize',()=>{hideFloorplanHover();updateFloorplanStickyOffset();applyFloorplanZoom(fpZoomLevel);});document.querySelectorAll('#fp-img-wrap img').forEach(img=>img.addEventListener('load',()=>applyFloorplanZoom(fpZoomLevel)));
+ if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(()=>{updateFloorplanStickyOffset();applyFloorplanZoom(fpZoomLevel);});for(const node of [document.getElementById('fp-img-wrap'),document.querySelector('.nav'),document.querySelector('#page-floorplan .floorplan-toolkit')])if(node)observer.observe(node);}
+}
+  function cancelFloorplanTransientUi(){hideFloorplanHover();clearTimeout(floorplanUiState().searchTimer);floorplanUiState().drag=null;document.getElementById('fp-map-viewport')?.classList.remove('is-panning');}
+  function updateFloorplanStickyOffset(){const page=document.getElementById('page-floorplan'),nav=document.querySelector('.nav'),toolbar=document.querySelector('#page-floorplan .floorplan-toolkit');let offset=8;if(nav&&window.getComputedStyle){const position=window.getComputedStyle(nav).position;if(['fixed','sticky'].includes(position))offset+=nav.getBoundingClientRect().height;}page?.style.setProperty?.('--fp-nav-offset',offset+'px');page?.style.setProperty?.('--fp-toolbar-height',(toolbar?.getBoundingClientRect?.().height||0)+'px');}
 </script>
   
 
