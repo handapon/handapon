@@ -716,6 +716,7 @@
 </g>
 </svg></template>
 <style>
+ #sync-status-indicator.sync-deferred{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
  #supplemental-dialog[hidden],#clear-resident-search[hidden]{display:none!important}
  .resident-search-field{display:flex;align-items:center;gap:8px;min-width:0}.resident-search-field input{min-width:0;width:100%;flex:1 1 0;box-sizing:border-box}.resident-search-field button{flex:none;white-space:nowrap}
  .parking-label-entry{padding:20px;border:1px solid #cbdaf2;border-radius:var(--radius-card);background:#f3f7ff;margin-top:20px}
@@ -736,7 +737,7 @@
  <section class="modal-box parking-label-modal">
   <header class="parking-label-modal-head"><div><h2 id="parking-label-title">車位標示單</h2><p class="muted-note">依目前使用權帶入資料，包含互換及候補遞補。正式標示會公開顯示門牌及車牌，不印姓名。</p></div><button type="button" class="btn btn-sm" data-close aria-label="關閉車位標示單" onclick="closeParkingLabelCenter()">關閉</button></header>
   <div class="parking-label-dialog-body">
-   <div class="parking-label-filters"><div><label for="parking-label-year">使用年度（必填）</label><input id="parking-label-year" maxlength="30" placeholder="例：116 年度" onchange="parkingLabelYearChanged()"></div><div><label for="parking-label-search">搜尋</label><input id="parking-label-search" type="search" placeholder="車位、住戶、門牌或車牌" oninput="renderParkingLabelCenter()"></div><div><label for="parking-label-floor">車位區域</label><select id="parking-label-floor" onchange="renderParkingLabelCenter()"><option value="">全部區域</option><option value="1">B1</option><option value="2">B2</option></select></div><div><label for="parking-label-building">棟別</label><select id="parking-label-building" onchange="renderParkingLabelCenter()"><option value="">全部棟別</option><option value="A">A棟</option><option value="B">B棟</option><option value="C">C棟</option><option value="D">D棟</option><option value="E">E棟</option></select></div><div><label for="parking-label-from">起始車位</label><input id="parking-label-from" type="number" min="1" oninput="renderParkingLabelCenter()"></div><div><label for="parking-label-to">結束車位</label><input id="parking-label-to" type="number" min="1" oninput="renderParkingLabelCenter()"></div></div>
+   <div class="parking-label-filters"><div><label for="parking-label-year">使用年度（必填）</label><input id="parking-label-year" maxlength="30" placeholder="例：116 年度" oninput="parkingLabelYearChanged()"><small id="parking-label-year-source" class="muted-note" aria-live="polite"></small></div><div><label for="parking-label-search">搜尋</label><input id="parking-label-search" type="search" placeholder="車位、住戶、門牌或車牌" oninput="renderParkingLabelCenter()"></div><div><label for="parking-label-floor">車位區域</label><select id="parking-label-floor" onchange="renderParkingLabelCenter()"><option value="">全部區域</option><option value="1">B1</option><option value="2">B2</option></select></div><div><label for="parking-label-building">棟別</label><select id="parking-label-building" onchange="renderParkingLabelCenter()"><option value="">全部棟別</option><option value="A">A棟</option><option value="B">B棟</option><option value="C">C棟</option><option value="D">D棟</option><option value="E">E棟</option></select></div><div><label for="parking-label-from">起始車位</label><input id="parking-label-from" type="number" min="1" oninput="renderParkingLabelCenter()"></div><div><label for="parking-label-to">結束車位</label><input id="parking-label-to" type="number" min="1" oninput="renderParkingLabelCenter()"></div></div>
    <div class="parking-label-tools"><button class="btn btn-sm" onclick="selectParkingLabelVisible()">選取篩選結果</button><button class="btn btn-sm" onclick="clearParkingLabelSelection()">取消全選</button><button class="btn btn-sm" onclick="clearParkingLabelFilters()">清除篩選</button><button class="btn btn-sm" onclick="refreshParkingLabelRows()">更新本機覆核清單</button><button class="btn btn-sm" onclick="selectChangedParkingLabels()">只選新增／異動標示</button><button class="btn btn-sm" onclick="exportParkingLabelManifest()">匯出選取清冊 CSV</button></div>
    <p id="parking-label-summary" role="status"></p><p id="parking-label-warning" class="field-error" role="alert"></p>
    <div class="table-wrap parking-label-review-table"><table><thead><tr><th>選取</th><th>車位／輪次</th><th>棟別、戶號、樓層</th><th>對應車牌</th><th>覆核狀態</th><th>預覽</th></tr></thead><tbody id="parking-label-rows"></tbody></table></div>
@@ -4524,12 +4525,14 @@
 
   async function cloudSyncPull(options={}) {
     if(syncRecoveryNeedsReview&&options.recoveryReview!==true){updateSyncStatusUI(false,syncOutcome.state||'需重新確認');return false;}
+    if(cloudPullRunning&&activeCloudPullPromise)return await activeCloudPullPromise;
     if(isLotteryDataFrozen()){showAppToast('資料操作中，暫緩重新讀取。','info');return false;}
     const before=JSON.parse(JSON.stringify({residents,lotteryResults,originalLotteryResults,systemSettings,accountsList,pendingAudits,swapLogs,forfeitRecords,systemLogs,versionedBackups,lastKnownServerModified,lastKnownServerModifiedBy}));
     cloudPullRunning=true;
     activeCloudPullPromise=(async()=>{try{
       const ok=await cloudSyncPullCore(options);
       if(!ok){residents=before.residents;lotteryResults=before.lotteryResults;originalLotteryResults=before.originalLotteryResults;systemSettings=before.systemSettings;accountsList=before.accountsList;pendingAudits=before.pendingAudits;swapLogs=before.swapLogs;forfeitRecords=before.forfeitRecords;systemLogs=before.systemLogs;versionedBackups=before.versionedBackups;lastKnownServerModified=before.lastKnownServerModified;lastKnownServerModifiedBy=before.lastKnownServerModifiedBy;cloudSyncReady=false;}
+      if(ok){const background=backgroundCloudState();background.hasSnapshot=true;background.lastFullPull=Date.now();background.pending=null;}
       return ok;
     }finally{cloudPullRunning=false;activeCloudPullPromise=null;}})();
     return await activeCloudPullPromise;
@@ -4559,12 +4562,15 @@
       try {
         // 加入 timestamp 與 no-store，徹底強制繞過瀏覽器快取，解決舊資料幽靈問題
         const timestamp = new Date().getTime();
-        const res = await fetch(await documentDatabaseUrl('parkingData.json', true), {
+        let data;
+        if(Object.prototype.hasOwnProperty.call(options,'prefetchedData'))data=options.prefetchedData;else{
+const res = await fetch(await documentDatabaseUrl('parkingData.json', true), {
           cache: "no-store",
           headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
         });
         if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
+        data = await res.json();
+        }
 
         if (data) {
           residents = (Array.isArray(data.residents)?data.residents:data.residents?Object.values(data.residents):[]).filter(r=>r&&typeof r==='object');
@@ -4648,7 +4654,7 @@
           versionedBackups = Array.isArray(data.versionedBackups) ? data.versionedBackups : (data.versionedBackups ? Object.values(data.versionedBackups) : []);
           originalLotteryResults = data.originalLotteryResults || {};
           // 手冊改用獨立路徑，避免大型 PDF 與背景圖／平面圖一起回寫造成請求過大。
-          await loadManualsFromCloud();
+          applyManualsFromSnapshot(data.manuals||{});
           repairKnownResidentNameArtifacts();
           // 💡 記錄這次拉取到的雲端資料版本時間戳，供之後推送時比對是否有版本衝突
           lastKnownServerModified = (data._meta && data._meta.lastModified) ? Number(data._meta.lastModified) : 0;
@@ -4674,7 +4680,7 @@
 
         // 💡 若剛剛偵測到需要把舊格式的圖片/PDF資料搬移到新的獨立路徑，且目前使用者不是訪客
         // （訪客沒有寫入權限），現在 cloudSyncReady 已經是 true，可以安全地執行這次遷移寫入。
-        if (pendingMediaMigration && currentUser && currentUser.role !== 'guest') {
+        if (options.background!==true && pendingMediaMigration && currentUser && currentUser.role !== 'guest') {
           pendingMediaMigration = false;
           cloudSyncPushMedia();
         }
@@ -4792,26 +4798,10 @@
   // 就立刻強制重新拉取一次最新雲端資料並刷新畫面，不用等待下一次計時器觸發，
   // 確保使用者每次「回來看」這個頁面時，看到的一定是當下最新的結果。
   let visibilitySyncLock = false;
-  async function syncOnBecomeVisible() {
-    if (visibilitySyncLock) return;
-    if (!cloudSyncReady) return; // 初始同步還沒完成時不處理
-    const loginOverlay = document.getElementById("login-overlay");
-    if (!loginOverlay || loginOverlay.style.display !== "none") return; // 尚未登入（登入畫面還顯示著）不處理
-    const anyModalOpen = document.querySelector('.modal-overlay.show');
-    if (anyModalOpen) return;
-    if (pendingPushCount > 0 || lotteryRunning || waitlistLotteryRunning) return; // 💡 有抽籤／寫入正在進行中時暫緩，避免蓋掉尚未送達雲端的變更
-    visibilitySyncLock = true;
-    try {
-      updateSyncStatusUI(false, "偵測到回到頁面，同步最新資料中...");
-      const ok = await cloudSyncPull();
-      if (ok) {
-        initApp();
-        checkPlateWarnings();
-      }
-    } finally {
-      visibilitySyncLock = false;
-    }
-  }
+  async function syncOnBecomeVisible(){
+ if(visibilitySyncLock||!currentUser)return;const overlay=document.getElementById('login-overlay');if(overlay&&overlay.style.display!=='none')return;
+ visibilitySyncLock=true;try{await pollBackgroundCloud();}finally{visibilitySyncLock=false;}
+}
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible') {
       syncOnBecomeVisible();
@@ -4853,26 +4843,10 @@
   // 手動操作，也能在最多 15 秒內自動看到最新結果；同時也大幅降低「登出/登入時序競爭」造成
   // 顯示過期資料的機率。若偵測到使用者正在操作中（有彈出視窗開啟，或正在輸入欄位打字），
   // 會暫緩該次自動同步，避免打斷操作。
-  function startAutoSync() {
-    if (autoSyncTimer) clearInterval(autoSyncTimer);
-    autoSyncTimer = setInterval(async () => {
-      const seatModalOpen = document.querySelector('.seat-detail-modal.show');
-      const otherModalOpen = document.querySelector('.modal-overlay.show:not(.seat-detail-modal)');
-      const activeTag = document.activeElement ? document.activeElement.tagName : '';
-      const isTyping = (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT');
-      // 車位明細 Modal 本身允許背景同步；其他互動 Modal 仍暫緩，避免打斷輸入。
-      // 正式／候補抽籤執行期間絕不允許背景拉取覆蓋記憶體中的抽籤結果。
-      if (lotteryRunning || waitlistLotteryRunning || otherModalOpen || isTyping || pendingPushCount > 0) return;
-      if (Date.now() - lastManualMutationAt < 3000) return;
-      const ok = await cloudSyncPull();
-      if (ok) {
-        const seatToRefresh = activeSeatDetail;
-        initApp();
-        checkPlateWarnings();
-        if (seatModalOpen && seatToRefresh) openSeatDetail(seatToRefresh);
-      }
-    }, 15000);
-  }
+  function startAutoSync(){
+ if(autoSyncTimer)clearInterval(autoSyncTimer);const state=backgroundCloudState();if(cloudSyncReady){state.hasSnapshot=true;if(!state.lastFullPull)state.lastFullPull=Date.now();}
+ autoSyncTimer=setInterval(()=>{void pollBackgroundCloud();},15000);
+}
 
   function stopAutoSync() {
     if (autoSyncTimer) { clearInterval(autoSyncTimer); autoSyncTimer = null; }
@@ -5950,6 +5924,7 @@
   async function runResidentMutation(label, operation, roles=['admin','director']) {
     if (!currentUser || !roles.includes(currentUser.role)) { alert('權限不足。'); return false; }
     if(cloudPullRunning||pendingPushCount>0){if(queuedOperationLabels.has(label))return false;queuedOperationLabels.add(label);try{if(!await waitForOperationReady(label))return false;return await runResidentMutation(label,operation,roles);}finally{queuedOperationLabels.delete(label);}}
+    if(backgroundCloudState().task||backgroundCloudState().pending){if(!await waitForOperationReady(label))return false;}
     if (blockFrozenMutation(label)) return;
     if (!currentUser || !roles.includes(currentUser.role)) { alert('權限不足。'); return; }
     if (!cloudSyncReady || syncRecoveryNeedsReview) { showAppToast('請先完成同步與雲端版本確認，再執行此操作。','warn'); return; }
@@ -11722,10 +11697,11 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
     const box=document.getElementById('operation-result-detail');if(box){box.hidden=false;box.textContent=`${systemDateTime(lastOperationFailure.at)}\n${text}`;}showAppToast(text,'warn');return lastOperationFailure;
   }
   async function waitForOperationReady(label,maxWaitMs=20000){
-    if(!cloudPullRunning&&pendingPushCount===0)return true;
-    const tasks=[];if(cloudPullRunning){if(!activeCloudPullPromise){reportOperationFailure(label,'雲端讀取尚未完成');return false;}tasks.push(activeCloudPullPromise);}if(pendingPushCount>0)tasks.push(cloudPushChain);
+    const background=backgroundCloudState();
+    if(!cloudPullRunning&&pendingPushCount===0&&!background.task){if(background.pending){reportOperationFailure(label,'雲端有較新資料。請保留目前輸入，關閉覆核或離開編輯頁後載入最新資料，再重新核對。','尚未保存');return false;}return true;}
+    const tasks=[];if(background.task)tasks.push(background.task);if(cloudPullRunning){if(!activeCloudPullPromise){reportOperationFailure(label,'雲端讀取尚未完成');return false;}tasks.push(activeCloudPullPromise);}if(pendingPushCount>0)tasks.push(cloudPushChain);
     let timer;showAppToast(`${label}：等待目前同步完成…`,'info');
-    try{const result=await Promise.race([Promise.all(tasks),new Promise(resolve=>{timer=setTimeout(()=>resolve(null),maxWaitMs);})]);if(!result||result.some(x=>x===false)||cloudPullRunning||pendingPushCount>0||syncRecoveryNeedsReview){reportOperationFailure(label,'同步尚未完成、失敗或等待逾時；本次尚未提交');return false;}return true;}catch(error){reportOperationFailure(label,error);return false;}finally{clearTimeout(timer);}
+    try{const result=await Promise.race([Promise.all(tasks),new Promise(resolve=>{timer=setTimeout(()=>resolve(null),maxWaitMs);})]);if(!result||result.some(x=>x===false)||cloudPullRunning||pendingPushCount>0||syncRecoveryNeedsReview||background.pending){reportOperationFailure(label,'同步尚未完成、失敗或等待逾時；本次尚未提交');return false;}return true;}catch(error){reportOperationFailure(label,error);return false;}finally{clearTimeout(timer);}
   }
   function firebaseValueMatches(actual,expected){
     if(expected&&typeof expected==='object'&&expected['.sv']==='timestamp')return typeof actual==='number'&&Number.isFinite(actual)&&actual>0;
@@ -14428,20 +14404,20 @@ var qrcode = function() {
   function parkingLabelLogo(){const value=document.getElementById('parking-label-logo')?.innerHTML||'';if(!/^\s*<svg\b/.test(value))throw new Error('社區Logo尚未載入');return value;}
   function parkingLabelSvg(row,year){
  if(!canPublishLotteryResults())throw new Error('無權限產生標示單');if(row.errors?.length)throw new Error('請先修正該筆資料：'+row.errors.join('、'));if(!year||year.length>30)throw new Error('請填寫使用年度（最多30字）');
- const yearText=/^\d{2,4}$/.test(year)?year+' 年度':year,logo=parkingLabelLogo().replace('<svg ','<svg x="110" y="18" width="77" height="22" '),field=(value,x,y,preferred,min,max,anchor='middle',numeric=false)=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="${numeric?'Arial,Helvetica,sans-serif':'Microsoft JhengHei, Noto Sans CJK TC, sans-serif'}" font-weight="700" font-size="${parkingLabelFontSize(value,preferred,min,max,numeric)}">${escapeHtml(value)}</text>`;
+ const yearText=parkingLabelYearText(year),logo=parkingLabelLogo().replace('<svg ','<svg x="110" y="18" width="77" height="22" '),field=(value,x,y,preferred,min,max,anchor='middle',numeric=false)=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="${numeric?'Arial,Helvetica,sans-serif':'Microsoft JhengHei, Noto Sans CJK TC, sans-serif'}" font-weight="700" font-size="${parkingLabelFontSize(value,preferred,min,max,numeric)}">${escapeHtml(value)}</text>`;
  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 297 210" width="297mm" height="210mm" role="img" aria-label="${escapeHtml(row.spaceCode+' '+row.plate+' '+row.address)}" fill="#000">${logo}${field(row.spaceCode,148.5,99,53.622,35.278,239,'middle',true)}<path d="M29 109H268" fill="none" stroke="#000" stroke-width=".44"/>${field(row.plate,148.5,149,34.572,23.283,239,'middle',true)}${field(yearText,29,179,7.056,5.644,65,'start')}${field(row.address,268,179,10.231,6.35,159,'end')}</svg>`;
 }
   function openParkingLabelCenter(){
  if(!canPublishLotteryResults()){showAppToast('僅管理員與社區主任可製作車位標示單。','warn');return false;}
- const state=parkingLabelState(),dialog=document.getElementById('parking-label-dialog');if(!dialog)return false;state.previousFocus=document.activeElement;state.selected.clear();state.history=[];state.historyLoaded=false;state.historyError='';state.previewSeat=null;document.getElementById('parking-label-year').value=String(systemSettings.currentYearLabel||'').trim();document.getElementById('parking-label-confirm').checked=false;dialog.hidden=false;dialog.classList.add('show');refreshParkingLabelRows(true);
+ const state=parkingLabelState(),dialog=document.getElementById('parking-label-dialog');if(!dialog)return false;state.previousFocus=document.activeElement;state.selected.clear();state.history=[];state.historyLoaded=false;state.historyError='';state.previewSeat=null;const defaultYear=parkingLabelYearText(systemSettings.currentYearLabel);state.yearTouched=false;state.yearCycle=(state.yearCycle||0)+1;document.getElementById('parking-label-year').value=defaultYear;const note=document.getElementById('parking-label-year-source');if(note)note.textContent=defaultYear?'已帶入目前作業年度；可依實際使用年度調整。':'尚未設定作業年度；請首次填寫，確認列印後會為本批資料記住。';document.getElementById('parking-label-confirm').checked=false;dialog.hidden=false;dialog.classList.add('show');refreshParkingLabelRows(true);
  if(!dialog.dataset.keysReady){dialog.dataset.keysReady='1';dialog.addEventListener?.('keydown',event=>{if(event.key==='Escape'){event.preventDefault();closeParkingLabelCenter();}if(event.key==='Tab'){const nodes=[...dialog.querySelectorAll('button,input,select,[tabindex]')].filter(node=>!node.disabled&&!node.hidden&&node.getClientRects().length);if(nodes.length){const first=nodes[0],last=nodes[nodes.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}}});}
- document.getElementById('parking-label-year')?.focus?.();return true;
+ if(!defaultYear)void loadParkingLabelUseYear(state.yearCycle);document.getElementById('parking-label-year')?.focus?.();return true;
 }
   function closeParkingLabelCenter(){const state=parkingLabelState();if(canPublishLotteryResults()&&(state.busy||state.printBusy)){showAppToast('正在確認列印資料，請稍候。','info');return false;}if(!canPublishLotteryResults()){document.body?.classList.remove('printing-parking-labels');document.getElementById('parking-label-page-rule')?.remove?.();if(state.cleanup)window.removeEventListener?.('afterprint',state.cleanup);state.cleanup=null;state.busy=false;state.printBusy=false;}const dialog=document.getElementById('parking-label-dialog');if(dialog){dialog.hidden=true;dialog.classList.remove('show');}for(const id of ['parking-label-rows','parking-label-preview','parking-label-print-root']){const node=document.getElementById(id);if(node)node.innerHTML='';}state.rows=[];state.selected.clear();state.history=[];state.historyLoaded=false;state.previousFocus?.focus?.({preventScroll:true});return true;}
   function refreshParkingLabelRows(reset=false){
  if(!canPublishLotteryResults()){closeParkingLabelCenter();return false;}const state=parkingLabelState(),report=parkingLabelRows();state.rows=report.rows;state.warnings=report.warnings;state.fingerprint=parkingLabelFingerprint(state.rows,parkingLabelYear());if(reset)state.selected.clear();else for(const key of [...state.selected])if(!state.rows.some(row=>row.key===key&&!row.errors.length))state.selected.delete(key);document.getElementById('parking-label-confirm').checked=false;renderParkingLabelCenter();return true;
 }
-  function parkingLabelYearChanged(){const state=parkingLabelState();state.history=[];state.historyLoaded=false;state.historyError='';refreshParkingLabelRows();}
+  function parkingLabelYearChanged(){const state=parkingLabelState();state.yearTouched=true;state.history=[];state.historyLoaded=false;state.historyError='';const note=document.getElementById('parking-label-year-source');if(note)note.textContent='以目前輸入年度套印；請確認這是車位使用年度。';refreshParkingLabelRows();}
   function toggleParkingLabelSelection(key,selected){if(!canPublishLotteryResults()||parkingLabelState().busy)return;const state=parkingLabelState(),row=state.rows.find(r=>r.key===key);if(!row||row.errors.length)return;if(selected)state.selected.add(key);else state.selected.delete(key);document.getElementById('parking-label-confirm').checked=false;renderParkingLabelCenter();}
   function selectParkingLabelVisible(){if(!canPublishLotteryResults())return;parkingLabelVisibleRows().filter(row=>!row.errors.length).forEach(row=>parkingLabelState().selected.add(row.key));document.getElementById('parking-label-confirm').checked=false;renderParkingLabelCenter();}
   function clearParkingLabelSelection(){parkingLabelState().selected.clear();document.getElementById('parking-label-confirm').checked=false;renderParkingLabelCenter();}
@@ -14487,7 +14463,7 @@ var qrcode = function() {
   const rows=report.rows.filter(row=>state.selected.has(row.key));if(!rows.length||rows.some(row=>row.errors.length))throw new Error('沒有可列印的有效選取資料');
   const snapshot=JSON.parse(JSON.stringify(rows)),pages=snapshot.map(row=>'<section class="parking-label-page">'+parkingLabelSvg(row,year)+'</section>').join('');
   const manifest={id:registrationNewId('label'),year,createdAt:new Date().toISOString(),by:currentUser.name||'',role:currentUser.role,dataVersion:Number(lastKnownServerModified)||0,status:'已請求開啟列印視窗',entries:snapshot.map(({seat,floor,spaceCode,residentId,round,plate,build,room,address})=>({seat,floor,spaceCode,residentId,round,plate,build,room,address}))};
-  await updateRegistrationFormPaths({['parkingLabelPrints/'+parkingLabelYearKey(year)+'/'+manifest.id]:manifest,...registrationAuditPatch(parkingLabelYearKey(year),'開啟標示單列印',snapshot.length+'張｜資料版本'+manifest.dataVersion+'｜紀錄'+manifest.id,manifest.id)});
+  await updateRegistrationFormPaths({'parkingLabelPreferences/useYear':{year,scope:parkingLabelYearScope(),updatedAt:new Date().toISOString(),by:currentUser.name||''},['parkingLabelPrints/'+parkingLabelYearKey(year)+'/'+manifest.id]:manifest,...registrationAuditPatch(parkingLabelYearKey(year),'開啟標示單列印',snapshot.length+'張｜資料版本'+manifest.dataVersion+'｜紀錄'+manifest.id,manifest.id)});
   if(!canPublishLotteryResults()||JSON.stringify([currentUser.username,currentUser.name,currentUser.role])!==actor)throw new Error('登入權限已變更');if(parkingLabelFingerprint(parkingLabelRows().rows,year)!==state.fingerprint)throw new Error('保存輸出紀錄期間資料已變更，請重新覆核');
   const root=document.getElementById('parking-label-print-root');root.innerHTML=pages;const style=document.createElement('style');style.id='parking-label-page-rule';style.textContent='@media print{@page{size:A4 landscape;margin:0}}';document.head.appendChild(style);
   state.history=[manifest,...state.history].slice(0,50);state.historyLoaded=true;state.printBusy=true;const classes=['printing-announcement','printing-results','printing-slip','printing-swap-record','printing-swap-form'];classes.forEach(name=>document.body.classList.remove(name));
@@ -14564,6 +14540,8 @@ var qrcode = function() {
   function openSupplementalReview(round){
  if(!currentUser||!['admin','director'].includes(currentUser.role))return false;
  if(supplementalDrawState().busy){showAppToast('同輪補抽正在處理，請待完成後再切換輪次。','warn');return false;}
+ if(cloudPullRunning||pendingPushCount>0||backgroundCloudState().task||backgroundCloudState().pending)return waitAndOpenSupplementalReview(round);
+ if(!cloudSyncReady||syncRecoveryNeedsReview){showAppToast('雲端資料尚未確認完成，請先確認頂端同步狀態，再開啟補抽覆核。','warn');return false;}
  if(blockFrozenMutation('開啟同輪補抽覆核'))return false;
  const report=getSupplementalReport(round);if(!report.completed){showAppToast('該輪尚未完成，請使用正式抽籤。','warn');return false;}
  if(!enforceSupplementalPriority(round))return false;
@@ -14581,7 +14559,7 @@ var qrcode = function() {
  if(!dialog.dataset.keysReady){dialog.dataset.keysReady='1';dialog.addEventListener?.('keydown',event=>{if(event.key==='Escape'){event.preventDefault();closeSupplementalReview();}if(event.key==='Tab'){const nodes=[...dialog.querySelectorAll('button')].filter(x=>!x.disabled&&!x.hidden&&x.getClientRects().length);if(nodes.length&&event.shiftKey&&document.activeElement===nodes[0]){event.preventDefault();nodes[nodes.length-1].focus();}else if(nodes.length&&!event.shiftKey&&document.activeElement===nodes[nodes.length-1]){event.preventDefault();nodes[0].focus();}}});}
  button.focus?.();return true;
 }
-  function closeSupplementalReview(force=false){const state=supplementalDrawState();if(state.busy&&!force)return false;const dialog=document.getElementById('supplemental-dialog');if(dialog){dialog.hidden=true;dialog.classList.remove('show');}state.version='';document.getElementById('supplemental-rows').innerHTML='';state.previousFocus?.focus?.();return true;}
+  function closeSupplementalReview(force=false){const state=supplementalDrawState();if(state.busy&&!force)return false;if(state.openingTask){state.openingCancelled=true;state.requestedRound='';}const dialog=document.getElementById('supplemental-dialog');if(dialog){dialog.hidden=true;dialog.classList.remove('show');}state.version='';document.getElementById('supplemental-rows').innerHTML='';state.previousFocus?.focus?.();return true;}
   async function runSupplementalLottery(){
  const state=supplementalDrawState();if(state.busy||!state.version)return false;if(!currentUser||!['admin','director'].includes(currentUser.role))return false;
  const round=state.round,reviewVersion=state.version,actor=state.actor;let snapshot=null,locked=false;state.busy=true;document.getElementById('supplemental-confirm').disabled=true;
@@ -14674,6 +14652,80 @@ var qrcode = function() {
   if(!await cloudSyncPush()||syncRecoveryNeedsReview)throw new Error('撤回未完成雲端確認，請核對雲端版本，勿直接重送');return true;
  });}finally{state.busy=false;state.version='';}
  if(ok){showAppToast('已僅撤回'+round+'補抽結果，原正式中籤車位保留。','success');openSupplementalReview(round);}return ok===true;
+}
+  async function waitAndOpenSupplementalReview(round){
+ const state=supplementalDrawState();state.requestedRound=round;if(state.openingTask)return state.openingTask;
+ const actor=JSON.stringify([currentUser?.username,currentUser?.name,currentUser?.role]),page=document.getElementById('page-lottery'),wasOnLottery=!!page?.classList.contains('active');state.openingCancelled=false;
+ const buttons=[...document.querySelectorAll('#supplemental-lottery-center button[onclick^="openSupplementalReview"]')],saved=buttons.map(button=>({button,text:button.textContent,disabled:button.disabled}));saved.forEach(({button})=>{button.disabled=true;button.textContent='等待同步完成…';button.setAttribute?.('aria-busy','true');});
+ state.openingTask=(async()=>{try{
+  const background=backgroundCloudState();if(background.task)await background.task;if(background.pending&&canApplyBackgroundCloud())await pollBackgroundCloud();
+  if(!await waitForOperationReady('開啟同輪補抽覆核'))return false;
+  if(state.openingCancelled||!currentUser||!['admin','director'].includes(currentUser.role)||JSON.stringify([currentUser.username,currentUser.name,currentUser.role])!==actor)return false;
+  if(wasOnLottery&&!page.classList.contains('active'))return false;
+  if(cloudPullRunning||pendingPushCount>0||!cloudSyncReady||syncRecoveryNeedsReview){reportOperationFailure('開啟同輪補抽覆核','同步尚未確認完成，請確認頂端同步狀態後重試','尚未保存');return false;}
+  return openSupplementalReview(state.requestedRound);
+ }catch(error){reportOperationFailure('開啟同輪補抽覆核',error,'尚未保存');return false;}
+ finally{saved.forEach(({button,text,disabled})=>{button.disabled=disabled;button.textContent=text;button.removeAttribute?.('aria-busy');});state.openingTask=null;state.requestedRound='';}})();return state.openingTask;
+}
+  function backgroundCloudState(){return backgroundCloudState.value||(backgroundCloudState.value={task:null,pending:null,hasSnapshot:false,lastFullPull:0,error:''});}
+  function canApplyBackgroundCloud(){
+ if(!currentUser||cloudPullRunning||getMutationBlockReason())return false;
+ if(document.querySelector('.modal-overlay.show:not(.seat-detail-modal)'))return false;
+ const tag=String(document.activeElement?.tagName||'').toUpperCase();if(['INPUT','TEXTAREA','SELECT'].includes(tag)||document.activeElement?.isContentEditable)return false;
+ const page=document.querySelector('.page.active')?.id;if(['page-settings','page-swap'].includes(page))return false;
+ if(document.body?.className&&/\bprinting-/.test(document.body.className))return false;return true;
+}
+  async function fetchBackgroundCloudJson(path){
+ let timer;const controller=typeof AbortController==='function'?new AbortController():null;
+ try{return await Promise.race([(async()=>{const response=await fetch(await documentDatabaseUrl(path,true),{cache:'no-store',...(controller?{signal:controller.signal}:{})});if(!response.ok)throw new Error('HTTP '+response.status);return await response.json();})(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller?.abort();reject(new Error('背景更新等待逾時'));},30000);})]);}finally{clearTimeout(timer);}
+}
+  function applyManualsFromSnapshot(data){
+ ['director','resident'].forEach(type=>{const item=data?.[type],key=type==='director'?'directorManualPdf':'residentManualPdf';if(item?.deleted===true){systemSettings[key]='';return;}const value=item?.data||item;if(typeof value==='string'&&value.startsWith('data:application/pdf'))systemSettings[key]=value;});
+}
+  function refreshBackgroundQueryView(){
+ const page=document.querySelector('.page.active'),id=page?.id,scrolls=[...(page?.querySelectorAll?.('.table-wrap')||[])].map(node=>({node,left:node.scrollLeft,top:node.scrollTop})),x=window.scrollX||0,y=window.scrollY||0;
+ const views={'page-dashboard':renderDashboard,'page-residents':renderResidents,'page-results':renderResults,'page-summary':renderSummary,'page-logs':renderLogs,'page-lottery':updateLotteryCards,'page-floorplan':initFloorplanSeats,'page-guide':renderGuide,'page-motorcycle-stats':renderMotorcycleStats};
+ try{views[id]?.();if(['page-residents','page-lottery'].includes(id))checkPlateWarnings();renderPageHeroStatuses();if(activeSeatDetail&&document.querySelector('.seat-detail-modal.show'))openSeatDetail(activeSeatDetail);}catch(error){console.warn('資料已更新，部分查詢畫面待切頁更新',error);}
+ scrolls.forEach(({node,left,top})=>{node.scrollLeft=left;node.scrollTop=top;});window.scrollTo?.(x,y);
+}
+  async function pollBackgroundCloud(){
+ const state=backgroundCloudState();if(state.task)return state.task;
+ if(cloudSyncReady)state.hasSnapshot=true;
+ if(!currentUser||!state.hasSnapshot||syncRecoveryNeedsReview||!FIREBASE_DB_URL||FIREBASE_DB_URL.includes('YOUR-FIREBASE'))return false;
+ if(cloudPullRunning||pendingPushCount>0||lotteryRunning||waitlistLotteryRunning||lotteryBackupPending||residentMutationRunning)return false;
+ const ticket=getLotteryDataVersion(),actor=JSON.stringify([currentUser.username,currentUser.name,currentUser.role]);
+ state.task=(async()=>{try{
+  const raw=await fetchBackgroundCloudJson('parkingData/_meta/lastModified.json'),remote=Number(raw||0);if(!Number.isFinite(remote)||remote<0)throw new Error('雲端版本資訊無效');
+  if(!currentUser||JSON.stringify([currentUser.username,currentUser.name,currentUser.role])!==actor||getLotteryDataVersion()!==ticket)return false;
+  const fullDue=Date.now()-(state.lastFullPull||0)>300000;
+  if(remote===Number(lastKnownServerModified||0)&&!fullDue){state.pending=null;state.error='';cloudSyncReady=true;updateSyncStatusUI(true,'雲端已同步');return true;}
+  if(!canApplyBackgroundCloud()){if(remote===Number(lastKnownServerModified||0)){state.pending=null;state.error='';cloudSyncReady=true;updateSyncStatusUI(true,'雲端已同步');return true;}state.pending={version:remote};showBackgroundDeferred('雲端有更新，待目前編輯或覆核結束後載入');return false;}
+  updateSyncStatusUI(null,'背景更新中，可繼續查詢');
+  const data=state.pending&&Object.prototype.hasOwnProperty.call(state.pending,'data')&&state.pending.version===remote?state.pending.data:await fetchBackgroundCloudJson('parkingData.json');
+  if(!currentUser||JSON.stringify([currentUser.username,currentUser.name,currentUser.role])!==actor||getLotteryDataVersion()!==ticket)return false;
+  const version=Number(data?._meta?.lastModified||0);if(!Number.isFinite(version)||version<remote)throw new Error('讀回資料版本落後，將於下次重試');
+  if(!canApplyBackgroundCloud()){state.pending={version,data};showBackgroundDeferred('新資料已取得，待目前編輯或覆核結束後更新');return false;}
+  const ok=await cloudSyncPull({background:true,prefetchedData:data});if(!ok)return false;state.error='';refreshBackgroundQueryView();return true;
+ }catch(error){state.error=operationErrorText(error);cloudSyncReady=false;updateSyncStatusUI(false,'背景更新失敗，可查詢；保存前需確認連線');console.warn('背景同步失敗，保留已載入資料',error);return false;}
+ finally{state.task=null;}})();return state.task;
+}
+  function showBackgroundDeferred(text){updateSyncStatusUI(false,text);const node=document.getElementById('sync-status-indicator');if(node)node.className='sync-deferred';}
+  function parkingLabelYearText(value){
+ const raw=String(value||'').normalize('NFKC').trim();if(!raw)return '';
+ const range=raw.match(/^(?:民國|中華民國)?\s*(\d{2,4})\s*[-~～至–—]\s*(\d{2,4})\s*年/);if(range)return range[1]+'–'+range[2]+'年度';
+ const year=raw.match(/(?:^|[^\d])(\d{2,4})\s*年(?:度)?/);if(year)return year[1]+'年度';if(/^\d{2,4}$/.test(raw))return raw+'年度';return raw;
+}
+  function parkingLabelYearScope(){
+ const original=['第一輪','第二輪','第三輪'].map(round=>({round,time:originalLotteryResults?.[round]?._execution?.migrated===true?'':originalLotteryResults?.[round]?._execution?.recordedAt||'',winners:Object.entries(originalLotteryResults?.[round]||{}).filter(([id,seat])=>normalizeResId(id)>0&&Number(seat)>0).sort(([a],[b])=>a.localeCompare(b))}));
+ const text=JSON.stringify({year:systemSettings.currentYearLabel||'',original});let hash=2166136261;for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}return 'labels_'+(hash>>>0).toString(16);
+}
+  async function loadParkingLabelUseYear(cycle){
+ if(!canPublishLotteryResults())return false;
+ const state=parkingLabelState(),scope=parkingLabelYearScope(),actor=JSON.stringify([currentUser?.username,currentUser?.name,currentUser?.role]);
+ try{const response=await fetch(await documentDatabaseUrl('parkingData/parkingLabelPreferences/useYear.json',true),{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);const profile=await response.json();
+  if(!canPublishLotteryResults()||state.yearCycle!==cycle||state.yearTouched||state.busy||state.printBusy||document.getElementById('parking-label-dialog')?.hidden||parkingLabelYearScope()!==scope||JSON.stringify([currentUser.username,currentUser.name,currentUser.role])!==actor)return false;
+  if(profile&&profile.scope===scope&&typeof profile.year==='string'&&profile.year.trim()&&profile.year.length<=30){document.getElementById('parking-label-year').value=profile.year.trim();const note=document.getElementById('parking-label-year-source');if(note)note.textContent='已帶入本批資料上次確認列印的使用年度，請核對。';refreshParkingLabelRows();return true;}return false;
+ }catch(error){const note=document.getElementById('parking-label-year-source');if(state.yearCycle===cycle&&!state.yearTouched&&note)note.textContent='未讀取到保存年度，請手動填寫使用年度。';return false;}
 }
 </script>
   
