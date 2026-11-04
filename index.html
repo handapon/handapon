@@ -14540,12 +14540,12 @@ var qrcode = function() {
   function openSupplementalReview(round){
  if(!currentUser||!['admin','director'].includes(currentUser.role))return false;
  if(supplementalDrawState().busy){showAppToast('同輪補抽正在處理，請待完成後再切換輪次。','warn');return false;}
- if(cloudPullRunning||pendingPushCount>0||backgroundCloudState().task||backgroundCloudState().pending)return waitAndOpenSupplementalReview(round);
+ if(cloudPullRunning||pendingPushCount>0||backgroundCloudState().task||backgroundCloudState().pending){showSupplementalReviewLoading(round);return waitAndOpenSupplementalReview(round);}
  if(!cloudSyncReady||syncRecoveryNeedsReview){showAppToast('雲端資料尚未確認完成，請先確認頂端同步狀態，再開啟補抽覆核。','warn');return false;}
  if(blockFrozenMutation('開啟同輪補抽覆核'))return false;
  const report=getSupplementalReport(round);if(!report.completed){showAppToast('該輪尚未完成，請使用正式抽籤。','warn');return false;}
  if(!enforceSupplementalPriority(round))return false;
- const state=supplementalDrawState();state.round=round;state.version=getLotteryDataVersion();state.actor=JSON.stringify([currentUser.username,currentUser.name,currentUser.role]);
+ const state=supplementalDrawState();state.loadingReview=false;state.round=round;state.version=getLotteryDataVersion();state.actor=JSON.stringify([currentUser.username,currentUser.name,currentUser.role]);
  document.getElementById('supplemental-title').textContent=round+'同輪補抽覆核';
  document.getElementById('supplemental-summary').textContent='可補抽 '+report.candidates.length+' 位｜釋出 '+report.seats.length+' 位｜預計補上 '+Math.min(report.candidates.length,report.seats.length)+' 位';
  document.getElementById('supplemental-seats').textContent=report.seats.length?'釋出車位：'+report.seats.map(s=>s+'號（'+[...new Set(report.released.filter(f=>Number(f.seat)===s).map(f=>f.round))].join('、')+'釋出）').join('、'):'目前沒有正式輪次棄權釋出且仍空閒的車位。';
@@ -14559,7 +14559,7 @@ var qrcode = function() {
  if(!dialog.dataset.keysReady){dialog.dataset.keysReady='1';dialog.addEventListener?.('keydown',event=>{if(event.key==='Escape'){event.preventDefault();closeSupplementalReview();}if(event.key==='Tab'){const nodes=[...dialog.querySelectorAll('button')].filter(x=>!x.disabled&&!x.hidden&&x.getClientRects().length);if(nodes.length&&event.shiftKey&&document.activeElement===nodes[0]){event.preventDefault();nodes[nodes.length-1].focus();}else if(nodes.length&&!event.shiftKey&&document.activeElement===nodes[nodes.length-1]){event.preventDefault();nodes[0].focus();}}});}
  button.focus?.();return true;
 }
-  function closeSupplementalReview(force=false){const state=supplementalDrawState();if(state.busy&&!force)return false;if(state.openingTask){state.openingCancelled=true;state.requestedRound='';}const dialog=document.getElementById('supplemental-dialog');if(dialog){dialog.hidden=true;dialog.classList.remove('show');}state.version='';document.getElementById('supplemental-rows').innerHTML='';state.previousFocus?.focus?.();return true;}
+  function closeSupplementalReview(force=false){const state=supplementalDrawState();if(state.busy&&!force)return false;if(state.openingTask){state.openingCancelled=true;state.requestedRound='';}const dialog=document.getElementById('supplemental-dialog');if(dialog){dialog.hidden=true;dialog.classList.remove('show');}state.version='';state.loadingReview=false;document.getElementById('supplemental-rows').innerHTML='';state.previousFocus?.focus?.();return true;}
   async function runSupplementalLottery(){
  const state=supplementalDrawState();if(state.busy||!state.version)return false;if(!currentUser||!['admin','director'].includes(currentUser.role))return false;
  const round=state.round,reviewVersion=state.version,actor=state.actor;let snapshot=null,locked=false;state.busy=true;document.getElementById('supplemental-confirm').disabled=true;
@@ -14656,21 +14656,28 @@ var qrcode = function() {
   async function waitAndOpenSupplementalReview(round){
  const state=supplementalDrawState();state.requestedRound=round;if(state.openingTask)return state.openingTask;
  const actor=JSON.stringify([currentUser?.username,currentUser?.name,currentUser?.role]),page=document.getElementById('page-lottery'),wasOnLottery=!!page?.classList.contains('active');state.openingCancelled=false;
- const buttons=[...document.querySelectorAll('#supplemental-lottery-center button[onclick^="openSupplementalReview"]')],saved=buttons.map(button=>({button,text:button.textContent,disabled:button.disabled}));saved.forEach(({button})=>{button.disabled=true;button.textContent='等待同步完成…';button.setAttribute?.('aria-busy','true');});
- state.openingTask=(async()=>{try{
-  const background=backgroundCloudState();if(background.task)await background.task;if(background.pending&&canApplyBackgroundCloud())await pollBackgroundCloud();
-  if(!await waitForOperationReady('開啟同輪補抽覆核'))return false;
-  if(state.openingCancelled||!currentUser||!['admin','director'].includes(currentUser.role)||JSON.stringify([currentUser.username,currentUser.name,currentUser.role])!==actor)return false;
-  if(wasOnLottery&&!page.classList.contains('active'))return false;
-  if(cloudPullRunning||pendingPushCount>0||!cloudSyncReady||syncRecoveryNeedsReview){reportOperationFailure('開啟同輪補抽覆核','同步尚未確認完成，請確認頂端同步狀態後重試','尚未保存');return false;}
-  return openSupplementalReview(state.requestedRound);
- }catch(error){reportOperationFailure('開啟同輪補抽覆核',error,'尚未保存');return false;}
- finally{saved.forEach(({button,text,disabled})=>{button.disabled=disabled;button.textContent=text;button.removeAttribute?.('aria-busy');});state.openingTask=null;state.requestedRound='';}})();return state.openingTask;
+ const buttons=[...document.querySelectorAll('#supplemental-lottery-center button[onclick^="openSupplementalReview"]')],saved=buttons.map(button=>({button,text:button.textContent,disabled:button.disabled}));saved.forEach(({button})=>{button.disabled=true;button.textContent='正在開啟覆核…';button.setAttribute?.('aria-busy','true');});
+ state.openingTask=(async()=>{let timer,finished=false;try{
+  await Promise.race([(async()=>{
+   for(let pass=0;pass<3;pass++){
+    const tasks=[],background=backgroundCloudState();if(cloudPullRunning){if(!activeCloudPullPromise)throw new Error('雲端讀取狀態未完成，請使用頂端重新整理後再試');tasks.push(activeCloudPullPromise);}if(pendingPushCount>0)tasks.push(cloudPushChain);if(background.task)tasks.push(background.task);
+    if(tasks.length){const results=await Promise.all(tasks);if(results.some(result=>result===false))throw new Error('最新資料讀取或保存未成功，請確認頂端同步狀態');}
+    if(finished||state.openingCancelled)return;
+    if(background.pending&&canApplyBackgroundCloud()){if(!await pollBackgroundCloud())throw new Error('新資料尚未載入，請關閉其他編輯視窗後重試');}
+    if(!cloudPullRunning&&pendingPushCount===0&&!backgroundCloudState().task)break;
+   }
+  })(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('資料確認等待逾時，請確認連線後重新開啟覆核')),25000);})]);
+  if(state.openingCancelled||!currentUser||!['admin','director'].includes(currentUser.role)||JSON.stringify([currentUser.username,currentUser.name,currentUser.role])!==actor){closeSupplementalReview(true);return false;}
+  if(wasOnLottery&&!page.classList.contains('active')){closeSupplementalReview(true);return false;}
+  if(cloudPullRunning||pendingPushCount>0||backgroundCloudState().pending||backgroundCloudState().task||!cloudSyncReady||syncRecoveryNeedsReview)throw new Error('最新資料尚未確認完成，請檢查頂端同步狀態後重試');
+  state.loadingReview=false;const target=state.requestedRound,opened=openSupplementalReview(target);if(opened===false){document.getElementById('supplemental-summary').textContent=!hasLotteryRoundBeenExecuted(target)?'該輪尚未完成正式抽籤，請先使用正式抽籤流程。':getPendingSupplementalRound(target)?'請先處理'+getPendingSupplementalRound(target)+'的補抽，再開啟本輪。':'目前有其他操作進行中，請完成後再重新開啟覆核。';document.getElementById('supplemental-confirm').disabled=true;document.getElementById('supplemental-confirm').textContent='目前不可執行補抽';}return opened;
+ }catch(error){if(!state.openingCancelled&&canPublishLotteryResults()){state.version='';document.getElementById('supplemental-summary').textContent='暫時無法載入覆核：'+operationErrorText(error);document.getElementById('supplemental-rows').innerHTML='<tr><td colspan="2">未執行補抽，原結果保留。請關閉此視窗，確認同步狀態後重新開啟。</td></tr>';document.getElementById('supplemental-confirm').disabled=true;document.getElementById('supplemental-confirm').textContent='尚未完成資料確認';}return false;}
+ finally{finished=true;clearTimeout(timer);saved.forEach(({button,text,disabled})=>{button.disabled=disabled;button.textContent=text;button.removeAttribute?.('aria-busy');});state.openingTask=null;state.requestedRound='';}})();return state.openingTask;
 }
   function backgroundCloudState(){return backgroundCloudState.value||(backgroundCloudState.value={task:null,pending:null,hasSnapshot:false,lastFullPull:0,error:''});}
   function canApplyBackgroundCloud(){
  if(!currentUser||cloudPullRunning||getMutationBlockReason())return false;
- if(document.querySelector('.modal-overlay.show:not(.seat-detail-modal)'))return false;
+ if(document.querySelector('.modal-overlay.show:not(.seat-detail-modal):not(#supplemental-dialog)'))return false;if(document.querySelector('#supplemental-dialog.show')&&!supplementalDrawState().loadingReview)return false;
  const tag=String(document.activeElement?.tagName||'').toUpperCase();if(['INPUT','TEXTAREA','SELECT'].includes(tag)||document.activeElement?.isContentEditable)return false;
  const page=document.querySelector('.page.active')?.id;if(['page-settings','page-swap'].includes(page))return false;
  if(document.body?.className&&/\bprinting-/.test(document.body.className))return false;return true;
@@ -14726,6 +14733,15 @@ var qrcode = function() {
   if(!canPublishLotteryResults()||state.yearCycle!==cycle||state.yearTouched||state.busy||state.printBusy||document.getElementById('parking-label-dialog')?.hidden||parkingLabelYearScope()!==scope||JSON.stringify([currentUser.username,currentUser.name,currentUser.role])!==actor)return false;
   if(profile&&profile.scope===scope&&typeof profile.year==='string'&&profile.year.trim()&&profile.year.length<=30){document.getElementById('parking-label-year').value=profile.year.trim();const note=document.getElementById('parking-label-year-source');if(note)note.textContent='已帶入本批資料上次確認列印的使用年度，請核對。';refreshParkingLabelRows();return true;}return false;
  }catch(error){const note=document.getElementById('parking-label-year-source');if(state.yearCycle===cycle&&!state.yearTouched&&note)note.textContent='未讀取到保存年度，請手動填寫使用年度。';return false;}
+}
+  function showSupplementalReviewLoading(round){
+ if(!canPublishLotteryResults())return false;const state=supplementalDrawState(),dialog=document.getElementById('supplemental-dialog');if(!dialog)return false;
+ if(dialog.hidden)state.previousFocus=document.activeElement;state.round=round;state.version='';state.loadingReview=true;
+ document.getElementById('supplemental-title').textContent=round+'補抽覆核';document.getElementById('supplemental-summary').textContent='正在確認最新資料，完成後自動顯示覆核名單。';
+ document.getElementById('supplemental-seats').textContent='目前僅開啟覆核畫面，尚未執行補抽或變更車位。';document.getElementById('supplemental-roster-note').textContent='資料確認期間可關閉視窗；開始補抽按鈕暫時停用。';
+ document.getElementById('supplemental-rows').innerHTML='<tr><td colspan="2">資料確認中…</td></tr>';document.getElementById('supplemental-history').innerHTML='';document.getElementById('supplemental-clear-impact').textContent='資料確認完成後才可操作。';
+ const confirm=document.getElementById('supplemental-confirm');confirm.disabled=true;confirm.textContent='正在確認最新資料…';const clear=document.getElementById('supplemental-clear');if(clear)clear.disabled=true;dialog.hidden=false;dialog.classList.add('show');
+ if(!dialog.dataset.loadingEscape){dialog.dataset.loadingEscape='1';dialog.addEventListener?.('keydown',event=>{if(!supplementalDrawState().loadingReview)return;if(event.key==='Escape'){event.preventDefault();closeSupplementalReview();}if(event.key==='Tab'){const nodes=[...dialog.querySelectorAll('button')].filter(node=>!node.disabled&&!node.hidden&&node.getClientRects().length);if(nodes.length&&event.shiftKey&&document.activeElement===nodes[0]){event.preventDefault();nodes[nodes.length-1].focus();}else if(nodes.length&&!event.shiftKey&&document.activeElement===nodes[nodes.length-1]){event.preventDefault();nodes[0].focus();}}});}dialog.querySelector?.('button')?.focus?.();return true;
 }
 </script>
   
