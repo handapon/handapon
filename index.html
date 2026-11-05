@@ -699,7 +699,7 @@
   @media(prefers-reduced-motion:reduce){#page-floorplan .seat{transition:none}}
   #page-floorplan .floorplan-toolkit{top:var(--fp-nav-offset,72px)}#page-floorplan .floorplan-side-panel{top:calc(var(--fp-nav-offset,72px) + var(--fp-toolbar-height,240px) + 8px);max-height:calc(100dvh - var(--fp-nav-offset,72px) - var(--fp-toolbar-height,240px) - 24px)}
   @media(max-width:900px){#page-floorplan .floorplan-side-panel{position:relative;top:auto;max-height:none}}@media(max-width:700px){#page-floorplan .floorplan-toolkit{position:sticky;top:var(--fp-nav-offset,8px);max-height:40vh;max-height:40dvh;overflow:auto;overscroll-behavior:contain}}
-  #page-floorplan .fp-image-container{position:relative;width:100%;line-height:0}#page-floorplan .fp-image-container img{display:block;max-width:100%;width:100%;height:auto;margin:0!important;user-select:none;-webkit-user-drag:none}.fp-image-anchors{position:absolute;inset:0;pointer-events:none}.fp-image-anchor{position:absolute;transform:translate(-50%,-50%);min-width:26px;height:26px;padding:2px 5px;border:2px solid #1d4ed8;border-radius:var(--radius-sm);background:white;color:#1e3a8a;font-size:14px;font-weight:800;line-height:18px;pointer-events:auto;cursor:pointer}.fp-image-anchor.selected{outline:3px solid #f59e0b;outline-offset:3px}.fp-image-anchor.draft{border-color:#c2410c;color:#9a3412;pointer-events:none}#fp-calibration{padding:16px}#fp-calibration summary{cursor:pointer;font-weight:600}#fp-calibration-status{font-size:13px;color:#64748b}#fp-calibration[hidden]{display:none!important}
+  #page-floorplan .fp-image-container{position:relative;width:100%;line-height:0}#page-floorplan .fp-image-container img{display:block;max-width:100%;width:100%;height:auto;margin:0!important;user-select:none;-webkit-user-drag:none}.fp-image-anchors{position:absolute;inset:0;pointer-events:none}.fp-image-anchor{position:absolute;transform:translate(-50%,-50%);min-width:26px;height:26px;padding:2px 5px;border:2px solid #1d4ed8;border-radius:var(--radius-sm);background:white;color:#1e3a8a;font-size:14px;font-weight:800;line-height:18px;pointer-events:auto;cursor:pointer}.fp-image-anchor.selected{outline:3px solid #f59e0b;outline-offset:3px}.fp-image-anchor.draft{border-color:#c2410c;color:#9a3412;pointer-events:none}.fp-image-anchors.calibrating .fp-image-anchor{pointer-events:none}.fp-image-container:has(.fp-image-anchors.calibrating){cursor:crosshair}#fp-calibration{padding:16px}#fp-calibration summary{cursor:pointer;font-weight:600}#fp-calibration-status{font-size:13px;color:#64748b}#fp-calibration[hidden]{display:none!important}
   #page-floorplan .fp-image-anchor{transform:translate(-50%,-50%) scale(var(--fp-marker-inverse,1));transform-origin:center;box-sizing:border-box}#page-floorplan .fp-image-anchor:not(.selected):not(.draft){min-width:7px;width:7px;height:7px;padding:0;font-size:0;border-width:1px;background:#1d4ed8}#page-floorplan .fp-image-anchor.selected{min-width:28px;width:auto;height:26px;background:#fff;border-width:2px;font-size:14px;padding:2px 5px}#fp-image-source{max-width:100%;margin:4px 0}
   #parking-label-print-root{display:none}#parking-label-dialog[hidden],#parking-label-finish[hidden]{display:none!important}.parking-label-entry{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:16px;border-top:1px solid #dbe3ef;padding-top:16px}.parking-label-entry strong,.parking-label-entry small{display:block}.parking-label-entry small{margin-top:5px;color:#64748b;font-size:13px}.parking-label-modal{width:min(1160px,calc(100vw - 24px));max-height:94vh;max-height:94dvh;display:flex;flex-direction:column;padding:0!important;background:#fff;overflow:hidden!important}.parking-label-modal-head{padding:18px 20px;display:flex;gap:12px;justify-content:space-between;border-bottom:1px solid #e2e8f0}.parking-label-modal-head h2{margin:0;font-size:24px}.parking-label-modal-head p{margin:6px 0 0}.parking-label-modal-head>.btn{align-self:flex-start;flex:none}.parking-label-dialog-body{min-height:0;overflow:auto;padding:16px 20px}.parking-label-filters{display:grid;grid-template-columns:1fr 1.5fr repeat(4,1fr);gap:10px}.parking-label-filters label{display:block;font-size:13px;margin-bottom:5px}.parking-label-filters input,.parking-label-filters select{width:100%;min-width:0;box-sizing:border-box}.parking-label-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}.parking-label-review-table{max-height:36vh;max-height:36dvh}.parking-label-review-table table{min-width:650px}.parking-label-review-table small{display:block;color:#64748b}.parking-label-invalid td{background:#fff7ed!important}.parking-label-review-table input[type=checkbox],.parking-label-modal-footer input[type=checkbox]{width:auto;min-width:18px;min-height:18px}#parking-label-preview{margin:12px 0;background:#f8fafc;padding:8px;border:1px solid #e2e8f0}#parking-label-preview>svg{display:block;width:100%;height:auto;background:#fff}#parking-label-preview>small{display:block;margin-top:8px}.parking-label-dialog-body details{margin-top:14px}.parking-label-dialog-body summary{cursor:pointer}.parking-label-modal-footer{margin:0!important;padding:14px 20px!important;background:#fff;border-top:1px solid #e2e8f0;flex:none;display:block!important}.parking-label-modal-footer label{display:flex;gap:8px;align-items:center}.parking-label-modal-footer small{display:block;color:#64748b;margin-top:6px}.parking-label-modal-footer .parking-label-tools{justify-content:flex-end;margin-bottom:0}
   @media(max-width:700px){.parking-label-filters{grid-template-columns:1fr 1fr}.parking-label-entry{align-items:flex-start;flex-direction:column}.parking-label-modal-head,.parking-label-dialog-body{padding:14px}.parking-label-modal-footer{padding:12px 14px!important}.parking-label-modal-footer .btn{flex:1 1 120px}.parking-label-review-table{max-height:30dvh}}
@@ -1550,7 +1550,7 @@
     <div id="floorplan-side-content" class="floorplan-side-content"></div>
   </aside>
 
-  <details id="fp-calibration" class="card" hidden><summary>機車位置校正（管理員）</summary><p class="muted-note">新版完整圖已建立機車專用定位。若需微調，可選擇機車編號並點選實際位置；圓圈、三角形內的大號碼為汽車位，不可作為機車位置。自訂圖需另行校正。</p><div class="fp-control-bar"><label for="fp-calibration-seat">機車車位</label><select id="fp-calibration-seat" onchange="cancelMotorcycleCalibration()"></select><button class="btn" onclick="startMotorcycleCalibration()">在圖上標記機車位置</button><button class="btn" id="fp-calibration-save" disabled onclick="saveMotorcycleAnchor()">確認機車位置並保存</button><button class="btn" onclick="cancelMotorcycleCalibration()">取消</button><button class="btn" onclick="removeMotorcycleAnchor()">移除本位校正</button></div><p id="fp-calibration-status" role="status"></p></details>
+  <details id="fp-calibration" class="card" hidden><summary>機車位置校正（管理員）</summary><p class="muted-note">新版完整圖已建立機車專用定位。若需微調，可選擇機車編號並點選實際位置；圓圈、三角形內的大號碼為汽車位，不可作為機車位置。自訂圖需另行校正。</p><div class="fp-control-bar"><label for="fp-calibration-seat">機車車位</label><select id="fp-calibration-seat" onchange="changeMotorcycleCalibrationSeat()"></select><button class="btn" onclick="startMotorcycleCalibration()">在圖上標記機車位置</button><button class="btn" id="fp-calibration-save" disabled onclick="saveMotorcycleAnchor()">確認機車位置並保存</button><button class="btn" onclick="cancelMotorcycleCalibration()">取消</button><button class="btn" onclick="removeMotorcycleAnchor()">移除本位校正</button></div><p id="fp-calibration-status" role="status"></p></details>
   <div class="round-tabs" id="fp-floor-tabs" role="group" aria-label="車位區域"><button type="button" class="round-tab active" id="fp-tab-1" onclick="switchFloorplan(1)">B1 區車位圖</button><button type="button" class="round-tab" id="fp-tab-2" onclick="switchFloorplan(2)">B2 區車位圖</button></div>
 
   <div id="floorplan-workspace" class="floorplan-workspace"><div class="floorplan-main">
@@ -1565,14 +1565,14 @@
       </div>
 
       <div id="fp-content-1" style="max-width:100%">
-        <div class="fp-image-container" id="fp-image-container-1"><img id="custom-fp-img-1" src="" onclick="captureMotorcycleAnchor(1,event)" style="display:none;max-width:100%;margin-bottom:2.5rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)"><div class="fp-image-anchors" id="fp-image-anchors-1"></div></div>
+        <div class="fp-image-container" id="fp-image-container-1" onclick="captureMotorcycleAnchor(1,event)"><img id="custom-fp-img-1" src="" style="display:none;max-width:100%;margin-bottom:2.5rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)"><div class="fp-image-anchors" id="fp-image-anchors-1"></div></div>
         <div class="fp-inner-box">
           <h4 style="color:#0f172a;margin-bottom:1.5rem;font-size:22px;font-weight:900">B1 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b1-grid"></div>
         </div>
       </div>
       <div id="fp-content-2" style="max-width:100%; display:none">
-        <div class="fp-image-container" id="fp-image-container-2"><img id="custom-fp-img-2" src="" onclick="captureMotorcycleAnchor(2,event)" style="display:none;max-width:100%;margin-bottom:2.5rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)"><div class="fp-image-anchors" id="fp-image-anchors-2"></div></div>
+        <div class="fp-image-container" id="fp-image-container-2" onclick="captureMotorcycleAnchor(2,event)"><img id="custom-fp-img-2" src="" style="display:none;max-width:100%;margin-bottom:2.5rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)"><div class="fp-image-anchors" id="fp-image-anchors-2"></div></div>
         <div class="fp-inner-box">
           <h4 style="color:#0f172a;margin-bottom:1.5rem;font-size:22px;font-weight:900">B2 機車位配置平面圖</h4>
           <div class="seat-grid" id="fp-b2-grid"></div>
@@ -14351,30 +14351,54 @@ var qrcode = function() {
 }
   function renderMotorcycleAnchors(){
  const panel=document.getElementById('fp-calibration');if(panel)panel.hidden=currentUser?.role!=='admin';
- const selector=document.getElementById('fp-calibration-seat');if(selector){const previous=selector.value;selector.innerHTML=floorplanUiState().matches.filter(seat=>floorplanSeatData(seat).floor===currentFloorplan).map(seat=>'<option value="'+seat+'">機車 '+seat+' 號</option>').join('');if(previous)selector.value=previous;if(!selector.value&&selector.options?.length)selector.selectedIndex=0;}
- for(const floor of [1,2]){const host=document.getElementById('fp-image-anchors-'+floor);if(!host)continue;const rows=[];for(let seat=1;seat<=(Number(systemSettings.totalSeats)||122);seat++){const anchor=verifiedMotorcycleAnchor(seat);if(anchor?.floor===floor&&(!standardMotorcycleAnchor(seat)||floorplanUiState().showAllImageAnchors||Number(highlightedSeat)===seat))rows.push(`<button type="button" class="fp-image-anchor ${Number(highlightedSeat)===seat?'selected':''}" id="fp-image-anchor-${seat}" style="left:${anchor.x*100}%;top:${anchor.y*100}%" aria-label="已確認的機車 ${seat} 號位置" onclick="selectFloorplanSeat(${seat})">${seat}</button>`);}const draft=floorplanCalibrationState().draft;if(draft?.floor===floor&&draft.imageKey===floorplanImageKey(floor))rows.push(`<span class="fp-image-anchor draft" style="left:${draft.x*100}%;top:${draft.y*100}%">${draft.seat}</span>`);host.innerHTML=rows.join('');}
- const save=document.getElementById('fp-calibration-save');if(save)save.disabled=!floorplanCalibrationState().draft||isLotteryDataFrozen();
- const note=document.getElementById('fp-calibration-status');if(note)note.textContent=floorplanCalibrationState().armed?'請點選掃描圖上的機車位置；不要點紅色手寫的汽車號碼。':floorplanCalibrationState().draft?'請確認標記位於機車號碼，再按「確認機車位置並保存」。':'僅以確認過的機車座標定位；未校正時定位至下方機車清單。更換圖檔後須重新校正。';
+ const selector=document.getElementById('fp-calibration-seat');if(selector){const previous=selector.value;selector.innerHTML=Array.from({length:Number(systemSettings.totalSeats)||122},(_,i)=>i+1).filter(seat=>floorplanSeatData(seat)?.floor===currentFloorplan).map(seat=>'<option value="'+seat+'">機車 '+seat+' 號</option>').join('');if(previous)selector.value=previous;if(!selector.value&&selector.options?.length)selector.selectedIndex=0;}
+ for(const floor of [1,2]){const host=document.getElementById('fp-image-anchors-'+floor);if(!host)continue;host.classList?.toggle?.('calibrating',floorplanCalibrationState().armed);const rows=[];for(let seat=1;seat<=(Number(systemSettings.totalSeats)||122);seat++){const anchor=verifiedMotorcycleAnchor(seat);if(anchor?.floor===floor&&floorplanCalibrationState().draft?.seat!==seat&&(!standardMotorcycleAnchor(seat)||systemSettings.motorcycleMapAnchors?.['b'+floor]?.imageKey===floorplanImageKey(floor)&&systemSettings.motorcycleMapAnchors?.['b'+floor]?.seats?.['s'+seat]?.confirmed===true||floorplanUiState().showAllImageAnchors||Number(highlightedSeat)===seat))rows.push(`<button type="button" class="fp-image-anchor ${Number(highlightedSeat)===seat?'selected':''}" id="fp-image-anchor-${seat}" style="left:${anchor.x*100}%;top:${anchor.y*100}%" aria-label="已確認的機車 ${seat} 號位置" onclick="selectFloorplanSeat(${seat})">${seat}</button>`);}const draft=floorplanCalibrationState().draft;if(draft?.floor===floor&&draft.imageKey===floorplanImageKey(floor))rows.push(`<span class="fp-image-anchor draft" style="left:${draft.x*100}%;top:${draft.y*100}%">${draft.seat}</span>`);host.innerHTML=rows.join('');}
+ const save=document.getElementById('fp-calibration-save');if(save)save.disabled=!floorplanCalibrationState().draft||!!floorplanCalibrationState().saving;
+ const note=document.getElementById('fp-calibration-status');if(note)note.textContent=floorplanCalibrationState().saving?'正在確認雲端版本並保存位置，請稍候。':floorplanCalibrationState().armed?'請點選掃描圖上的機車位置；不要點紅色手寫的汽車號碼。':floorplanCalibrationState().draft?'請確認標記位於機車號碼，再按「確認機車位置並保存」。':'僅以確認過的機車座標定位；未校正時定位至下方機車清單。更換圖檔後須重新校正。';
 }
   function startMotorcycleCalibration(){
- if(currentUser?.role!=='admin'||isLotteryDataFrozen())return false;const seat=Number(document.getElementById('fp-calibration-seat')?.value),data=floorplanSeatData(seat);if(!data||data.floor!==currentFloorplan||!floorplanImageKey(currentFloorplan)){showAppToast('請先選擇本區機車車位，並確認已上傳平面圖。','warn');return false;}floorplanCalibrationState().armed=true;floorplanCalibrationState().draft=null;renderMotorcycleAnchors();return true;
+ if(currentUser?.role!=='admin'){showAppToast('僅管理員可校正圖面位置。','warn');return false;}
+ const state=floorplanCalibrationState();if(state.saving){showAppToast('位置正在保存，請稍候。','info');return false;}
+ const reason=getMutationBlockReason();if(reason&&!['正在讀取最新雲端資料','尚有資料等待雲端確認保存'].includes(reason)){showAppToast(reason+'；完成後可校正位置。','warn');return false;}
+ const seat=Number(document.getElementById('fp-calibration-seat')?.value),data=floorplanSeatData(seat),key=floorplanImageKey(currentFloorplan);
+ if(!data||data.floor!==currentFloorplan||!key){showAppToast('請先選擇本區機車車位，並確認平面圖已載入。','warn');return false;}
+ state.target={seat,floor:currentFloorplan,imageKey:key};state.armed=true;state.draft=null;highlightedSeat=seat;floorplanUiState().selected=seat;
+ const ui=floorplanUiState();ui.drag=null;ui.suppressClickUntil=0;document.getElementById('fp-map-viewport')?.classList.remove('is-panning');hideFloorplanHover();renderMotorcycleAnchors();return true;
 }
   function captureMotorcycleAnchor(floor,event){
- const state=floorplanCalibrationState();if(!state.armed||currentUser?.role!=='admin')return false;
- event.preventDefault?.();event.stopPropagation?.();const seat=Number(document.getElementById('fp-calibration-seat')?.value),data=floorplanSeatData(seat),image=document.getElementById('custom-fp-img-'+floor),rect=image?.getBoundingClientRect?.();
- if(!data||data.floor!==Number(floor)||!rect||rect.width<=0||rect.height<=0)return false;const x=(event.clientX-rect.left)/rect.width,y=(event.clientY-rect.top)/rect.height;if(x<0||x>1||y<0||y>1)return false;
- state.draft={seat,floor:Number(floor),x,y,imageKey:floorplanImageKey(floor)};state.armed=false;renderMotorcycleAnchors();return true;
+ const state=floorplanCalibrationState();if(!state.armed||currentUser?.role!=='admin'||state.saving)return false;
+ event.preventDefault?.();event.stopPropagation?.();const target=state.target,seat=Number(document.getElementById('fp-calibration-seat')?.value),data=floorplanSeatData(seat),image=document.getElementById('custom-fp-img-'+floor),rect=image?.getBoundingClientRect?.();
+ if(!target||target.seat!==seat||target.floor!==Number(floor)||target.imageKey!==floorplanImageKey(floor)){cancelMotorcycleCalibration();showAppToast('圖檔或車位已變更，請重新按「在圖上標記機車位置」。','warn');return false;}
+ if(!data||data.floor!==Number(floor)||!rect||rect.width<=0||rect.height<=0){showAppToast('圖面尚未載入完成，請稍候再點選。','warn');return false;}
+ const x=(event.clientX-rect.left)/rect.width,y=(event.clientY-rect.top)/rect.height;if(!Number.isFinite(x)||!Number.isFinite(y)||x<0||x>1||y<0||y>1)return false;
+ state.draft={seat,floor:Number(floor),x,y,imageKey:target.imageKey};state.armed=false;highlightedSeat=seat;floorplanUiState().selected=seat;renderMotorcycleAnchors();return true;
 }
-  function cancelMotorcycleCalibration(){floorplanCalibrationState().armed=false;floorplanCalibrationState().draft=null;renderMotorcycleAnchors();}
+  function cancelMotorcycleCalibration(){const state=floorplanCalibrationState();if(state.saving)return false;state.armed=false;state.draft=null;state.target=null;renderMotorcycleAnchors();return true;}
   async function saveMotorcycleAnchor(){
- const draft=floorplanCalibrationState().draft;if(currentUser?.role!=='admin'||!draft)return false;
- return runResidentMutation('保存機車位置校正',async()=>{const data=floorplanSeatData(draft.seat);if(!data||data.floor!==draft.floor||draft.imageKey!==floorplanImageKey(draft.floor))throw new Error('圖檔或車位區域已變更，請重新校正');const old=systemSettings.motorcycleMapAnchors||{},key='b'+draft.floor,previous=old[key],seats=previous?.imageKey===draft.imageKey?{...previous.seats}:{};seats['s'+draft.seat]={x:draft.x,y:draft.y,vehicleType:'motorcycle',confirmed:true,confirmedBy:currentUser.name||'',confirmedAt:new Date().toISOString()};
- systemSettings.motorcycleMapAnchors={...old,[key]:{imageKey:draft.imageKey,seats}};
- await addLog('設定','保存機車 '+draft.seat+' 號圖上位置（非汽車車位）',{sync:false});if(!await cloudSyncPush({includeMedia:true}))return false;floorplanCalibrationState().draft=null;floorplanCalibrationState().armed=false;renderMotorcycleAnchors();showAppToast('已保存確認過的機車位置。','success');return true;},['admin']);
+ const state=floorplanCalibrationState(),draft=state.draft;if(currentUser?.role!=='admin'||!draft||state.saving)return false;
+ const actor=JSON.stringify([currentUser.username,currentUser.name,currentUser.role]);state.saving=true;renderMotorcycleAnchors();
+ try{return await runResidentMutation('保存機車位置校正',async()=>{
+  if(JSON.stringify([currentUser?.username,currentUser?.name,currentUser?.role])!==actor)throw new Error('登入身分已變更，請重新確認');
+  const data=floorplanSeatData(draft.seat);if(!data||data.floor!==draft.floor||draft.imageKey!==floorplanImageKey(draft.floor))throw new Error('圖檔或車位區域已變更，請重新校正');
+  const old=systemSettings.motorcycleMapAnchors||{},key='b'+draft.floor,previous=old[key],seats=previous?.imageKey===draft.imageKey?{...previous.seats}:{};
+  seats['s'+draft.seat]={x:draft.x,y:draft.y,vehicleType:'motorcycle',confirmed:true,confirmedBy:currentUser.name||'',confirmedAt:new Date().toISOString()};
+  await persistMotorcycleAnchors({...old,[key]:{imageKey:draft.imageKey,seats}},'保存機車 '+draft.seat+' 號圖上位置（非汽車車位）');
+  state.draft=null;state.armed=false;state.target=null;highlightedSeat=Number(draft.seat);floorplanUiState().selected=Number(draft.seat);showAppToast('已保存機車 '+draft.seat+' 號的新位置，並完成雲端核對。','success');return true;
+ },['admin']);}finally{state.saving=false;renderMotorcycleAnchors();}
 }
   async function removeMotorcycleAnchor(){
- const seat=Number(document.getElementById('fp-calibration-seat')?.value),data=floorplanSeatData(seat);if(currentUser?.role!=='admin'||!data||!verifiedMotorcycleAnchor(seat))return false;if(!confirm('移除機車 '+seat+' 號的圖上座標？只影響圖上定位，不影響抽籤結果。'))return false;
- return runResidentMutation('移除機車位置校正',async()=>{const key='b'+data.floor,map=systemSettings.motorcycleMapAnchors?.[key];if(!map)return false;const seats={...map.seats};delete seats['s'+seat];systemSettings.motorcycleMapAnchors={...systemSettings.motorcycleMapAnchors,[key]:{...map,seats}};await addLog('設定','移除機車 '+seat+' 號圖上座標',{sync:false});if(!await cloudSyncPush({includeMedia:true}))return false;cancelMotorcycleCalibration();return true;},['admin']);
+ const state=floorplanCalibrationState(),seat=Number(document.getElementById('fp-calibration-seat')?.value),data=floorplanSeatData(seat);
+ if(currentUser?.role!=='admin'||!data||state.saving)return false;
+ const map=systemSettings.motorcycleMapAnchors?.['b'+data.floor];
+ if(map?.imageKey!==floorplanImageKey(data.floor)||!map?.seats?.['s'+seat]){showAppToast('此車位沒有人工校正紀錄；目前顯示的是內建位置。','info');return false;}
+ if(!confirm('移除機車 '+seat+' 號的人工校正？將恢復內建定位（如有），不影響抽籤結果。'))return false;
+ const imageKey=floorplanImageKey(data.floor);state.saving=true;renderMotorcycleAnchors();
+ try{return await runResidentMutation('移除機車位置校正',async()=>{
+  if(imageKey!==floorplanImageKey(data.floor))throw new Error('平面圖已變更，請重新確認');
+  const old=systemSettings.motorcycleMapAnchors||{},key='b'+data.floor,current=old[key];if(current?.imageKey!==imageKey||!current?.seats?.['s'+seat])throw new Error('校正紀錄已變更，請重新確認');
+  const seats={...current.seats};delete seats['s'+seat];await persistMotorcycleAnchors({...old,[key]:{...current,seats}},'移除機車 '+seat+' 號人工校正，恢復內建位置（如有）');
+  state.armed=false;state.draft=null;state.target=null;return true;
+ },['admin']);}finally{state.saving=false;renderMotorcycleAnchors();}
 }
   function standardMotorcycleMaps(){
  if(standardMotorcycleMaps.data)return standardMotorcycleMaps.data;const text=document.getElementById('standard-floorplan-data')?.textContent;if(!text)return null;
@@ -14908,6 +14932,20 @@ var qrcode = function() {
   return '<div class="supplemental-round-row'+(primary?' supplemental-round-next':'')+(compact?' supplemental-round-compact':'')+'"><div class="supplemental-round-info"><div class="supplemental-round-heading"><strong>'+report.round+'</strong><span class="status-'+status+'">'+(primary?'建議下一步':compact?'無須補抽':!report.completed?'尚未執行':'待處理')+'</span></div><p>'+escapeHtml(reason)+'</p>'+(!compact?'<div class="supplemental-round-counts">符合資格 <b>'+count+'</b> 戶<span>可補抽 <b>'+report.seats.length+'</b> 位</span></div>':'')+(!compact&&sources?'<small>車位來源：'+escapeHtml(sources)+'</small>':'')+'</div>'+(!compact?'<button class="btn'+(primary?' btn-primary':'')+'" onclick="openSupplementalReview('+registrationArg(report.round)+')"'+(!report.completed||blocked?' disabled':'')+'>'+ (primary?'查看名單與覆核':'查看資格名單')+'</button>':'')+'</div>';
  }).join('');
  const rollback=document.getElementById('supplemental-rollback-rounds');if(rollback)rollback.innerHTML=rounds.map(round=>getSupplementalRollbackPlan(round)).filter(plan=>plan.records.length).map(plan=>'<div class="supplemental-rollback-row"><div><strong>'+plan.round+'</strong><p class="muted-note">'+(plan.ok?'影響 '+plan.records.length+' 次補抽、'+plan.entries.length+' 筆分配；保留原正式抽籤結果。':escapeHtml(plan.errors.join('；')) )+'</p></div><button class="btn btn-danger btn-sm" onclick="clearSupplementalResults('+registrationArg(plan.round)+')"'+(!plan.ok?' disabled':'')+'>撤回'+plan.round+'補抽</button></div>').join('')||'<p class="muted-note">目前沒有可撤回的補抽紀錄。</p>';
+}
+  function changeMotorcycleCalibrationSeat(){
+ const state=floorplanCalibrationState();if(state.saving)return false;
+ state.armed=false;state.draft=null;state.target=null;
+ const seat=Number(document.getElementById('fp-calibration-seat')?.value),data=floorplanSeatData(seat);
+ if(data&&data.floor===currentFloorplan){highlightedSeat=seat;floorplanUiState().selected=seat;}
+ renderMotorcycleAnchors();return true;
+}
+  async function persistMotorcycleAnchors(anchors,message){
+ // 座標與稽核一次更新；不重送平面圖、手冊、住戶或抽籤結果。
+ const event={id:registrationNewId('map_anchor'),type:'設定',time:systemDateTime(new Date()),isoTime:new Date().toISOString(),user:currentUser.name||'',msg:message};
+ const ok=await updateRegistrationFormPaths({'systemSettings/motorcycleMapAnchors':anchors,'media/motorcycleMapAnchors':anchors,systemLogs:[event]});
+ if(ok!==true)throw new Error(lastOperationFailure?.reason||syncOutcome.detail||'座標保存未取得雲端確認');
+ systemSettings.motorcycleMapAnchors=anchors;updateSyncStatusUI(true,'雲端已同步');return true;
 }
 </script>
   
