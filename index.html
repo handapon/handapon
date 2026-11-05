@@ -427,6 +427,7 @@
      既浪費紙墨、深色區塊印出來又是一大片黑，非常不好讀也不專業。
      這裡加上完整的列印樣式：只保留當前頁面的實際資料內容，隱藏所有互動元件，
      改用乾淨的純黑白配色與適合紙本閱讀的字級間距，並加上頁首（社區名稱＋列印時間）。 */
+  .supplemental-round-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0;border-bottom:1px solid #e2e8f0}.supplemental-round-info{min-width:0}.supplemental-round-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.supplemental-round-heading>span{font-size:12px;padding:2px 8px;border-radius:var(--radius-sm)}.supplemental-round-info p{margin:6px 0;color:#64748b;font-size:13px}.supplemental-round-info small{display:block;color:#64748b;margin-top:8px;line-height:1.6}.supplemental-round-counts{font-size:14px;font-variant-numeric:tabular-nums}.supplemental-round-counts span{margin-left:20px}.supplemental-round-counts b{font-size:20px;font-weight:700}.supplemental-round-row>.btn{flex-shrink:0;min-height:44px}.supplemental-round-next{background:#f8fafc;padding:18px;border:1px solid #dbe3ef;border-radius:var(--radius-card);margin:12px 0}.supplemental-round-compact{padding:12px 0}.supplemental-rules{margin-top:16px;font-size:13px}.supplemental-rules summary,.supplemental-danger summary{cursor:pointer}.supplemental-danger{margin-top:24px;border-top:1px solid #fecaca;padding-top:16px}.supplemental-danger>summary{color:#b91c1c;font-size:13px}.supplemental-rollback-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0}.supplemental-rollback-row>.btn{flex-shrink:0}@media(max-width:640px){.supplemental-round-row{align-items:stretch;flex-direction:column;gap:12px}.supplemental-round-row>.btn{width:100%}.supplemental-round-next{padding:16px}.supplemental-rollback-row{align-items:stretch;flex-direction:column}}
   #print-header{display:none}
   #announcement-sheet{display:none}
   #notification-slip{display:none}
@@ -445,6 +446,10 @@
   .swap-form-sign-label{font-weight:900;margin-bottom:42px}
   .swap-form-footer{font-size:12px;color:#444;margin-top:18px;line-height:1.6}
   @media print {
+    /* 操作與同步提示僅供螢幕使用，含列印期間新增的提示也不得輸出。 */
+    #app-toast-host,.app-toast-host,.app-toast,[data-screen-only="true"]{
+      display:none!important;visibility:hidden!important;opacity:0!important;
+    }
     .announcement-verify svg{display:block;width:32mm;height:32mm;flex:0 0 32mm;background:#fff;shape-rendering:crispEdges}
     body.printing-results .page{display:none!important}
     body.printing-results #page-results,body.printing-results #results-query-panel,body.printing-results #results-table-wrap{display:block!important}
@@ -1275,9 +1280,10 @@
   </div>
 
   <section class="card" id="supplemental-lottery-center">
-    <div class="card-title">同輪補抽</div><p class="muted-note">正式輪次有住戶棄權時，先由較早輪次的原未中籤者補抽。第一輪無待補者時，釋出車位可供第二輪補抽；保留既有結果，不必清除或重抽整輪。</p>
-    <div class="btn-row"><button class="btn" onclick="openSupplementalReview('第一輪')">第一輪補抽覆核</button><button class="btn" onclick="openSupplementalReview('第二輪')">第二輪補抽覆核</button><button class="btn" onclick="openSupplementalReview('第三輪')">第三輪補抽覆核</button></div>
-    <details style="margin-top:20px;border-top:1px solid #fecaca;padding-top:12px"><summary style="color:#b91c1c;cursor:pointer">測試／除錯：僅撤回補抽結果</summary><p class="muted-note">只撤回選定輪次的補抽，保留原正式中籤結果。先顯示影響範圍並備份；已有後續互換、棄權或遞補時會阻擋。補抽紀錄保留並標示已撤回。</p><div class="btn-row"><button class="btn btn-danger btn-sm" onclick="clearSupplementalResults('第一輪')">僅撤回第一輪補抽</button><button class="btn btn-danger btn-sm" onclick="clearSupplementalResults('第二輪')">僅撤回第二輪補抽</button><button class="btn btn-danger btn-sm" onclick="clearSupplementalResults('第三輪')">僅撤回第三輪補抽</button></div></details>
+    <div class="card-title">同輪補抽</div><p class="muted-note">依原報名資格補抽釋出車位，保留既有中籤結果。</p>
+    <div id="supplemental-rounds" aria-live="polite"></div>
+    <details class="supplemental-rules"><summary>補抽規則</summary><p class="muted-note">釋出車位優先供原報名未中籤者補抽；第一輪無待補抽者時，由第二輪開始。若第一輪仍有符合資格的未中籤者，優先處理第一輪；第二輪有待補抽者時，先處理第二輪，再辦第三輪或候補。</p></details>
+    <details class="supplemental-danger"><summary>進階操作：撤回補抽結果</summary><p class="muted-note">只撤回選定輪次的補抽，保留原正式中籤結果。撤回前確認影響範圍並備份；已有後續互換、棄權或遞補時會阻擋。</p><div id="supplemental-rollback-rounds"></div></details>
   </section>
   <details class="advanced-ops" id="lottery-waitlist-ops">
     <summary>候補作業與遞補抽籤</summary>
@@ -3550,6 +3556,7 @@
   function ensureToastHost(){
     let host = document.getElementById('app-toast-host');
     if(!host){ host = document.createElement('div'); host.id='app-toast-host'; host.className='app-toast-host'; document.body.appendChild(host); }
+    host.setAttribute('data-screen-only','true');
     return host;
   }
   function showAppToast(message, type='info', duration){
@@ -6973,6 +6980,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
   function updateLotteryCards() {
     normalizeSystemSettings();
     renderLotteryRegistrationSummary();
+    renderSupplementalCenter();
     const voidCount = systemSettings.voidSeats ? systemSettings.voidSeats.length : 0;
     const baseAvailable = systemSettings.totalSeats - voidCount;
 
@@ -8685,7 +8693,7 @@ ${plateErrors.map(x => '• ' + x).join('\n')}\n\n請依台灣汽機車號牌格
  if(!canPublishLotteryResults())return false;const state=exportResultsPDF;if(state.busy)return false;state.busy=true;const round=currentResultRound;
  try{if(!await waitForOperationReady('下載結果PDF'))return false;if(!canPublishLotteryResults()||!cloudSyncReady||syncRecoveryNeedsReview)throw new Error('資料或身分尚未確認，請重新整理後再匯出');
   const table=document.getElementById('results-table'),head=table?.querySelector('thead'),body=table?.querySelector('tbody');if(!head||!body)throw new Error('結果表格尚未載入，請先開啟查詢結果');
-  const clean=node=>String(node?.querySelector?.('code')?.textContent||node?.textContent||'').replace(/[⇅▲▼↕]/g,'').trim(),allColumns=[...head.querySelectorAll('th')],indices=allColumns.map((node,i)=>({label:clean(node),i})).filter(item=>!['操作','列印','刪除'].some(word=>item.label.includes(word))),rows=[...body.querySelectorAll('tr')].map(tr=>{const cells=[...tr.querySelectorAll('td')];return cells.length===allColumns.length?indices.map(item=>clean(cells[item.i])):null}).filter(Boolean),version=getLotteryDataVersion(),actor=JSON.stringify([currentUser.username,currentUser.name,currentUser.role]);
+  const clean=resultExportCellText,allColumns=[...head.querySelectorAll('th')],indices=allColumns.map((node,i)=>({label:clean(node),i})).filter(item=>!['操作','列印','刪除'].some(word=>item.label.includes(word))),rows=[...body.querySelectorAll('tr')].map(tr=>{const cells=[...tr.querySelectorAll('td')];return cells.length===allColumns.length?indices.map(item=>clean(cells[item.i])):null}).filter(Boolean),version=getLotteryDataVersion(),actor=JSON.stringify([currentUser.username,currentUser.name,currentUser.role]);
   if(!indices.length)throw new Error('結果欄位尚未載入，請先開啟查詢結果');const localVersion=version.split('-').slice(1).join('-');
   const blob=await createAdministrativePdf({title:(systemSettings.appTitle||'社區機車位抽籤系統')+' 結果報表',subtitle:round+'｜目前查詢結果 '+rows.length+' 筆；僅匯出目前套用的篩選範圍。',landscape:true,columns:indices.map(item=>({label:item.label,width:item.label.includes('姓名')||item.label.includes('門牌')?1.5:1})),rows,footer:systemDateTime(new Date())+' | 版本 '+version});
   if(!canPublishLotteryResults()||JSON.stringify([currentUser.username,currentUser.name,currentUser.role])!==actor||getLotteryDataVersion()!==version)throw new Error('產製期間資料變更，請重新匯出');
@@ -14881,6 +14889,25 @@ var qrcode = function() {
  for(const key of ['time','deadline']){const hint=document.getElementById('supplemental-notice-'+key+'-display');if(hint)hint.textContent=details[key]?'輸出：'+details[key].replace('T',' ').replace(/-/g,'/'):'請選擇日期、時、分（24 小時制）';}
  for(const id of ['supplemental-notice-pdf','supplemental-notice-html','supplemental-notice-text']){const node=document.getElementById(id);if(node)node.disabled=state.busy||state.loadingReview||!count||stale||validation.errors.length>0;}
  const preview=document.getElementById('supplemental-notice-preview'),frame=document.getElementById('supplemental-notice-preview-frame');if(preview?.open&&frame){if(stale||validation.errors.length){frame.srcdoc='<p>請先完成時間設定及名單覆核，再預覽通知。</p>';return;}try{frame.srcdoc=supplementalNoticeHtml(makeSupplementalNoticeSnapshot(getSupplementalReport(state.round),details)).replace(/<button\b[\s\S]*?<\/button>/g,'');}catch(error){frame.srcdoc='<p>'+escapeHtml(operationErrorText(error))+'</p>';}}
+}
+  function resultExportCellText(node){
+ if(!node)return '';
+ // 使用獨立複本清除螢幕提示，保留畫面原節點與車牌顯示。
+ const copy=typeof node.cloneNode==='function'?node.cloneNode(true):node;
+ if(copy!==node)copy.querySelectorAll('#app-toast-host,.app-toast-host,.app-toast,[data-screen-only="true"]').forEach(item=>item.remove());
+ return String(copy.querySelector?.('code')?.textContent||copy.textContent||'').replace(/[⇅▲▼↕]/g,'').trim();
+}
+  function renderSupplementalCenter(){
+ const host=document.getElementById('supplemental-rounds');if(!host)return;
+ const rounds=['第一輪','第二輪','第三輪'],reports=rounds.map(round=>getSupplementalReport(round)),next=reports.find(report=>report.completed&&report.candidates.length&&report.seats.length);
+ host.innerHTML=reports.map((report,index)=>{
+  const count=report.candidates.length,primary=next?.round===report.round,blocked=!!next&&index>rounds.indexOf(next.round),compact=report.completed&&!count;
+  const reason=!report.completed?'尚未完成正式抽籤':compact?'無符合資格的待補抽者，無須補抽':blocked?'優先處理'+next.round:!report.seats.length?'尚無棄權釋出車位':'可進行補抽覆核';
+  const status=compact?'complete':primary?'action':'pending';
+  const sources=rounds.map(round=>{const n=report.released.filter(item=>item.round===round).length;return n?round+'釋出 '+n+' 位':'';}).filter(Boolean).join('、');
+  return '<div class="supplemental-round-row'+(primary?' supplemental-round-next':'')+(compact?' supplemental-round-compact':'')+'"><div class="supplemental-round-info"><div class="supplemental-round-heading"><strong>'+report.round+'</strong><span class="status-'+status+'">'+(primary?'建議下一步':compact?'無須補抽':!report.completed?'尚未執行':'待處理')+'</span></div><p>'+escapeHtml(reason)+'</p>'+(!compact?'<div class="supplemental-round-counts">符合資格 <b>'+count+'</b> 戶<span>可補抽 <b>'+report.seats.length+'</b> 位</span></div>':'')+(!compact&&sources?'<small>車位來源：'+escapeHtml(sources)+'</small>':'')+'</div>'+(!compact?'<button class="btn'+(primary?' btn-primary':'')+'" onclick="openSupplementalReview('+registrationArg(report.round)+')"'+(!report.completed||blocked?' disabled':'')+'>'+ (primary?'查看名單與覆核':'查看資格名單')+'</button>':'')+'</div>';
+ }).join('');
+ const rollback=document.getElementById('supplemental-rollback-rounds');if(rollback)rollback.innerHTML=rounds.map(round=>getSupplementalRollbackPlan(round)).filter(plan=>plan.records.length).map(plan=>'<div class="supplemental-rollback-row"><div><strong>'+plan.round+'</strong><p class="muted-note">'+(plan.ok?'影響 '+plan.records.length+' 次補抽、'+plan.entries.length+' 筆分配；保留原正式抽籤結果。':escapeHtml(plan.errors.join('；')) )+'</p></div><button class="btn btn-danger btn-sm" onclick="clearSupplementalResults('+registrationArg(plan.round)+')"'+(!plan.ok?' disabled':'')+'>撤回'+plan.round+'補抽</button></div>').join('')||'<p class="muted-note">目前沒有可撤回的補抽紀錄。</p>';
 }
 </script>
   
